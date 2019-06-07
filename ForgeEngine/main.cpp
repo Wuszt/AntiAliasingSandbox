@@ -8,8 +8,6 @@
 #include <d3dcompiler.h>
 #include <DirectXMath.h>
 
-
-
 using namespace DirectX;
 
 //Global Declarations - Interfaces//
@@ -20,19 +18,32 @@ ID3D11RenderTargetView* renderTargetView;
 
 ID3D11Buffer* VertBuffer;
 ID3D11Buffer* IndexBuffer;
+ID3D11DepthStencilView* depthStencilView;
+ID3D11Texture2D* depthStencilBuffer;
+
 ID3D11VertexShader* VS;
 ID3D11PixelShader* PS;
 ID3D10Blob* VS_Buffer;
 ID3D10Blob* PS_Buffer;
 ID3D11InputLayout* vertLayout;
+ID3D11Buffer* cbPerObjectBuffer;
 
 //Global Declarations - Others//
 LPCTSTR WndClassName = "firstwindow";
 HWND hwnd = NULL;
 HRESULT hr;
 
-const int Width = 300;
-const int Height = 300;
+const int Width = 1024;
+const int Height = 1024;
+
+XMMATRIX WVP;
+XMMATRIX World;
+XMMATRIX camView;
+XMMATRIX camProjection;
+
+XMVECTOR camPos;
+XMVECTOR camLookAt;
+XMVECTOR camUp;
 
 //Function Prototypes//
 bool InitializeDirect3d11App(HINSTANCE hInstance);
@@ -64,6 +75,13 @@ struct Vertex	//Overloaded Vertex Structure
     XMFLOAT3 pos;
     XMFLOAT4 color;
 };
+
+struct cbPerObject
+{
+    XMMATRIX WVP;
+};
+
+cbPerObject cbPerObj;
 
 D3D11_INPUT_ELEMENT_DESC layout[] =
 {
@@ -216,8 +234,24 @@ bool InitializeDirect3d11App(HINSTANCE hInstance)
     hr = d3d11Device->CreateRenderTargetView(BackBuffer, NULL, &renderTargetView);
     BackBuffer->Release();
 
+    D3D11_TEXTURE2D_DESC depthStencilDesc;
+    ZeroMemory(&depthStencilDesc, sizeof(depthStencilDesc));
+
+    depthStencilDesc.Width = Width;
+    depthStencilDesc.Height = Height;
+    depthStencilDesc.MipLevels = 1;
+    depthStencilDesc.ArraySize = 1;
+    depthStencilDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+    depthStencilDesc.SampleDesc.Count = 1;
+    depthStencilDesc.SampleDesc.Quality = 0;
+    depthStencilDesc.Usage = D3D11_USAGE_DEFAULT;
+    depthStencilDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+
+    d3d11Device->CreateTexture2D(&depthStencilDesc, nullptr, &depthStencilBuffer);
+    d3d11Device->CreateDepthStencilView(depthStencilBuffer, nullptr, &depthStencilView);
+
     //Set our Render Target
-    d3d11DevCon->OMSetRenderTargets(1, &renderTargetView, NULL);
+    d3d11DevCon->OMSetRenderTargets(1, &renderTargetView, depthStencilView);
 
     return true;
 }
@@ -236,6 +270,11 @@ void CleanUp()
     VS_Buffer->Release();
     PS_Buffer->Release();
     vertLayout->Release();
+
+    cbPerObjectBuffer->Release();
+
+    depthStencilBuffer->Release();
+    depthStencilView->Release();
 }
 
 bool InitScene()
@@ -255,6 +294,11 @@ bool InitScene()
     //Create the vertex buffer
     Vertex v[] =
     {
+    Vertex(-0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 0.0f, 1.0f),
+    Vertex(-0.5f,  0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 1.0f),
+    Vertex(0.5f,  0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 1.0f),
+    Vertex(0.5f, -0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 1.0f),
+
     Vertex(-0.5f, -0.5f, 0.5f, 1.0f, 0.0f, 0.0f, 1.0f),
     Vertex(-0.5f,  0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 1.0f),
     Vertex(0.5f,  0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 1.0f),
@@ -263,7 +307,23 @@ bool InitScene()
 
     DWORD indices[] =
     {
-        0,1,2,0,2,3
+        0,1,2,
+        0,2,3,
+
+        7,6,5,
+        7,5,4,
+
+        3,2,6,
+        3,6,7,
+
+        0,4,1,
+        1,4,5,
+
+        1,5,2,
+        2,5,6,
+
+        0,3,4,
+        3,7,4
     };
 
     D3D11_BUFFER_DESC indexBufferDesc;
@@ -273,7 +333,7 @@ bool InitScene()
     iinitData.pSysMem = indices;
 
     indexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-    indexBufferDesc.ByteWidth = sizeof(DWORD) * 2 * 3; //indices amount
+    indexBufferDesc.ByteWidth = sizeof(DWORD) * 12 * 3; //indices amount
     d3d11Device->CreateBuffer(&indexBufferDesc, &iinitData, &IndexBuffer);
     d3d11DevCon->IASetIndexBuffer(IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
 
@@ -281,7 +341,7 @@ bool InitScene()
     ZeroMemory(&vertexBufferDesc, sizeof(vertexBufferDesc));
 
     vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-    vertexBufferDesc.ByteWidth = sizeof(Vertex) * 4;
+    vertexBufferDesc.ByteWidth = sizeof(Vertex) * 8;
     vertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
     vertexBufferDesc.CPUAccessFlags = 0;
     vertexBufferDesc.MiscFlags = 0;
@@ -315,9 +375,28 @@ bool InitScene()
     viewport.TopLeftY = 0;
     viewport.Width = Width;
     viewport.Height = Height;
+    viewport.MinDepth = 0.0f;
+    viewport.MaxDepth = 1.0f;
 
     //Set the Viewport
     d3d11DevCon->RSSetViewports(1, &viewport);
+
+    D3D11_BUFFER_DESC cbbd;
+    ZeroMemory(&cbbd, sizeof(D3D11_BUFFER_DESC));
+
+    cbbd.Usage = D3D11_USAGE_DEFAULT;
+    cbbd.ByteWidth = sizeof(cbPerObject);
+    cbbd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+
+    hr = d3d11Device->CreateBuffer(&cbbd, nullptr, &cbPerObjectBuffer);
+
+    camPos = XMVectorSet(0.0f, 0.0f, -5.0f, 0.0f);
+    camLookAt = XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f);
+    camUp = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+
+    camView = XMMatrixLookAtLH(camPos, camLookAt, camUp);
+
+    camProjection = XMMatrixPerspectiveFovLH(0.4f * 3.14f, (float)Width / Height, 1.0f, 1000.0f);
 
     return true;
 }
@@ -329,12 +408,28 @@ void UpdateScene()
 
 void DrawScene()
 {
+    static float debug = 0;
+    debug += 0.0001f;
+
     //Clear our backbuffer
     float bgColor[4] = { (0.0f, 0.0f, 0.0f, 0.0f) };
     d3d11DevCon->ClearRenderTargetView(renderTargetView, bgColor);
 
+    d3d11DevCon->ClearDepthStencilView(depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+
+    World = XMMatrixIdentity();
+    World *= XMMatrixRotationX(debug);
+    World *= XMMatrixRotationY(sinf(debug));
+
+    WVP = World * camView * camProjection;
+    cbPerObj.WVP = XMMatrixTranspose(WVP);
+
+    d3d11DevCon->UpdateSubresource(cbPerObjectBuffer, 0, nullptr, &cbPerObj, 0, 0);
+
+    d3d11DevCon->VSSetConstantBuffers(0, 1, &cbPerObjectBuffer);
+
     //Draw the triangle
-    d3d11DevCon->DrawIndexed(6, 0, 0);
+    d3d11DevCon->DrawIndexed(36, 0, 0);
 
     //Present the backbuffer to the screen
     SwapChain->Present(0, 0);
