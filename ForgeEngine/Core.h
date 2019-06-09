@@ -12,30 +12,38 @@ class Window;
 class Core
 {
 public:
-    Core(HINSTANCE hInstance, int ShowWnd, int width, int height);
+    Core(const HINSTANCE& hInstance, const int& ShowWnd, const int& width, const int& height);
     virtual ~Core();
 
     void Run();
 
-    bool InitializeDirect3d11App(HINSTANCE hInstance);
+protected:
+    virtual HRESULT InitializeD3D(const HINSTANCE& hInstance);
+    virtual HRESULT InitializeSwapChain();
+    virtual HRESULT InitializeDepthStencilBuffer();
+
+    int m_width;
+    int m_height;
+
+private:
+    void FillDepthStencilDescWithDefaultValues(D3D11_TEXTURE2D_DESC& desc);
+    void FillSwapChainBufferDescWithDefaultValues(DXGI_MODE_DESC& desc);
+    void FillSwapChainDescWithDefaultValues(DXGI_SWAP_CHAIN_DESC& desc);
+
     bool InitScene();
     void UpdateScene();
     void DrawScene();
 
-private:
-    int m_width;
-    int m_height;
+    IDXGISwapChain* m_swapChain;
+    ID3D11Device* m_d3Device;
+    ID3D11DeviceContext* m_d3DeviceContext;
+    ID3D11RenderTargetView* m_renderTargetView;
+    ID3D11DepthStencilView* m_depthStencilView;
+    ID3D11Texture2D* m_depthStencilBuffer;
 
-    IDXGISwapChain* SwapChain;
-    ID3D11Device* d3d11Device;
-    ID3D11DeviceContext* d3d11DevCon;
-    ID3D11RenderTargetView* renderTargetView;
+    Window* m_window;
 
-    ID3D11Buffer* VertBuffer;
-    ID3D11Buffer* IndexBuffer;
-    ID3D11DepthStencilView* depthStencilView;
-    ID3D11Texture2D* depthStencilBuffer;
-
+    //to move
     ID3D11VertexShader* VS;
     ID3D11PixelShader* PS;
     ID3D10Blob* VS_Buffer;
@@ -43,7 +51,8 @@ private:
     ID3D11InputLayout* vertLayout;
     ID3D11Buffer* cbPerObjectBuffer;
 
-    HRESULT hr;
+    ID3D11Buffer* VertBuffer;
+    ID3D11Buffer* IndexBuffer;
 
     DirectX::XMMATRIX WVP;
     DirectX::XMMATRIX World;
@@ -54,13 +63,11 @@ private:
     DirectX::XMVECTOR camLookAt;
     DirectX::XMVECTOR camUp;
 
-    Window* m_window;
-
-    struct Vertex	//Overloaded Vertex Structure
+    struct Vertex
     {
         Vertex() {}
-        Vertex(float x, float y, float z,
-            float cr, float cg, float cb, float ca)
+        Vertex(const float& x, const float& y, const float& z,
+            const float& cr, const float& cg, const float& cb, const float& ca)
             : pos(x, y, z), color(cr, cg, cb, ca) {}
 
         DirectX::XMFLOAT3 pos;
@@ -80,5 +87,7 @@ private:
         { "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
     };
     UINT numElements = ARRAYSIZE(layout);
+
+    //end to move
 };
 
