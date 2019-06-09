@@ -4,14 +4,21 @@
 class Window
 {
 public:
-    Window(HINSTANCE hInstance, int ShowWnd, int width, int height, bool windowed);
+    Window(const HINSTANCE& hInstance,const int& ShowWnd,const int& width,const int& height,const bool& windowed);
     ~Window();
 
-    //LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
+    void Update();
+
 private:
     HWND m_hwnd;
+    bool m_isAlive = true;
+    
+    inline void SetAsDead() { m_isAlive = false; }
+
+    static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 public:
     inline HWND* GetHWND() { return &m_hwnd; }
+    inline bool IsAlive() const { return m_isAlive; }
 };
 

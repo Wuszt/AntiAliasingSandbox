@@ -10,7 +10,6 @@ Core::Core(HINSTANCE hInstance, int ShowWnd, int width, int height)
     m_width = width;
     m_height = height;
 
-
     if (!InitializeDirect3d11App(hInstance))
     {
         MessageBox(0, "Direct3D Initialization - Failed",
@@ -32,30 +31,12 @@ Core::~Core()
 
 void Core::Run()
 {
-    MSG msg;
-    ZeroMemory(&msg, sizeof(MSG));
-    while (true)
-    {
-        BOOL PeekMessageL(
-            LPMSG lpMsg,
-            HWND hWnd,
-            UINT wMsgFilterMin,
-            UINT wMsgFilterMax,
-            UINT wRemoveMsg
-        );
 
-        if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
-        {
-            if (msg.message == WM_QUIT)
-                break;
-            TranslateMessage(&msg);
-            DispatchMessage(&msg);
-        }
-        else {
-            // run game code            
-            UpdateScene();
-            DrawScene();
-        }
+    while (m_window->IsAlive())
+    {
+        m_window->Update();
+        UpdateScene();
+        DrawScene();
     }
 }
 

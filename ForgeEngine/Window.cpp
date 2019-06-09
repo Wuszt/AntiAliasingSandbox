@@ -1,10 +1,7 @@
 #include "Window.h"
 #include <exception>
 
-LRESULT CALLBACK WndProc(HWND hwnd,
-    UINT msg,
-    WPARAM wParam,
-    LPARAM lParam)
+LRESULT CALLBACK Window::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
     switch (msg)
     {
@@ -17,14 +14,20 @@ LRESULT CALLBACK WndProc(HWND hwnd,
     case WM_DESTROY:
         PostQuitMessage(0);
         return 0;
+
+    case WM_NCDESTROY:
+        Window* window = (Window*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
+        window->SetAsDead();
+        return 0;
     }
+
     return DefWindowProc(hwnd,
         msg,
         wParam,
         lParam);
 }
 
-Window::Window(HINSTANCE hInstance, int ShowWnd, int width, int height, bool windowed)
+Window::Window(const HINSTANCE& hInstance, const int& ShowWnd, const int& width, const int& height, const bool& windowed)
 {
     typedef struct _WNDCLASS {
         UINT cbSize;
@@ -63,21 +66,23 @@ Window::Window(HINSTANCE hInstance, int ShowWnd, int width, int height, bool win
     }
 
     m_hwnd = CreateWindowEx(
-        NULL,
+        0,
         "ForgeEngine",
         "ForgeEngine",
         WS_OVERLAPPEDWINDOW,
         CW_USEDEFAULT, CW_USEDEFAULT,
         width, height,
-        NULL,
-        NULL,
+        nullptr,
+        nullptr,
         hInstance,
-        NULL
+        nullptr
     );
+
+    SetWindowLongPtrA(m_hwnd, GWLP_USERDATA, (LONG_PTR)this);
 
     if (!m_hwnd)
     {
-        MessageBox(NULL, "Error creating window",
+        MessageBox(nullptr, "Error creating window",
             "Error", MB_OK | MB_ICONERROR);
         throw std::exception("Error creating window");
     }
@@ -88,4 +93,24 @@ Window::Window(HINSTANCE hInstance, int ShowWnd, int width, int height, bool win
 
 Window::~Window()
 {
+}
+
+void Window::Update()
+{
+    MSG msg;
+    ZeroMemory(&msg, sizeof(MSG));
+
+    BOOL PeekMessageL(
+        LPMSG lpMsg,
+        HWND hWnd,
+        UINT wMsgFilterMin,
+        UINT wMsgFilterMax,
+        UINT wRemoveMsg
+    );
+
+    if (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
+    {
+        TranslateMessage(&msg);
+        DispatchMessage(&msg);
+    }
 }
