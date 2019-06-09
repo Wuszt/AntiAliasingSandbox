@@ -8,6 +8,7 @@
 #include <DirectXMath.h>
 
 class Window;
+class Camera;
 
 class Core
 {
@@ -42,6 +43,7 @@ private:
     ID3D11Texture2D* m_depthStencilBuffer;
 
     Window* m_window;
+    Camera* m_camera;
 
     //to move
     ID3D11VertexShader* VS;
@@ -53,15 +55,6 @@ private:
 
     ID3D11Buffer* VertBuffer;
     ID3D11Buffer* IndexBuffer;
-
-    DirectX::XMMATRIX WVP;
-    DirectX::XMMATRIX World;
-    DirectX::XMMATRIX camView;
-    DirectX::XMMATRIX camProjection;
-
-    DirectX::XMVECTOR camPos;
-    DirectX::XMVECTOR camLookAt;
-    DirectX::XMVECTOR camUp;
 
     struct Vertex
     {

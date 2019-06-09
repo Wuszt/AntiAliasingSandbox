@@ -13,16 +13,28 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Framework">
+      <UniqueIdentifier>{85bc6c34-865b-41aa-ae4d-d1527fda0ee7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Framework\Headers">
+      <UniqueIdentifier>{caf8c33c-26b8-4ded-9622-8c1b93a815d8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Framework\Sources">
+      <UniqueIdentifier>{c0c1f738-fb2d-4cb0-b28f-cc14885ee589}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Window.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Framework\Sources</Filter>
     </ClCompile>
     <ClCompile Include="Core.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Framework\Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="Camera.cpp">
+      <Filter>Framework\Sources</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -30,10 +42,13 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Window.h">
-      <Filter>Header Files</Filter>
+      <Filter>Framework\Headers</Filter>
     </ClInclude>
     <ClInclude Include="Core.h">
-      <Filter>Header Files</Filter>
+      <Filter>Framework\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Camera.h">
+      <Filter>Framework\Headers</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

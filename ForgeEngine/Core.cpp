@@ -1,5 +1,6 @@
 #include "Core.h"
 #include "Window.h"
+#include "Camera.h"
 #include <exception>
 
 using namespace DirectX;
@@ -131,6 +132,8 @@ void Core::FillSwapChainDescWithDefaultValues(DXGI_SWAP_CHAIN_DESC& desc)
 
 bool Core::InitScene()
 {
+    m_camera = new Camera(XMFLOAT3(0.0f, 0.0f, -5.0f), XMFLOAT3(0.0f, 0.0f, 0.0f), 0.4f * 3.14f, (float)m_width / m_height, 1.0f, 1000.0f);
+
     HRESULT hr = D3DCompileFromFile(L"Effects.fx", 0, 0, "VS", "vs_4_0", D3D10_SHADER_ENABLE_STRICTNESS | D3D10_SHADER_DEBUG, 0, &VS_Buffer, 0);
     hr = D3DCompileFromFile(L"Effects.fx", 0, 0, "PS", "ps_4_0", D3D10_SHADER_ENABLE_STRICTNESS | D3D10_SHADER_DEBUG, 0, &PS_Buffer, 0);
 
@@ -232,38 +235,25 @@ bool Core::InitScene()
 
     hr = m_d3Device->CreateBuffer(&cbbd, nullptr, &cbPerObjectBuffer);
 
-    camPos = XMVectorSet(0.0f, 0.0f, -5.0f, 0.0f);
-    camLookAt = XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f);
-    camUp = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
-
-    camView = XMMatrixLookAtLH(camPos, camLookAt, camUp);
-
-    camProjection = XMMatrixPerspectiveFovLH(0.4f * 3.14f, (float)m_width / m_height, 1.0f, 1000.0f);
-
     return true;
 }
 
 void Core::UpdateScene()
 {
+    static float debug = 0;
+    debug += 0.0001f;
 
+    m_camera->SetCamPos(sinf(debug * 0.5f) * 5.0f, sinf(debug) * 5.0f, -5.0f);
 }
 
 void Core::DrawScene()
 {
-    static float debug = 0;
-    debug += 0.0001f;
-
     float bgColor[4] = { (0.0f, 0.0f, 0.0f, 0.0f) };
     m_d3DeviceContext->ClearRenderTargetView(m_renderTargetView, bgColor);
 
     m_d3DeviceContext->ClearDepthStencilView(m_depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
-    World = XMMatrixIdentity();
-    World *= XMMatrixRotationX(debug);
-    World *= XMMatrixRotationY(sinf(debug));
-
-    WVP = World * camView * camProjection;
-    cbPerObj.WVP = XMMatrixTranspose(WVP);
+    cbPerObj.WVP = XMMatrixTranspose(m_camera->GetViewMatrix() * m_camera->GetProjectionMatrix());
 
     m_d3DeviceContext->UpdateSubresource(cbPerObjectBuffer, 0, nullptr, &cbPerObj, 0, 0);
 
