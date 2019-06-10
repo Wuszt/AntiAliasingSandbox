@@ -16,10 +16,14 @@ Camera::~Camera()
 {
 }
 
-void Camera::SetLookAt(float x, float y, float z)
+void Camera::SetCamPos(const float& x, const float& y, const float& z)
 {
-    //m_isViewDirty = true;
-    //m_camLookAt = XMVectorSet(x, y, z, 0.0f);
+    m_transform->SetPosition(x, y, z);
+}
+
+void Camera::LookAt(const float& x, const float& y, const float& z)
+{
+    m_transform->LookAt(XMFLOAT3(x,y,z));
 }
 
 DirectX::XMMATRIX Camera::GetViewMatrix()

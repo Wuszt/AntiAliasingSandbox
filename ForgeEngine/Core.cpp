@@ -244,9 +244,8 @@ void Core::UpdateScene()
     static float debug = 0;
     debug += 0.0001f;
 
-    //m_camera->GetTransform()->SetPosition(0.0f, sinf(debug) * 1.5f, -5.0f);
-    m_camera->GetTransform()->SetPosition(0.0f, 0.0f, -5.0f);
-    m_camera->GetTransform()->SetRotationFromEuler(0.0f, sinf(debug) * 25.0f, 0.0f);
+    m_camera->SetCamPos(cosf(debug) * 5.0f, sinf(debug) * 5.0f, -5.0f);
+    m_camera->LookAt(0.0f, 0.0f, 0.0f);
 }
 
 void Core::DrawScene()

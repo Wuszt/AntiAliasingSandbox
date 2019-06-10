@@ -9,6 +9,9 @@ public:
 
     void Update();
 
+    inline HWND* GetHWND() { return &m_hwnd; }
+    inline bool IsAlive() const { return m_isAlive; }
+
 private:
     HWND m_hwnd;
     bool m_isAlive = true;
@@ -16,9 +19,5 @@ private:
     inline void SetAsDead() { m_isAlive = false; }
 
     static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
-
-public:
-    inline HWND* GetHWND() { return &m_hwnd; }
-    inline bool IsAlive() const { return m_isAlive; }
 };
 
