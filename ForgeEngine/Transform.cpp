@@ -57,7 +57,7 @@ void Transform::LookAt(const XMFLOAT3& target)
 
     XMVECTOR vecDot = XMVector3Dot(forward, globalForward);
 
-    float angle = acos(XMVectorGetX(vecDot));
+    float angle = acosf(XMVectorGetX(vecDot));
     
     if (angle < 0.001f )
         return;
