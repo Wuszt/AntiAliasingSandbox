@@ -20,8 +20,11 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="Component.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Core.cpp" />
+    <ClCompile Include="SceneObject.cpp" />
+    <ClCompile Include="Transform.cpp" />
     <ClCompile Include="Window.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -32,7 +35,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Camera.h" />
+    <ClInclude Include="Component.h" />
     <ClInclude Include="Core.h" />
+    <ClInclude Include="SceneObject.h" />
+    <ClInclude Include="Transform.h" />
     <ClInclude Include="Window.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
