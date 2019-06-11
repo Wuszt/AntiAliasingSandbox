@@ -12,12 +12,19 @@ public:
     void SetPosition(const DirectX::XMFLOAT3& pos);
     void SetPosition(const float& x, const float& y, const float& z);
 
-    inline DirectX::XMFLOAT3 GetPosition() { return m_position; }
-    inline DirectX::XMFLOAT4 GetRotation() { return m_rotation; }
+    void Translate(const float& x, const float& y, const float& z);
+    void TranslateInWorld(const float& x, const float& y, const float& z);
+
+    inline DirectX::XMFLOAT3 GetPosition() const { return m_position; }
+    inline DirectX::XMFLOAT4 GetRotation() const { return m_rotation; }
+    DirectX::XMFLOAT3 GetRotationAsEuler() const;
 
     void SetRotation(const DirectX::XMFLOAT4& quaternion);
     void SetRotation(const float& x, const float& y, const float& z);
     inline void SetRotationFromEuler(const float& x, const float& y, const float& z) { SetRotation(DirectX::XMConvertToRadians(x), DirectX::XMConvertToRadians(y), DirectX::XMConvertToRadians(z)); }
+    inline void SetRotationFromEuler(const DirectX::XMFLOAT3& euler) { SetRotationFromEuler(euler.x, euler.y, euler.z); }
+
+    void Rotate(const float& x, const float& y, const float& z);
 
     void LookAt(const DirectX::XMFLOAT3& target);
 

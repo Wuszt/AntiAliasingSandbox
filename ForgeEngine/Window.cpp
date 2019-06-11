@@ -86,9 +86,11 @@ Window::Window(const HINSTANCE& hInstance, const int& ShowWnd, const int& width,
             "Error", MB_OK | MB_ICONERROR);
         throw std::exception("Error creating window");
     }
-
+    
     ShowWindow(m_hwnd, ShowWnd);
     UpdateWindow(m_hwnd);
+
+    m_hInstance = hInstance;
 }
 
 Window::~Window()

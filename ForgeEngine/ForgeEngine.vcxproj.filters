@@ -45,6 +45,15 @@
     <ClCompile Include="Transform.cpp">
       <Filter>Framework\Sources</Filter>
     </ClCompile>
+    <ClCompile Include="Time.cpp">
+      <Filter>Framework\Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="InputClass.cpp">
+      <Filter>Framework\Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="ControllableCamera.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <_EmbedManagedResourceFile Include="Effects.fx" />
@@ -67,6 +76,15 @@
     </ClInclude>
     <ClInclude Include="SceneObject.h">
       <Filter>Framework\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Time.h">
+      <Filter>Framework\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="InputClass.h">
+      <Filter>Framework\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="ControllableCamera.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

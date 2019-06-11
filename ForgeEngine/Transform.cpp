@@ -32,6 +32,56 @@ void Transform::SetPosition(const float& x, const float& y, const float& z)
     m_isDirty = true;
 }
 
+void Transform::Translate(const float& x, const float& y, const float& z)
+{
+    XMVECTOR dir = XMVectorSet(x, y, z, 0.0f);
+    XMVECTOR rotation = XMLoadFloat4(&m_rotation);
+    dir = XMVector3Rotate(dir, rotation);
+
+    TranslateInWorld(XMVectorGetX(dir), XMVectorGetY(dir), XMVectorGetZ(dir));
+}
+
+void Transform::TranslateInWorld(const float& x, const float& y, const float& z)
+{
+    m_position.x += x;
+    m_position.y += y;
+    m_position.z += z;
+
+    m_isDirty = true;
+}
+
+DirectX::XMFLOAT3 Transform::GetRotationAsEuler() const
+{
+    XMFLOAT4 quat = GetRotation();
+
+    float yaw;
+    float pitch;
+    float roll;
+    float test = quat.x*quat.y + quat.z*quat.w;
+
+    if (test > 0.499) {
+        yaw = (2 * atan2f(quat.x, quat.w));
+        pitch = static_cast<float>(XM_PI / 2.0f);
+        roll = 0.0f;
+        return XMFLOAT3(pitch, yaw, roll);
+    }
+    if (test < -0.499) {
+        yaw = (-2.0f * atan2f(quat.x, quat.w));
+        pitch = static_cast<float>(-XM_PI / 2.0f);
+        roll = 0.0f;
+        return XMFLOAT3(pitch, yaw, roll);
+    }
+
+    float sqx = quat.x*quat.x;
+    float sqy = quat.y*quat.y;
+    float sqz = quat.z*quat.z;
+    yaw = (atan2f(2 * quat.y*quat.w - 2 * quat.x*quat.z, 1 - 2 * sqy - 2 * sqz));
+    pitch = (asinf(2 * test));
+    roll = (atan2f(2 * quat.x*quat.w - 2 * quat.y*quat.z, 1 - 2 * sqx - 2 * sqz));
+
+    return XMFLOAT3(pitch, yaw, roll);
+}
+
 void Transform::SetRotation(const float& x, const float& y, const float& z)
 {
     XMStoreFloat4(&m_rotation, XMQuaternionRotationRollPitchYaw(x, y, z));
@@ -42,6 +92,16 @@ void Transform::SetRotation(const XMFLOAT4& quaternion)
 {
     m_rotation = quaternion;
     m_isDirty = true;
+}
+
+void Transform::Rotate(const float& x, const float& y, const float& z)
+{
+    XMVECTOR rotation = XMQuaternionMultiply(XMQuaternionRotationRollPitchYaw(x, y, z), XMLoadFloat4(&m_rotation));
+    rotation = XMQuaternionNormalize(rotation);
+    XMFLOAT4 fRotation;
+    XMStoreFloat4(&fRotation, rotation);
+
+    SetRotation(fRotation);
 }
 
 //JUST PROTO

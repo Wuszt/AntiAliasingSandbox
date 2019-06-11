@@ -10,6 +10,7 @@ public:
     virtual ~SceneObject();
 
     inline Transform* GetTransform() { return m_transform; }
+    virtual void Update() {}
 
 protected:
     Transform* m_transform;

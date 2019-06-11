@@ -9,6 +9,8 @@ Camera::Camera(const DirectX::XMFLOAT3& pos, const DirectX::XMFLOAT3& lookAt, co
     //m_camLookAt = XMLoadFloat3(&lookAt);
     //m_camUp = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
 
+    SetCamPos(pos);
+    LookAt(lookAt);
     m_projectionMatrix = XMMatrixPerspectiveFovLH(fov, aspectRatio, nearClip, farClip);
 }
 
@@ -21,9 +23,19 @@ void Camera::SetCamPos(const float& x, const float& y, const float& z)
     m_transform->SetPosition(x, y, z);
 }
 
+void Camera::SetCamPos(const DirectX::XMFLOAT3& pos)
+{
+    m_transform->SetPosition(pos);
+}
+
 void Camera::LookAt(const float& x, const float& y, const float& z)
 {
     m_transform->LookAt(XMFLOAT3(x,y,z));
+}
+
+void Camera::LookAt(const XMFLOAT3& target)
+{
+    m_transform->LookAt(target);
 }
 
 DirectX::XMMATRIX Camera::GetViewMatrix()

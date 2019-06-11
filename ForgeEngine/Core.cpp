@@ -1,7 +1,9 @@
 #include "Core.h"
 #include "Window.h"
-#include "Camera.h"
+#include "ControllableCamera.h"
 #include "Transform.h"
+#include "Time.h"
+#include "InputClass.h"
 #include <exception>
 
 using namespace DirectX;
@@ -38,6 +40,8 @@ void Core::Run()
     while (m_window->IsAlive())
     {
         m_window->Update();
+        Time::UpdateTime(false);
+        InputClass::UpdateInput();
         UpdateScene();
         DrawScene();
     }
@@ -133,7 +137,10 @@ void Core::FillSwapChainDescWithDefaultValues(DXGI_SWAP_CHAIN_DESC& desc)
 
 bool Core::InitScene()
 {
-    m_camera = new Camera(XMFLOAT3(0.0f, 0.0f, -5.0f), XMFLOAT3(0.0f, 0.0f, 0.0f), 0.4f * 3.14f, (float)m_width / m_height, 1.0f, 1000.0f);
+    Time::Initialize();
+    InputClass::Initialize(*m_window->GetHInstance(), *m_window->GetHWND());
+
+    m_camera = new ControllableCamera(XMFLOAT3(0.01f, 0.0f, -5.0f), XMFLOAT3(0.0f, 0.0f, 0.0f), 0.4f * 3.14f, (float)m_width / m_height, 1.0f, 1000.0f);
 
     HRESULT hr = D3DCompileFromFile(L"Effects.fx", 0, 0, "VS", "vs_4_0", D3D10_SHADER_ENABLE_STRICTNESS | D3D10_SHADER_DEBUG, 0, &VS_Buffer, 0);
     hr = D3DCompileFromFile(L"Effects.fx", 0, 0, "PS", "ps_4_0", D3D10_SHADER_ENABLE_STRICTNESS | D3D10_SHADER_DEBUG, 0, &PS_Buffer, 0);
@@ -243,9 +250,11 @@ void Core::UpdateScene()
 {
     static float debug = 0;
     debug += 0.0001f;
+   // m_camera->GetTransform()->SetRotation(0.0f, sinf(debug) * 0.5f, 0.0f);
+    m_camera->Update();
 
-    m_camera->SetCamPos(cosf(debug) * 5.0f, sinf(debug) * 5.0f, -5.0f);
-    m_camera->LookAt(0.0f, 0.0f, 0.0f);
+    //m_camera->SetCamPos(cosf(debug) * 5.0f, sinf(debug) * 5.0f, -5.0f);
+    //m_camera->LookAt(0.0f, 0.0f, 0.0f);
 }
 
 void Core::DrawScene()

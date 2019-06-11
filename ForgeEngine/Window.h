@@ -10,10 +10,12 @@ public:
     void Update();
 
     inline HWND* GetHWND() { return &m_hwnd; }
+    inline HINSTANCE* GetHInstance() { return &m_hInstance; }
     inline bool IsAlive() const { return m_isAlive; }
 
 private:
     HWND m_hwnd;
+    HINSTANCE m_hInstance;
     bool m_isAlive = true;
     
     inline void SetAsDead() { m_isAlive = false; }
