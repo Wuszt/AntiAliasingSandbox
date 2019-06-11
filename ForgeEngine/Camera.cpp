@@ -3,14 +3,10 @@
 
 using namespace DirectX;
 
-Camera::Camera(const DirectX::XMFLOAT3& pos, const DirectX::XMFLOAT3& lookAt, const float& fov, const float& aspectRatio, const float& nearClip, const float& farClip) : SceneObject(pos)
+Camera::Camera(const DirectX::XMFLOAT3& pos, const DirectX::XMFLOAT3& rotation, const float& fov, const float& aspectRatio, const float& nearClip, const float& farClip) : SceneObject(pos)
 {
-    //m_camPos = XMLoadFloat3(&pos);
-    //m_camLookAt = XMLoadFloat3(&lookAt);
-    //m_camUp = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
-
     SetCamPos(pos);
-    LookAt(lookAt);
+    m_transform->SetRotation(rotation.x, rotation.y, rotation.z);
     m_projectionMatrix = XMMatrixPerspectiveFovLH(fov, aspectRatio, nearClip, farClip);
 }
 
