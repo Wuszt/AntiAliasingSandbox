@@ -5,6 +5,7 @@ using namespace DirectX;
 Transform::Transform(const XMFLOAT3& pos)
 {
     SetPosition(pos);
+    SetRotationFromEuler(XMFLOAT3(0.0f, 0.0f, 0.0f));
 }
 
 Transform::~Transform()
@@ -93,13 +94,34 @@ void Transform::SetRotation(const XMFLOAT4& quaternion)
     m_rotation = quaternion;
     m_isDirty = true;
 }
-
-void Transform::Rotate(const float& x, const float& y, const float& z)
+void Transform::RotateLocal(const float& x, const float& y, const float& z)
 {
-    XMVECTOR rotation = XMQuaternionMultiply(XMQuaternionRotationRollPitchYaw(x, y, z), XMLoadFloat4(&m_rotation));
-    rotation = XMQuaternionNormalize(rotation);
+    XMVECTOR curr = XMLoadFloat4(&m_rotation);
+    curr = XMQuaternionNormalize(curr);
+
+    XMVECTOR toRotate = XMQuaternionRotationRollPitchYaw(x, y, z);
+    toRotate = XMQuaternionNormalize(toRotate);
+
+    curr = XMQuaternionMultiply(toRotate, curr);
+
     XMFLOAT4 fRotation;
-    XMStoreFloat4(&fRotation, rotation);
+    XMStoreFloat4(&fRotation, curr);
+
+    SetRotation(fRotation);
+}
+
+void Transform::RotateGlobal(const float& x, const float& y, const float& z)
+{
+    XMVECTOR curr = XMLoadFloat4(&m_rotation);
+    curr = XMQuaternionNormalize(curr);
+
+    XMVECTOR toRotate = XMQuaternionRotationRollPitchYaw(x, y, z);
+    toRotate = XMQuaternionNormalize(toRotate);
+
+    curr = XMQuaternionMultiply(curr, toRotate);
+
+    XMFLOAT4 fRotation;
+    XMStoreFloat4(&fRotation, curr);
 
     SetRotation(fRotation);
 }
@@ -118,10 +140,10 @@ void Transform::LookAt(const XMFLOAT3& target)
     XMVECTOR vecDot = XMVector3Dot(forward, globalForward);
 
     float angle = acosf(XMVectorGetX(vecDot));
-    
-    if (angle < 0.001f )
+
+    if (angle < 0.001f)
         return;
-    
+
     angle = -angle;
 
     XMFLOAT3 tmp;

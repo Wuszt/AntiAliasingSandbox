@@ -5,6 +5,7 @@
 #include "Time.h"
 #include "InputClass.h"
 #include <exception>
+#include "SceneObject.h"
 
 using namespace DirectX;
 
@@ -151,6 +152,9 @@ bool Core::InitScene()
     m_d3DeviceContext->VSSetShader(VS, 0, 0);
     m_d3DeviceContext->PSSetShader(PS, 0, 0);
 
+    m_obj = new SceneObject(XMFLOAT3(0.0f, 0.0f, 0.0f));
+    //m_obj->GetTransform()->SetRotationFromEuler(XMFLOAT3(0.0f, 45.0f, 0.0f));
+
     Vertex v[] =
     {
         Vertex(-0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 0.0f, 1.0f),
@@ -248,13 +252,7 @@ bool Core::InitScene()
 
 void Core::UpdateScene()
 {
-    static float debug = 0;
-    debug += 0.0001f;
-   // m_camera->GetTransform()->SetRotation(0.0f, sinf(debug) * 0.5f, 0.0f);
     m_camera->Update();
-
-    //m_camera->SetCamPos(cosf(debug) * 5.0f, sinf(debug) * 5.0f, -5.0f);
-    //m_camera->LookAt(0.0f, 0.0f, 0.0f);
 }
 
 void Core::DrawScene()
@@ -264,7 +262,7 @@ void Core::DrawScene()
 
     m_d3DeviceContext->ClearDepthStencilView(m_depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
-    cbPerObj.WVP = XMMatrixTranspose(m_camera->GetViewMatrix() * m_camera->GetProjectionMatrix());
+    cbPerObj.WVP = XMMatrixTranspose(m_obj->GetTransform()->GetWorldMatrix() * m_camera->GetViewMatrix() * m_camera->GetProjectionMatrix());
 
     m_d3DeviceContext->UpdateSubresource(cbPerObjectBuffer, 0, nullptr, &cbPerObj, 0, 0);
 

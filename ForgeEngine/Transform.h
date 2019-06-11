@@ -24,7 +24,8 @@ public:
     inline void SetRotationFromEuler(const float& x, const float& y, const float& z) { SetRotation(DirectX::XMConvertToRadians(x), DirectX::XMConvertToRadians(y), DirectX::XMConvertToRadians(z)); }
     inline void SetRotationFromEuler(const DirectX::XMFLOAT3& euler) { SetRotationFromEuler(euler.x, euler.y, euler.z); }
 
-    void Rotate(const float& x, const float& y, const float& z);
+    void RotateLocal(const float& x, const float& y, const float& z);
+    void RotateGlobal(const float& x, const float& y, const float& z);
 
     void LookAt(const DirectX::XMFLOAT3& target);
 
