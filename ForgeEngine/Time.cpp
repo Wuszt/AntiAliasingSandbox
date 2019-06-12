@@ -24,7 +24,7 @@ void Time::UpdateTime(bool stopped)
 
 	if (!stopped)
 	{
-		s_currentDeltaTime = (currentCounts.QuadPart - (double)Time::s_lastCounts.QuadPart) / Time::s_frequency.QuadPart;
+		s_currentDeltaTime = (float)(currentCounts.QuadPart - (double)Time::s_lastCounts.QuadPart) / Time::s_frequency.QuadPart;
 		s_currentTime += s_currentDeltaTime;
 	}
 

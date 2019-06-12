@@ -2,7 +2,6 @@
 #include "InputClass.h"
 #include "Time.h"
 #include "Transform.h"
-#include <sstream>
 
 ControllableCamera::~ControllableCamera()
 {

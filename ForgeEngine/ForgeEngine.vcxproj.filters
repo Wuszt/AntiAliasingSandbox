@@ -54,6 +54,9 @@
     <ClCompile Include="ControllableCamera.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="DebugLog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <_EmbedManagedResourceFile Include="Effects.fx" />
@@ -84,6 +87,9 @@
       <Filter>Framework\Headers</Filter>
     </ClInclude>
     <ClInclude Include="ControllableCamera.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DebugLog.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
