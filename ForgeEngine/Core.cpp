@@ -6,6 +6,7 @@
 #include "InputClass.h"
 #include <exception>
 #include "SceneObject.h"
+#include "External/DirectXTex/DirectXTex.h"
 
 using namespace DirectX;
 
@@ -21,6 +22,20 @@ Core::Core(const HINSTANCE& hInstance, const int& ShowWnd, const int& width, con
             "Error", MB_OK);
         throw std::exception("Direct3D Initialization - Failed");
     }
+
+    D3D11_SAMPLER_DESC sampDesc;
+    ZeroMemory(&sampDesc, sizeof(sampDesc));
+    sampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+    sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+    sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+    sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+    sampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+    sampDesc.MinLOD = 0;
+    sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
+
+    if (S_OK != m_d3Device->CreateSamplerState(&sampDesc, &samplerState))
+        throw std::exception("error");
+
 
     if (!InitScene())
     {
@@ -74,8 +89,8 @@ HRESULT Core::InitializeDepthStencilBuffer()
 
     if (hr == S_OK)
         m_d3DeviceContext->OMSetRenderTargets(1, &m_renderTargetView, m_depthStencilView);
-    
-    return hr;   
+
+    return hr;
 }
 
 HRESULT Core::InitializeD3D(const HINSTANCE& hInstance)
@@ -141,7 +156,7 @@ bool Core::InitScene()
     Time::Initialize();
     InputClass::Initialize(*m_window->GetHInstance(), *m_window->GetHWND());
 
-    m_camera = new ControllableCamera(XMFLOAT3(0.0f, 0.0f, -5.0f), XMFLOAT3(0.0f, 0.0f, 0.0f), 0.4f * 3.14f, (float)m_width / m_height, 1.0f, 1000.0f);
+    m_camera = new ControllableCamera(XMFLOAT3(0.0f, 0.0f, -5.0f), XMFLOAT3(0.0f, 0.0f, 0.0f), 0.4f * 3.14f, (float)m_width / m_height, 0.1f, 100.0f);
 
     HRESULT hr = D3DCompileFromFile(L"Effects.fx", 0, 0, "VS", "vs_4_0", D3D10_SHADER_ENABLE_STRICTNESS | D3D10_SHADER_DEBUG, 0, &VS_Buffer, 0);
     hr = D3DCompileFromFile(L"Effects.fx", 0, 0, "PS", "ps_4_0", D3D10_SHADER_ENABLE_STRICTNESS | D3D10_SHADER_DEBUG, 0, &PS_Buffer, 0);
@@ -157,36 +172,69 @@ bool Core::InitScene()
 
     Vertex v[] =
     {
-        Vertex(-0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 0.0f, 1.0f),
-        Vertex(-0.5f,  0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 1.0f),
-        Vertex(0.5f,  0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 1.0f),
-        Vertex(0.5f, -0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 1.0f),
+        //Front
+        Vertex(-0.5f, -0.5f, -0.5f, 0.0f, 1.0f),
+        Vertex(-0.5f,  0.5f, -0.5f, 0.0f, 0.0f),
+        Vertex(0.5f,  0.5f, -0.5f, 1.0f, 0.0f),
+        Vertex(0.5f, -0.5f, -0.5f, 1.0f, 1.0f),
 
-        Vertex(-0.5f, -0.5f, 0.5f, 1.0f, 0.0f, 0.0f, 1.0f),
-        Vertex(-0.5f,  0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 1.0f),
-        Vertex(0.5f,  0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 1.0f),
-        Vertex(0.5f, -0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 1.0f),
+        //Back
+        Vertex(0.5f, -0.5f, 0.5f, 0.0f, 1.0f),
+        Vertex(0.5f,  0.5f, 0.5f, 0.0f, 0.0f),
+        Vertex(-0.5f,  0.5f, 0.5f, 1.0f, 0.0f),
+        Vertex(-0.5f, -0.5f, 0.5f, 1.0f, 1.0f),
+
+        //Top
+        Vertex(-0.5f, 0.5f, -0.5f, 0.0f, 1.0f),
+        Vertex(-0.5f,  0.5f, 0.5f, 0.0f, 0.0f),
+        Vertex(0.5f,  0.5f, 0.5f, 1.0f, 0.0f),
+        Vertex(0.5f, 0.5f, -0.5f, 1.0f, 1.0f),
+
+        //Bottom
+        Vertex(0.5f, -0.5f, 0.5f, 0.0f, 1.0f),
+        Vertex(0.5f,  -0.5f, -0.5f, 0.0f, 0.0f),
+        Vertex(-0.5f,  -0.5f, -0.5f, 1.0f, 0.0f),
+        Vertex(-0.5f, -0.5f, 0.5f, 1.0f, 1.0f),
+
+        //Left
+        Vertex(-0.5f, -0.5f, 0.5f, 0.0f, 1.0f),
+        Vertex(-0.5f,  0.5f, 0.5f, 0.0f, 0.0f),
+        Vertex(-0.5f,  0.5f, -0.5f, 1.0f, 0.0f),
+        Vertex(-0.5f, -0.5f, -0.5f, 1.0f, 1.0f),
+
+        //Right
+        Vertex(0.5f, -0.5f, -0.5f, 0.0f, 1.0f),
+        Vertex(0.5f,  0.5f, -0.5f, 0.0f, 0.0f),
+        Vertex(0.5f,  0.5f, 0.5f, 1.0f, 0.0f),
+        Vertex(0.5f, -0.5f, 0.5f, 1.0f, 1.0f),
     };
 
     DWORD indices[] =
     {
+        //Front
         0,1,2,
         0,2,3,
 
-        7,6,5,
-        7,5,4,
+        //Back
+        4,5,6,
+        4,6,7,
 
-        3,2,6,
-        3,6,7,
+        //Top
+        8,9,10,
+        8,10,11,
 
-        0,4,1,
-        1,4,5,
 
-        1,5,2,
-        2,5,6,
+        //Bottom
+        14,13,12,
+        14,12,15,
 
-        0,3,4,
-        3,7,4
+        //Left
+        16,17,18,
+        16,18,19,
+
+        //Right
+        20,21,22,
+        20,22,23
     };
 
     D3D11_BUFFER_DESC indexBufferDesc;
@@ -204,7 +252,7 @@ bool Core::InitScene()
     ZeroMemory(&vertexBufferDesc, sizeof(vertexBufferDesc));
 
     vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-    vertexBufferDesc.ByteWidth = sizeof(Vertex) * 8;
+    vertexBufferDesc.ByteWidth = sizeof(Vertex) * 24;
     vertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
     vertexBufferDesc.CPUAccessFlags = 0;
     vertexBufferDesc.MiscFlags = 0;
@@ -257,6 +305,14 @@ void Core::UpdateScene()
 
 void Core::DrawScene()
 {
+    DirectX::ScratchImage si;
+    DirectX::TexMetadata meta;
+    LoadFromWICFile(L"tmp.jpg", WIC_FLAGS_NONE, &meta, si);
+    const Image* images = si.GetImages();
+
+    ID3D11ShaderResourceView* srv;
+    CreateShaderResourceView(m_d3Device, images, 1, meta, &srv);
+
     float bgColor[4] = { (0.0f, 0.0f, 0.0f, 0.0f) };
     m_d3DeviceContext->ClearRenderTargetView(m_renderTargetView, bgColor);
 
@@ -267,6 +323,10 @@ void Core::DrawScene()
     m_d3DeviceContext->UpdateSubresource(cbPerObjectBuffer, 0, nullptr, &cbPerObj, 0, 0);
 
     m_d3DeviceContext->VSSetConstantBuffers(0, 1, &cbPerObjectBuffer);
+
+    m_d3DeviceContext->PSSetShaderResources(0, 1, &srv);
+
+    m_d3DeviceContext->PSSetSamplers(0, 1, &samplerState);
 
     m_d3DeviceContext->DrawIndexed(36, 0, 0);
 
