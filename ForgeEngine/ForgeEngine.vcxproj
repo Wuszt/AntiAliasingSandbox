@@ -48,11 +48,22 @@
     <ClInclude Include="ControllableCamera.h" />
     <ClInclude Include="Core.h" />
     <ClInclude Include="DebugLog.h" />
+    <ClInclude Include="External\DirectXTex\DirectXTex.h" />
     <ClInclude Include="InputClass.h" />
     <ClInclude Include="SceneObject.h" />
     <ClInclude Include="Time.h" />
     <ClInclude Include="Transform.h" />
     <ClInclude Include="Window.h" />
+  </ItemGroup>
+    <ItemGroup Condition="'$(Configuration)' == 'Debug'">
+        <Library Include="External\DirectXTex\x64\Debug\DirectXTex.lib" />
+    </ItemGroup>
+  <ItemGroup Condition="'$(Configuration)' == 'Release'">
+    <Library Include="External\DirectXTex\x64\Release\DirectXTex.lib" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="External\DirectXTex\DirectXTex.inl" />
+    <None Include="External\DirectXTex\DirectXTex.pch" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>

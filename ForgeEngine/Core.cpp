@@ -231,8 +231,8 @@ bool Core::InitScene()
 
     viewport.TopLeftX = 0;
     viewport.TopLeftY = 0;
-    viewport.Width = m_width;
-    viewport.Height = m_height;
+    viewport.Width = (float)m_width;
+    viewport.Height = (float)m_height;
     viewport.MinDepth = 0.0f;
     viewport.MaxDepth = 1.0f;
 

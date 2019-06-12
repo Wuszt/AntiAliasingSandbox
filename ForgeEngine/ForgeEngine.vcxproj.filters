@@ -1,96 +1,98 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Source Files">
-      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
-    </Filter>
-    <Filter Include="Header Files">
-      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hh;hpp;hxx;hm;inl;inc;ipp;xsd</Extensions>
-    </Filter>
-    <Filter Include="Resource Files">
-      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
-    </Filter>
     <Filter Include="Framework">
       <UniqueIdentifier>{85bc6c34-865b-41aa-ae4d-d1527fda0ee7}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Framework\Headers">
-      <UniqueIdentifier>{caf8c33c-26b8-4ded-9622-8c1b93a815d8}</UniqueIdentifier>
+    <Filter Include="External">
+      <UniqueIdentifier>{5481a07b-7789-4166-afa4-10d1cb70611a}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Framework\Sources">
-      <UniqueIdentifier>{c0c1f738-fb2d-4cb0-b28f-cc14885ee589}</UniqueIdentifier>
+    <Filter Include="AAsProject">
+      <UniqueIdentifier>{9ca70490-ebe7-4f24-a4b4-17e1814b4214}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="External\DirectXTex">
+      <UniqueIdentifier>{a97807aa-4f92-4fa8-a3e6-df81fc4c1f76}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Window.cpp">
-      <Filter>Framework\Sources</Filter>
-    </ClCompile>
-    <ClCompile Include="Core.cpp">
-      <Filter>Framework\Sources</Filter>
-    </ClCompile>
-    <ClCompile Include="Camera.cpp">
-      <Filter>Framework\Sources</Filter>
-    </ClCompile>
-    <ClCompile Include="Component.cpp">
-      <Filter>Framework\Sources</Filter>
-    </ClCompile>
-    <ClCompile Include="SceneObject.cpp">
-      <Filter>Framework\Sources</Filter>
-    </ClCompile>
-    <ClCompile Include="Transform.cpp">
-      <Filter>Framework\Sources</Filter>
-    </ClCompile>
-    <ClCompile Include="Time.cpp">
-      <Filter>Framework\Sources</Filter>
-    </ClCompile>
-    <ClCompile Include="InputClass.cpp">
-      <Filter>Framework\Sources</Filter>
-    </ClCompile>
     <ClCompile Include="ControllableCamera.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>AAsProject</Filter>
     </ClCompile>
     <ClCompile Include="DebugLog.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>AAsProject</Filter>
+    </ClCompile>
+    <ClCompile Include="main.cpp">
+      <Filter>AAsProject</Filter>
+    </ClCompile>
+    <ClCompile Include="Camera.cpp">
+      <Filter>Framework</Filter>
+    </ClCompile>
+    <ClCompile Include="Component.cpp">
+      <Filter>Framework</Filter>
+    </ClCompile>
+    <ClCompile Include="Core.cpp">
+      <Filter>Framework</Filter>
+    </ClCompile>
+    <ClCompile Include="InputClass.cpp">
+      <Filter>Framework</Filter>
+    </ClCompile>
+    <ClCompile Include="SceneObject.cpp">
+      <Filter>Framework</Filter>
+    </ClCompile>
+    <ClCompile Include="Time.cpp">
+      <Filter>Framework</Filter>
+    </ClCompile>
+    <ClCompile Include="Transform.cpp">
+      <Filter>Framework</Filter>
+    </ClCompile>
+    <ClCompile Include="Window.cpp">
+      <Filter>Framework</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <_EmbedManagedResourceFile Include="Effects.fx" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Window.h">
-      <Filter>Framework\Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="Core.h">
-      <Filter>Framework\Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="Camera.h">
-      <Filter>Framework\Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="Transform.h">
-      <Filter>Framework\Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="Component.h">
-      <Filter>Framework\Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="SceneObject.h">
-      <Filter>Framework\Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="Time.h">
-      <Filter>Framework\Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="InputClass.h">
-      <Filter>Framework\Headers</Filter>
-    </ClInclude>
     <ClInclude Include="ControllableCamera.h">
-      <Filter>Header Files</Filter>
+      <Filter>AAsProject</Filter>
     </ClInclude>
     <ClInclude Include="DebugLog.h">
-      <Filter>Header Files</Filter>
+      <Filter>AAsProject</Filter>
     </ClInclude>
+    <ClInclude Include="Camera.h">
+      <Filter>Framework</Filter>
+    </ClInclude>
+    <ClInclude Include="Component.h">
+      <Filter>Framework</Filter>
+    </ClInclude>
+    <ClInclude Include="Core.h">
+      <Filter>Framework</Filter>
+    </ClInclude>
+    <ClInclude Include="InputClass.h">
+      <Filter>Framework</Filter>
+    </ClInclude>
+    <ClInclude Include="SceneObject.h">
+      <Filter>Framework</Filter>
+    </ClInclude>
+    <ClInclude Include="Time.h">
+      <Filter>Framework</Filter>
+    </ClInclude>
+    <ClInclude Include="Transform.h">
+      <Filter>Framework</Filter>
+    </ClInclude>
+    <ClInclude Include="Window.h">
+      <Filter>Framework</Filter>
+    </ClInclude>
+    <ClInclude Include="External\DirectXTex\DirectXTex.h">
+      <Filter>External\DirectXTex</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="External\DirectXTex\DirectXTex.inl">
+      <Filter>External\DirectXTex</Filter>
+    </None>
+    <None Include="External\DirectXTex\DirectXTex.pch">
+      <Filter>External\DirectXTex</Filter>
+    </None>
   </ItemGroup>
 </Project>
