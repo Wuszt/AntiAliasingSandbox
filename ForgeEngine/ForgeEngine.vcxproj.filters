@@ -95,9 +95,4 @@
       <Filter>External\DirectXTex</Filter>
     </None>
   </ItemGroup>
-  <ItemGroup>
-    <Library Include="External\DirectXTex\x64\Release\DirectXTex.lib">
-      <Filter>External\DirectXTex</Filter>
-    </Library>
-  </ItemGroup>
 </Project>
