@@ -6,7 +6,7 @@
 #include "InputClass.h"
 #include <exception>
 #include "SceneObject.h"
-#include "External/DirectXTex/DirectXTex.h"
+#include "DirectXTex/DirectXTex.h"
 
 using namespace DirectX;
 

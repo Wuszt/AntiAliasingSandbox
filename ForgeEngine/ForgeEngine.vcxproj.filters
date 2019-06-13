@@ -4,14 +4,8 @@
     <Filter Include="Framework">
       <UniqueIdentifier>{85bc6c34-865b-41aa-ae4d-d1527fda0ee7}</UniqueIdentifier>
     </Filter>
-    <Filter Include="External">
-      <UniqueIdentifier>{5481a07b-7789-4166-afa4-10d1cb70611a}</UniqueIdentifier>
-    </Filter>
     <Filter Include="AAsProject">
       <UniqueIdentifier>{9ca70490-ebe7-4f24-a4b4-17e1814b4214}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="External\DirectXTex">
-      <UniqueIdentifier>{a97807aa-4f92-4fa8-a3e6-df81fc4c1f76}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -83,16 +77,5 @@
     <ClInclude Include="Window.h">
       <Filter>Framework</Filter>
     </ClInclude>
-    <ClInclude Include="External\DirectXTex\DirectXTex.h">
-      <Filter>External\DirectXTex</Filter>
-    </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="External\DirectXTex\DirectXTex.inl">
-      <Filter>External\DirectXTex</Filter>
-    </None>
-    <None Include="External\DirectXTex\DirectXTex.pch">
-      <Filter>External\DirectXTex</Filter>
-    </None>
   </ItemGroup>
 </Project>

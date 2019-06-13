@@ -48,16 +48,11 @@
     <ClInclude Include="ControllableCamera.h" />
     <ClInclude Include="Core.h" />
     <ClInclude Include="DebugLog.h" />
-    <ClInclude Include="External\DirectXTex\DirectXTex.h" />
     <ClInclude Include="InputClass.h" />
     <ClInclude Include="SceneObject.h" />
     <ClInclude Include="Time.h" />
     <ClInclude Include="Transform.h" />
     <ClInclude Include="Window.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="External\DirectXTex\DirectXTex.inl" />
-    <None Include="External\DirectXTex\DirectXTex.pch" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
@@ -112,9 +107,17 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LibraryPath>$(ProjectDir)\Libs\x64\Debug;$(LibraryPath)</LibraryPath>
+    <IncludePath>D:\Repos\ForgeEngine\ForgeEngine\Includes;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LibraryPath>$(ProjectDir)\Libs\x64\Release;$(LibraryPath)</LibraryPath>
+    <IncludePath>D:\Repos\ForgeEngine\ForgeEngine\Includes;$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <IncludePath>D:\Repos\ForgeEngine\ForgeEngine\Includes;$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <IncludePath>D:\Repos\ForgeEngine\ForgeEngine\Includes;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
