@@ -1,3 +1,7 @@
+#include <assimp/Importer.hpp>
+#include <assimp/postprocess.h>
+#include <assimp/scene.h>
+
 #include "Core.h"
 #include "Window.h"
 #include "ControllableCamera.h"
@@ -6,7 +10,7 @@
 #include "InputClass.h"
 #include <exception>
 #include "SceneObject.h"
-#include "DirectXTex/DirectXTex.h"
+#include <DirectXTex/DirectXTex.h>
 
 using namespace DirectX;
 
@@ -168,83 +172,41 @@ bool Core::InitScene()
     m_d3DeviceContext->PSSetShader(PS, 0, 0);
 
     m_obj = new SceneObject(XMFLOAT3(0.0f, 0.0f, 0.0f));
-    //m_obj->GetTransform()->SetRotationFromEuler(XMFLOAT3(0.0f, 45.0f, 0.0f));
 
-    Vertex v[] =
+    Assimp::Importer importer;
+    const aiScene* pScene = importer.ReadFile("model.fbx", aiProcess_Triangulate | aiProcess_ConvertToLeftHanded);
+
+    std::vector<DWORD> indices;
+    std::vector<Vertex> vertices;
+
+    for (UINT m = 0; m < pScene->mNumMeshes; ++m)
     {
-        //Front
-        Vertex(-0.5f, -0.5f, -0.5f, 0.0f, 1.0f),
-        Vertex(-0.5f,  0.5f, -0.5f, 0.0f, 0.0f),
-        Vertex(0.5f,  0.5f, -0.5f, 1.0f, 0.0f),
-        Vertex(0.5f, -0.5f, -0.5f, 1.0f, 1.0f),
+        for (UINT i = 0; i < pScene->mMeshes[m]->mNumVertices; ++i)
+        {
+            aiVector3D vec = pScene->mMeshes[m]->mVertices[i];
+            aiVector3D uv = pScene->mMeshes[m]->mTextureCoords[0][i];
+            vertices.push_back(Vertex(vec.x, vec.y, vec.z, uv.x, uv.y));
+        }
 
-        //Back
-        Vertex(0.5f, -0.5f, 0.5f, 0.0f, 1.0f),
-        Vertex(0.5f,  0.5f, 0.5f, 0.0f, 0.0f),
-        Vertex(-0.5f,  0.5f, 0.5f, 1.0f, 0.0f),
-        Vertex(-0.5f, -0.5f, 0.5f, 1.0f, 1.0f),
+        for (UINT i = 0; i < pScene->mMeshes[m]->mNumFaces; ++i)
+        {
+            aiFace face = pScene->mMeshes[m]->mFaces[i];
 
-        //Top
-        Vertex(-0.5f, 0.5f, -0.5f, 0.0f, 1.0f),
-        Vertex(-0.5f,  0.5f, 0.5f, 0.0f, 0.0f),
-        Vertex(0.5f,  0.5f, 0.5f, 1.0f, 0.0f),
-        Vertex(0.5f, 0.5f, -0.5f, 1.0f, 1.0f),
-
-        //Bottom
-        Vertex(0.5f, -0.5f, 0.5f, 0.0f, 1.0f),
-        Vertex(0.5f,  -0.5f, -0.5f, 0.0f, 0.0f),
-        Vertex(-0.5f,  -0.5f, -0.5f, 1.0f, 0.0f),
-        Vertex(-0.5f, -0.5f, 0.5f, 1.0f, 1.0f),
-
-        //Left
-        Vertex(-0.5f, -0.5f, 0.5f, 0.0f, 1.0f),
-        Vertex(-0.5f,  0.5f, 0.5f, 0.0f, 0.0f),
-        Vertex(-0.5f,  0.5f, -0.5f, 1.0f, 0.0f),
-        Vertex(-0.5f, -0.5f, -0.5f, 1.0f, 1.0f),
-
-        //Right
-        Vertex(0.5f, -0.5f, -0.5f, 0.0f, 1.0f),
-        Vertex(0.5f,  0.5f, -0.5f, 0.0f, 0.0f),
-        Vertex(0.5f,  0.5f, 0.5f, 1.0f, 0.0f),
-        Vertex(0.5f, -0.5f, 0.5f, 1.0f, 1.0f),
-    };
-
-    DWORD indices[] =
-    {
-        //Front
-        0,1,2,
-        0,2,3,
-
-        //Back
-        4,5,6,
-        4,6,7,
-
-        //Top
-        8,9,10,
-        8,10,11,
-
-
-        //Bottom
-        14,13,12,
-        14,12,15,
-
-        //Left
-        16,17,18,
-        16,18,19,
-
-        //Right
-        20,21,22,
-        20,22,23
-    };
+            for (UINT j = 0; j < face.mNumIndices; ++j)
+            {
+                indices.push_back(face.mIndices[j]);
+            }
+        }
+    }
 
     D3D11_BUFFER_DESC indexBufferDesc;
     ZeroMemory(&indexBufferDesc, sizeof(indexBufferDesc));
 
     D3D11_SUBRESOURCE_DATA iinitData;
-    iinitData.pSysMem = indices;
+    iinitData.pSysMem = indices.data();
 
     indexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-    indexBufferDesc.ByteWidth = sizeof(DWORD) * 12 * 3; //indices amount
+    indexBufferDesc.ByteWidth = sizeof(DWORD) * (UINT)indices.size(); //sizeof(DWORD) * 12 * 3; //indices amount
     m_d3Device->CreateBuffer(&indexBufferDesc, &iinitData, &IndexBuffer);
     m_d3DeviceContext->IASetIndexBuffer(IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
 
@@ -252,7 +214,7 @@ bool Core::InitScene()
     ZeroMemory(&vertexBufferDesc, sizeof(vertexBufferDesc));
 
     vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-    vertexBufferDesc.ByteWidth = sizeof(Vertex) * 24;
+    vertexBufferDesc.ByteWidth = sizeof(Vertex) * pScene->mMeshes[0]->mNumVertices;
     vertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
     vertexBufferDesc.CPUAccessFlags = 0;
     vertexBufferDesc.MiscFlags = 0;
@@ -260,7 +222,7 @@ bool Core::InitScene()
     D3D11_SUBRESOURCE_DATA vertexBufferData;
 
     ZeroMemory(&vertexBufferData, sizeof(vertexBufferData));
-    vertexBufferData.pSysMem = v;
+    vertexBufferData.pSysMem = vertices.data();
     hr = m_d3Device->CreateBuffer(&vertexBufferDesc, &vertexBufferData, &VertBuffer);
 
     UINT stride = sizeof(Vertex);
@@ -301,34 +263,41 @@ bool Core::InitScene()
 void Core::UpdateScene()
 {
     m_camera->Update();
+
+
 }
 
 void Core::DrawScene()
 {
-    DirectX::ScratchImage si;
-    DirectX::TexMetadata meta;
-    LoadFromWICFile(L"tmp.jpg", WIC_FLAGS_NONE, &meta, si);
-    const Image* images = si.GetImages();
+    static const Image* images = nullptr;
 
-    ID3D11ShaderResourceView* srv;
-    CreateShaderResourceView(m_d3Device, images, 1, meta, &srv);
+    if (images == nullptr)
+    {
+        DirectX::ScratchImage si;
+        DirectX::TexMetadata meta;
+        LoadFromWICFile(L"tmp.jpeg", WIC_FLAGS_NONE, &meta, si);
+        images = si.GetImages();
+
+
+        ID3D11ShaderResourceView* srv;
+        CreateShaderResourceView(m_d3Device, images, 1, meta, &srv);
+        m_d3DeviceContext->PSSetShaderResources(0, 1, &srv);
+    }
 
     float bgColor[4] = { (0.0f, 0.0f, 0.0f, 0.0f) };
     m_d3DeviceContext->ClearRenderTargetView(m_renderTargetView, bgColor);
 
     m_d3DeviceContext->ClearDepthStencilView(m_depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
-    cbPerObj.WVP = XMMatrixTranspose(m_obj->GetTransform()->GetWorldMatrix() * m_camera->GetViewMatrix() * m_camera->GetProjectionMatrix());
+    cbPerObj.WVP = XMMatrixTranspose(XMMatrixScaling(0.01f, 0.01f, 0.01f) * m_obj->GetTransform()->GetWorldMatrix() * m_camera->GetViewMatrix() * m_camera->GetProjectionMatrix());
 
     m_d3DeviceContext->UpdateSubresource(cbPerObjectBuffer, 0, nullptr, &cbPerObj, 0, 0);
 
     m_d3DeviceContext->VSSetConstantBuffers(0, 1, &cbPerObjectBuffer);
 
-    m_d3DeviceContext->PSSetShaderResources(0, 1, &srv);
-
     m_d3DeviceContext->PSSetSamplers(0, 1, &samplerState);
 
-    m_d3DeviceContext->DrawIndexed(36, 0, 0);
+    m_d3DeviceContext->DrawIndexed(261060, 0, 0);
 
     m_swapChain->Present(0, 0);
 }
