@@ -4,7 +4,7 @@ using namespace DirectX;
 
 Transform::Transform(Object* owner) : Component(owner)
 {
-    SetPosition(XMFLOAT3(0.0f,0.0f,0.0f));
+    SetPosition(XMFLOAT3(0.0f, 0.0f, 0.0f));
     SetRotationFromEulerDegrees(XMFLOAT3(0.0f, 0.0f, 0.0f));
     SetScale({ 1.0f, 1.0f, 1.0f });
 }
@@ -36,10 +36,45 @@ void Transform::SetScale(const DirectX::XMFLOAT3& scale)
     SetDirty();
 }
 
+void Transform::SetGlobalScale(DirectX::XMFLOAT3 scale)
+{
+    XMVECTOR vecScale = XMLoadFloat3(&scale);
+    XMVECTOR vecGlobalScale = XMVectorSet(1.0f, 1.0f, 1.0f, 0.0f);
+
+    if (m_parent != nullptr)
+    {
+        XMVECTOR rot;
+        XMVECTOR translation;
+        XMMatrixDecompose(&vecGlobalScale, &rot, &translation, m_parent->GetWorldMatrix());
+    }
+
+    vecScale = XMVectorDivide(vecScale, vecGlobalScale);
+
+    XMStoreFloat3(&scale, vecScale);
+
+    SetScale(scale);
+}
+
 void Transform::SetPosition(const XMFLOAT3& pos)
 {
     m_position = pos;
     SetDirty();
+}
+
+void Transform::SetGlobalPosition(DirectX::XMFLOAT3 pos)
+{
+    XMMATRIX matrix = XMMatrixIdentity();
+
+    if (m_parent != nullptr)
+    {
+        matrix = XMMatrixInverse(nullptr, m_parent->GetWorldMatrix());
+    }
+
+    XMVECTOR vecPos = XMLoadFloat3(&pos);
+    vecPos = XMVector3Transform(vecPos, matrix);
+    XMStoreFloat3(&pos, vecPos);
+
+    SetPosition(pos);
 }
 
 void Transform::Translate(const DirectX::XMFLOAT3& offset)
@@ -107,6 +142,37 @@ void Transform::SetRotationFromEulerDegrees(const DirectX::XMFLOAT3& euler)
     SetDirty();
 }
 
+void Transform::SetGlobalRotation(DirectX::XMFLOAT4 quaternion)
+{
+    XMVECTOR vecQuat = XMLoadFloat4(&quaternion);
+    XMVECTOR vecGlobalQuat = XMQuaternionIdentity();
+
+    if (m_parent != nullptr)
+    {
+        XMVECTOR scale;
+        XMVECTOR translation;
+        XMMatrixDecompose(&scale, &vecGlobalQuat, &translation, m_parent->GetWorldMatrix());
+        vecGlobalQuat = XMQuaternionConjugate(vecGlobalQuat);
+    }
+
+    vecQuat = XMQuaternionMultiply(vecGlobalQuat, vecQuat);
+    XMStoreFloat4(&quaternion, vecQuat);
+
+    SetRotation(quaternion);
+
+}
+
+void Transform::SetGlobalRotationFromEulerDegrees(const DirectX::XMFLOAT3& euler)
+{
+    XMVECTOR vecQuat = XMQuaternionRotationRollPitchYaw(DirectX::XMConvertToRadians(euler.x), DirectX::XMConvertToRadians(euler.y), DirectX::XMConvertToRadians(euler.z));
+
+    XMFLOAT4 quat;
+
+    XMStoreFloat4(&quat, vecQuat);
+
+    SetGlobalRotation(quat);
+}
+
 void Transform::RotateLocal(const DirectX::XMFLOAT3& rotation)
 {
     XMVECTOR curr = XMLoadFloat4(&m_rotation);
@@ -123,6 +189,7 @@ void Transform::RotateLocal(const DirectX::XMFLOAT3& rotation)
     SetRotation(fRotation);
 }
 
+//TO FIX
 void Transform::RotateGlobal(const DirectX::XMFLOAT3& rotation)
 {
     XMVECTOR curr = XMLoadFloat4(&m_rotation);
@@ -170,8 +237,10 @@ void Transform::LookAt(const XMFLOAT3& target)
     SetRotation(rotation);
 }
 
-void Transform::SetParent(Transform* const& parent)
+void Transform::SetParent(Transform* const& parent, bool preserveTransform)
 {
+    XMMATRIX matrix = GetWorldMatrix();
+
     if (m_parent != nullptr)
     {
         size_t removedElements = m_parent->m_children.erase(this);
@@ -186,13 +255,34 @@ void Transform::SetParent(Transform* const& parent)
         assert(success);
     }
 
-    SetDirty();
+    if (preserveTransform)
+    {
+        XMVECTOR vecScale;
+        XMVECTOR vecRotation;
+        XMVECTOR vecPosition;
+
+        XMFLOAT3 scale;
+        XMFLOAT4 rotation;
+        XMFLOAT3 position;
+
+        XMMatrixDecompose(&vecScale, &vecRotation, &vecPosition, matrix);
+
+        XMStoreFloat3(&scale, vecScale);
+        XMStoreFloat4(&rotation, vecRotation);
+        XMStoreFloat3(&position, vecPosition);
+
+        SetGlobalPosition(position);
+        SetGlobalScale(scale);
+        SetGlobalRotation(rotation);
+    }
+    else
+        SetDirty();
 }
 
 void Transform::SetDirty()
 {
     m_isDirty = true;
-    
+
     for (Transform* const& child : m_children)
     {
         child->SetDirty();
