@@ -15,8 +15,15 @@ Transform::~Transform()
 
 XMMATRIX Transform::GetWorldMatrix()
 {
-    if (m_isDirty)
-        m_worldMatrix = XMMatrixScalingFromVector(XMLoadFloat3(&m_scale)) * XMMatrixRotationQuaternion(XMLoadFloat4(&m_rotation)) * XMMatrixTranslationFromVector(XMLoadFloat3(&m_position));
+    if (!m_isDirty)
+        return m_worldMatrix;
+
+    if (m_parent != nullptr)
+        m_worldMatrix = m_parent->GetWorldMatrix();
+    else
+        m_worldMatrix = XMMatrixIdentity();
+
+    m_worldMatrix = XMMatrixScalingFromVector(XMLoadFloat3(&m_scale)) * XMMatrixRotationQuaternion(XMLoadFloat4(&m_rotation)) * XMMatrixTranslationFromVector(XMLoadFloat3(&m_position)) * m_worldMatrix;
 
     m_isDirty = false;
     return m_worldMatrix;
@@ -26,13 +33,13 @@ void Transform::SetScale(const DirectX::XMFLOAT3& scale)
 {
     m_scale = scale;
 
-    m_isDirty = true;
+    SetDirty();
 }
 
 void Transform::SetPosition(const XMFLOAT3& pos)
 {
     m_position = pos;
-    m_isDirty = true;
+    SetDirty();
 }
 
 void Transform::Translate(const DirectX::XMFLOAT3& offset)
@@ -53,7 +60,7 @@ void Transform::TranslateInWorld(const DirectX::XMFLOAT3& offset)
     m_position.y += offset.y;
     m_position.z += offset.z;
 
-    m_isDirty = true;
+    SetDirty();
 }
 
 DirectX::XMFLOAT3 Transform::GetRotationAsEuler() const
@@ -91,13 +98,13 @@ DirectX::XMFLOAT3 Transform::GetRotationAsEuler() const
 void Transform::SetRotation(const XMFLOAT4& quaternion)
 {
     m_rotation = quaternion;
-    m_isDirty = true;
+    SetDirty();
 }
 
 void Transform::SetRotationFromEulerDegrees(const DirectX::XMFLOAT3& euler)
 {
     XMStoreFloat4(&m_rotation, XMQuaternionRotationRollPitchYaw(DirectX::XMConvertToRadians(euler.x), DirectX::XMConvertToRadians(euler.y), DirectX::XMConvertToRadians(euler.z)));
-    m_isDirty = true;
+    SetDirty();
 }
 
 void Transform::RotateLocal(const DirectX::XMFLOAT3& rotation)
@@ -161,4 +168,33 @@ void Transform::LookAt(const XMFLOAT3& target)
     XMStoreFloat4(&rotation, quaternion);
 
     SetRotation(rotation);
+}
+
+void Transform::SetParent(Transform* const& parent)
+{
+    if (m_parent != nullptr)
+    {
+        size_t removedElements = m_parent->m_children.erase(this);
+        assert(removedElements == 1);
+    }
+
+    m_parent = parent;
+
+    if (m_parent != nullptr)
+    {
+        bool success = m_parent->m_children.insert(this).second;
+        assert(success);
+    }
+
+    SetDirty();
+}
+
+void Transform::SetDirty()
+{
+    m_isDirty = true;
+    
+    for (Transform* const& child : m_children)
+    {
+        child->SetDirty();
+    }
 }

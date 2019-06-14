@@ -1,5 +1,6 @@
 #pragma once
 #include <DirectXMath.h>
+#include <unordered_set>
 
 #include "Component.h"
 
@@ -29,10 +30,17 @@ public:
 
     void LookAt(const DirectX::XMFLOAT3& target);
 
+    void SetParent(Transform* const& parent);
+
 private:
+    void SetDirty();
+
     DirectX::XMFLOAT3 m_scale;
     DirectX::XMFLOAT3 m_position;
     DirectX::XMFLOAT4 m_rotation;
+
+    Transform* m_parent;
+    std::unordered_set<Transform*> m_children;
 
     mutable DirectX::XMMATRIX m_worldMatrix;
     mutable bool m_isDirty;

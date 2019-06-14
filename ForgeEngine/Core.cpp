@@ -170,7 +170,8 @@ void Core::AddPendingObjects()
 {
     for (Object* const& object : m_objectsToAdd)
     {
-        m_objects.insert(object);
+        bool success = m_objects.insert(object).second;
+        assert(success);
     }
 
     m_objectsToAdd.clear();
@@ -180,7 +181,10 @@ void Core::DeletePendingObjects()
 {
     for (Object* const& object : m_objectsToDelete)
     {
-        m_objects.erase(object);
+        size_t removedElements = m_objects.erase(object);
+
+        assert(removedElements == 1);
+
         delete object;
     }
 
@@ -210,8 +214,9 @@ bool Core::InitScene()
     m_obj0->GetTransform()->SetScale({ 0.01f, 0.01f, 0.01f });
 
     m_obj1 = InstantiateObject<Object>();
-    m_obj1->GetTransform()->SetPosition({ 2.5f, 0.0f, 0.0f });
-    m_obj1->GetTransform()->SetScale({ 0.01f, 0.01f, 0.03f });
+    m_obj1->GetTransform()->SetPosition({ 500.0f, -10.0f, 0.0f });
+    //m_obj1->GetTransform()->SetScale({ 0.01f, 0.01f, 0.01f });
+    m_obj1->GetTransform()->SetParent(m_obj0->GetTransform());
 
     Assimp::Importer importer;
     const aiScene* pScene = importer.ReadFile("model.fbx", aiProcess_Triangulate | aiProcess_ConvertToLeftHanded);
@@ -304,7 +309,6 @@ void Core::BeforeUpdateScene()
 {
 
 
-
 }
 
 void Core::UpdateScene()
@@ -313,11 +317,12 @@ void Core::UpdateScene()
     {
         obj->Update();
     }
+
+    m_obj0->GetTransform()->RotateLocal({ 0.0f, Time::GetDeltaTime(), Time::GetDeltaTime() });
 }
 
 void Core::AfterUpdateScene()
 {
-
 }
 
 void Core::DrawScene()
