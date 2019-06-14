@@ -190,7 +190,7 @@ void Core::DeletePendingObjects()
 bool Core::InitScene()
 {
     Time::Initialize();
-    InputClass::Initialize(*m_window->GetHInstance(), *m_window->GetHWND()); 
+    InputClass::Initialize(*m_window->GetHInstance(), *m_window->GetHWND());
 
     HRESULT hr = D3DCompileFromFile(L"Effects.fx", 0, 0, "VS", "vs_4_0", D3D10_SHADER_ENABLE_STRICTNESS | D3D10_SHADER_DEBUG, 0, &VS_Buffer, 0);
     hr = D3DCompileFromFile(L"Effects.fx", 0, 0, "PS", "ps_4_0", D3D10_SHADER_ENABLE_STRICTNESS | D3D10_SHADER_DEBUG, 0, &PS_Buffer, 0);
@@ -202,14 +202,14 @@ bool Core::InitScene()
     m_d3DeviceContext->PSSetShader(PS, 0, 0);
 
     m_camera = InstantiateObject<ControllableCamera>(0.4f * 3.14f, (float)m_width / m_height, 0.1f, 100.0f);
-    m_camera->GetTransform()->SetPosition(0.0f, 0.0f, -5.0f);
+    m_camera->GetTransform()->SetPosition({ 0.0f, 0.0f, -5.0f });
     m_camera->GetTransform()->LookAt(XMFLOAT3(0.0f, 0.0f, 0.0f));
 
     m_obj0 = InstantiateObject<Object>();
-    m_obj0->GetTransform()->SetPosition(-2.5f, 0.0f, 0.0f);
+    m_obj0->GetTransform()->SetPosition({ -2.5f, 0.0f, 0.0f });
 
     m_obj1 = InstantiateObject<Object>();
-    m_obj1->GetTransform()->SetPosition(2.5f, 0.0f, 0.0f);
+    m_obj1->GetTransform()->SetPosition({ 2.5f, 0.0f, 0.0f });
 
     Assimp::Importer importer;
     const aiScene* pScene = importer.ReadFile("model.fbx", aiProcess_Triangulate | aiProcess_ConvertToLeftHanded);
@@ -300,7 +300,7 @@ bool Core::InitScene()
 
 void Core::BeforeUpdateScene()
 {
-    
+
 
 
 }

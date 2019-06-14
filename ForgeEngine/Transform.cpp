@@ -5,7 +5,7 @@ using namespace DirectX;
 Transform::Transform(Object* owner) : Component(owner)
 {
     SetPosition(XMFLOAT3(0.0f,0.0f,0.0f));
-    SetRotationFromEuler(XMFLOAT3(0.0f, 0.0f, 0.0f));
+    SetRotationFromEulerDegrees(XMFLOAT3(0.0f, 0.0f, 0.0f));
 }
 
 Transform::~Transform()
@@ -27,28 +27,23 @@ void Transform::SetPosition(const XMFLOAT3& pos)
     m_isDirty = true;
 }
 
-void Transform::SetPosition(const float& x, const float& y, const float& z)
+void Transform::Translate(const DirectX::XMFLOAT3& offset)
 {
-    m_position = XMFLOAT3(x, y, z);
-    m_isDirty = true;
-}
-
-void Transform::Translate(const float& x, const float& y, const float& z)
-{
-    XMVECTOR dir = XMVectorSet(x, y, z, 0.0f);
+    XMVECTOR dir = XMLoadFloat3(&offset);
     XMVECTOR rotation = XMLoadFloat4(&m_rotation);
     dir = XMVector3Rotate(dir, rotation);
 
-    TranslateInWorld(XMVectorGetX(dir), XMVectorGetY(dir), XMVectorGetZ(dir));
+    XMFLOAT3 vec;
+    XMStoreFloat3(&vec, dir);
+
+    TranslateInWorld(vec);
 }
 
-void Transform::TranslateInWorld(const float& x, const float& y, const float& z)
+void Transform::TranslateInWorld(const DirectX::XMFLOAT3& offset)
 {
-    m_position.x += x;
-    m_position.y += y;
-    m_position.z += z;
-
-    m_isDirty = true;
+    m_position.x += offset.x;
+    m_position.y += offset.y;
+    m_position.z += offset.z;
 }
 
 DirectX::XMFLOAT3 Transform::GetRotationAsEuler() const
@@ -83,23 +78,24 @@ DirectX::XMFLOAT3 Transform::GetRotationAsEuler() const
     return XMFLOAT3(pitch, yaw, roll);
 }
 
-void Transform::SetRotation(const float& x, const float& y, const float& z)
-{
-    XMStoreFloat4(&m_rotation, XMQuaternionRotationRollPitchYaw(x, y, z));
-    m_isDirty = true;
-}
-
 void Transform::SetRotation(const XMFLOAT4& quaternion)
 {
     m_rotation = quaternion;
     m_isDirty = true;
 }
-void Transform::RotateLocal(const float& x, const float& y, const float& z)
+
+void Transform::SetRotationFromEulerDegrees(const DirectX::XMFLOAT3& euler)
+{
+    XMStoreFloat4(&m_rotation, XMQuaternionRotationRollPitchYaw(DirectX::XMConvertToRadians(euler.x), DirectX::XMConvertToRadians(euler.y), DirectX::XMConvertToRadians(euler.z)));
+    m_isDirty = true;
+}
+
+void Transform::RotateLocal(const DirectX::XMFLOAT3& rotation)
 {
     XMVECTOR curr = XMLoadFloat4(&m_rotation);
     curr = XMQuaternionNormalize(curr);
 
-    XMVECTOR toRotate = XMQuaternionRotationRollPitchYaw(x, y, z);
+    XMVECTOR toRotate = XMQuaternionRotationRollPitchYaw(rotation.x, rotation.y, rotation.z);
     toRotate = XMQuaternionNormalize(toRotate);
 
     curr = XMQuaternionMultiply(toRotate, curr);
@@ -110,12 +106,12 @@ void Transform::RotateLocal(const float& x, const float& y, const float& z)
     SetRotation(fRotation);
 }
 
-void Transform::RotateGlobal(const float& x, const float& y, const float& z)
+void Transform::RotateGlobal(const DirectX::XMFLOAT3& rotation)
 {
     XMVECTOR curr = XMLoadFloat4(&m_rotation);
     curr = XMQuaternionNormalize(curr);
 
-    XMVECTOR toRotate = XMQuaternionRotationRollPitchYaw(x, y, z);
+    XMVECTOR toRotate = XMQuaternionRotationRollPitchYaw(rotation.x, rotation.y, rotation.z);
     toRotate = XMQuaternionNormalize(toRotate);
 
     curr = XMQuaternionMultiply(curr, toRotate);

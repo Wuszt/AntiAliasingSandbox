@@ -16,10 +16,10 @@ void ControllableCamera::Update()
     {
         XMFLOAT3 delta = InputClass::GetMouseDeltaPosition();
         float sensitivity = 0.001f;
-        m_transform->RotateLocal(delta.y * sensitivity, 0.0f, 0.0f);
-        m_transform->RotateGlobal(0.0f, delta.x * sensitivity, 0.0f);
+        m_transform->RotateLocal({ delta.y * sensitivity, 0.0f, 0.0f });
+        m_transform->RotateGlobal({ 0.0f, delta.x * sensitivity, 0.0f });
         vertical += delta.z * 0.025f;
     }
 
-    m_transform->Translate(horizontal, 0.0f, vertical);
+    m_transform->Translate({ horizontal, 0.0f, vertical });
 }
