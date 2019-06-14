@@ -9,7 +9,7 @@
 #include "Time.h"
 #include "InputClass.h"
 #include <exception>
-#include "SceneObject.h"
+#include "Object.h"
 #include <DirectXTex/DirectXTex.h>
 
 using namespace DirectX;
@@ -171,7 +171,7 @@ bool Core::InitScene()
     m_d3DeviceContext->VSSetShader(VS, 0, 0);
     m_d3DeviceContext->PSSetShader(PS, 0, 0);
 
-    m_obj = new SceneObject(XMFLOAT3(0.0f, 0.0f, 0.0f));
+    m_obj = new Object(XMFLOAT3(0.0f, 0.0f, 0.0f));
 
     Assimp::Importer importer;
     const aiScene* pScene = importer.ReadFile("model.fbx", aiProcess_Triangulate | aiProcess_ConvertToLeftHanded);

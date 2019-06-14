@@ -3,11 +3,11 @@
 
 class Transform;
 
-class SceneObject
+class Object
 {
 public:
-    SceneObject(DirectX::XMFLOAT3 pos);
-    virtual ~SceneObject();
+    Object(DirectX::XMFLOAT3 pos);
+    virtual ~Object();
 
     inline Transform* GetTransform() { return m_transform; }
     virtual void Update() {}

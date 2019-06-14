@@ -1,16 +1,16 @@
-#include "SceneObject.h"
+#include "Object.h"
 #include "Transform.h"
 
 using namespace DirectX;
 
 
-SceneObject::SceneObject(XMFLOAT3 pos)
+Object::Object(XMFLOAT3 pos)
 {
     m_transform = new Transform(pos);
 }
 
 
-SceneObject::~SceneObject()
+Object::~Object()
 {
     delete m_transform;
 }

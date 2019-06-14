@@ -1,9 +1,9 @@
 #pragma once
 #include <DirectXMath.h>
 
-#include "SceneObject.h"
+#include "Object.h"
 
-class Camera : public SceneObject
+class Camera : public Object
 {
 public:
     Camera(const DirectX::XMFLOAT3& pos, const DirectX::XMFLOAT3& rotation, const float& fov, const float& aspectRatio, const float& nearClip, const float& farClip);

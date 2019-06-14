@@ -6,7 +6,7 @@
 
 class Window;
 class Camera;
-class SceneObject;
+class Object;
 
 class Core
 {
@@ -43,7 +43,7 @@ private:
     Window* m_window;
     Camera* m_camera;
 
-    SceneObject* m_obj;
+    Object* m_obj;
 
     //to move
     ID3D11VertexShader* VS;

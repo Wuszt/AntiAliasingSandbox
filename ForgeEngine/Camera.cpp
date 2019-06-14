@@ -3,7 +3,7 @@
 
 using namespace DirectX;
 
-Camera::Camera(const DirectX::XMFLOAT3& pos, const DirectX::XMFLOAT3& rotation, const float& fov, const float& aspectRatio, const float& nearClip, const float& farClip) : SceneObject(pos)
+Camera::Camera(const DirectX::XMFLOAT3& pos, const DirectX::XMFLOAT3& rotation, const float& fov, const float& aspectRatio, const float& nearClip, const float& farClip) : Object(pos)
 {
     SetCamPos(pos);
     m_transform->SetRotation(rotation.x, rotation.y, rotation.z);
