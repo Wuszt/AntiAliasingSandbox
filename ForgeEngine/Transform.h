@@ -6,7 +6,7 @@
 class Transform : public Component
 {
 public:
-    Transform(const DirectX::XMFLOAT3& pos);
+    Transform(Object* owner);
     virtual ~Transform();
     DirectX::XMMATRIX GetWorldMatrix();
     void SetPosition(const DirectX::XMFLOAT3& pos);

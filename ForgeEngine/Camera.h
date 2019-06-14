@@ -6,7 +6,7 @@
 class Camera : public Object
 {
 public:
-    Camera(const DirectX::XMFLOAT3& pos, const DirectX::XMFLOAT3& rotation, const float& fov, const float& aspectRatio, const float& nearClip, const float& farClip);
+    Camera(const float& fov, const float& aspectRatio, const float& nearClip, const float& farClip);
     virtual ~Camera();
 
     void SetCamPos(const float& x, const float& y, const float& z);

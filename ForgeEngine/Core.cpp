@@ -14,8 +14,12 @@
 
 using namespace DirectX;
 
+Core* Core::s_instance;
+
 Core::Core(const HINSTANCE& hInstance, const int& ShowWnd, const int& width, const int& height)
 {
+    s_instance = this;
+
     m_window = new Window(hInstance, ShowWnd, width, height, true);
     m_width = width;
     m_height = height;
@@ -62,7 +66,14 @@ void Core::Run()
         m_window->Update();
         Time::UpdateTime(false);
         InputClass::UpdateInput();
+
+        BeforeUpdateScene();
         UpdateScene();
+        AfterUpdateScene();
+
+        DeletePendingObjects();
+        AddPendingObjects();
+
         DrawScene();
     }
 }
@@ -155,12 +166,31 @@ void Core::FillSwapChainDescWithDefaultValues(DXGI_SWAP_CHAIN_DESC& desc)
     desc.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
 }
 
+void Core::AddPendingObjects()
+{
+    for (Object* const& object : m_objectsToAdd)
+    {
+        m_objects.insert(object);
+    }
+
+    m_objectsToAdd.clear();
+}
+
+void Core::DeletePendingObjects()
+{
+    for (Object* const& object : m_objectsToDelete)
+    {
+        m_objects.erase(object);
+        delete object;
+    }
+
+    m_objectsToDelete.clear();
+}
+
 bool Core::InitScene()
 {
     Time::Initialize();
-    InputClass::Initialize(*m_window->GetHInstance(), *m_window->GetHWND());
-
-    m_camera = new ControllableCamera(XMFLOAT3(0.0f, 0.0f, -5.0f), XMFLOAT3(0.0f, 0.0f, 0.0f), 0.4f * 3.14f, (float)m_width / m_height, 0.1f, 100.0f);
+    InputClass::Initialize(*m_window->GetHInstance(), *m_window->GetHWND()); 
 
     HRESULT hr = D3DCompileFromFile(L"Effects.fx", 0, 0, "VS", "vs_4_0", D3D10_SHADER_ENABLE_STRICTNESS | D3D10_SHADER_DEBUG, 0, &VS_Buffer, 0);
     hr = D3DCompileFromFile(L"Effects.fx", 0, 0, "PS", "ps_4_0", D3D10_SHADER_ENABLE_STRICTNESS | D3D10_SHADER_DEBUG, 0, &PS_Buffer, 0);
@@ -171,7 +201,15 @@ bool Core::InitScene()
     m_d3DeviceContext->VSSetShader(VS, 0, 0);
     m_d3DeviceContext->PSSetShader(PS, 0, 0);
 
-    m_obj = new Object(XMFLOAT3(0.0f, 0.0f, 0.0f));
+    m_camera = InstantiateObject<ControllableCamera>(0.4f * 3.14f, (float)m_width / m_height, 0.1f, 100.0f);
+    m_camera->GetTransform()->SetPosition(0.0f, 0.0f, -5.0f);
+    m_camera->GetTransform()->LookAt(XMFLOAT3(0.0f, 0.0f, 0.0f));
+
+    m_obj0 = InstantiateObject<Object>();
+    m_obj0->GetTransform()->SetPosition(-2.5f, 0.0f, 0.0f);
+
+    m_obj1 = InstantiateObject<Object>();
+    m_obj1->GetTransform()->SetPosition(2.5f, 0.0f, 0.0f);
 
     Assimp::Importer importer;
     const aiScene* pScene = importer.ReadFile("model.fbx", aiProcess_Triangulate | aiProcess_ConvertToLeftHanded);
@@ -260,10 +298,23 @@ bool Core::InitScene()
     return true;
 }
 
+void Core::BeforeUpdateScene()
+{
+    
+
+
+}
+
 void Core::UpdateScene()
 {
-    m_camera->Update();
+    for (Object* obj : m_objects)
+    {
+        obj->Update();
+    }
+}
 
+void Core::AfterUpdateScene()
+{
 
 }
 
@@ -289,15 +340,22 @@ void Core::DrawScene()
 
     m_d3DeviceContext->ClearDepthStencilView(m_depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
-    cbPerObj.WVP = XMMatrixTranspose(XMMatrixScaling(0.01f, 0.01f, 0.01f) * m_obj->GetTransform()->GetWorldMatrix() * m_camera->GetViewMatrix() * m_camera->GetProjectionMatrix());
-
-    m_d3DeviceContext->UpdateSubresource(cbPerObjectBuffer, 0, nullptr, &cbPerObj, 0, 0);
-
-    m_d3DeviceContext->VSSetConstantBuffers(0, 1, &cbPerObjectBuffer);
-
     m_d3DeviceContext->PSSetSamplers(0, 1, &samplerState);
 
+    cbPerObj.WVP = XMMatrixTranspose(XMMatrixScaling(0.01f, 0.01f, 0.01f) * m_obj0->GetTransform()->GetWorldMatrix() * m_camera->GetViewMatrix() * m_camera->GetProjectionMatrix());
+    m_d3DeviceContext->UpdateSubresource(cbPerObjectBuffer, 0, nullptr, &cbPerObj, 0, 0);
+    m_d3DeviceContext->VSSetConstantBuffers(0, 1, &cbPerObjectBuffer);
+    m_d3DeviceContext->DrawIndexed(261060, 0, 0);
+
+    cbPerObj.WVP = XMMatrixTranspose(XMMatrixScaling(0.01f, 0.01f, 0.01f) * m_obj1->GetTransform()->GetWorldMatrix() * m_camera->GetViewMatrix() * m_camera->GetProjectionMatrix());
+    m_d3DeviceContext->UpdateSubresource(cbPerObjectBuffer, 0, nullptr, &cbPerObj, 0, 0);
+    m_d3DeviceContext->VSSetConstantBuffers(0, 1, &cbPerObjectBuffer);
     m_d3DeviceContext->DrawIndexed(261060, 0, 0);
 
     m_swapChain->Present(0, 0);
+}
+
+void Core::DestroyObject(Object* const& obj)
+{
+    s_instance->m_objectsToDelete.push_back(obj);
 }

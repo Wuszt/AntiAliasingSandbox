@@ -2,9 +2,9 @@
 
 using namespace DirectX;
 
-Transform::Transform(const XMFLOAT3& pos)
+Transform::Transform(Object* owner) : Component(owner)
 {
-    SetPosition(pos);
+    SetPosition(XMFLOAT3(0.0f,0.0f,0.0f));
     SetRotationFromEuler(XMFLOAT3(0.0f, 0.0f, 0.0f));
 }
 

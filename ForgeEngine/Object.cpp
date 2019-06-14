@@ -4,9 +4,9 @@
 using namespace DirectX;
 
 
-Object::Object(XMFLOAT3 pos)
+Object::Object()
 {
-    m_transform = new Transform(pos);
+    m_transform = AddComponent<Transform>();
 }
 
 

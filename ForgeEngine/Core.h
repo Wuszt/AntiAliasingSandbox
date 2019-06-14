@@ -3,6 +3,9 @@
 #include <d3d11.h>
 #include <d3dcompiler.h>
 #include <DirectXMath.h>
+#include <vector>
+#include <unordered_set>
+#include <type_traits>
 
 class Window;
 class Camera;
@@ -29,9 +32,34 @@ private:
     void FillSwapChainBufferDescWithDefaultValues(DXGI_MODE_DESC& desc);
     void FillSwapChainDescWithDefaultValues(DXGI_SWAP_CHAIN_DESC& desc);
 
+    void AddPendingObjects();
+    void DeletePendingObjects();
+
     bool InitScene();
+    void BeforeUpdateScene();
     void UpdateScene();
+    void AfterUpdateScene();
     void DrawScene();
+
+    static void DestroyObject(Object* const& obj);
+
+    template<typename T, typename ... Args>
+    static T* InstantiateObject(Args&&... args)
+    {
+        static_assert(std::is_base_of<Object, T>::value, "T must be an object!");
+
+        T* obj = new T(std::forward<Args>(args)...);
+
+        s_instance->m_objectsToAdd.push_back(obj);
+
+        return obj;
+    }
+
+    static Core* s_instance;
+
+    std::unordered_set<Object*> m_objects;
+    std::vector<Object*> m_objectsToAdd;
+    std::vector<Object*> m_objectsToDelete;
 
     IDXGISwapChain* m_swapChain;
     ID3D11Device* m_d3Device;
@@ -43,7 +71,8 @@ private:
     Window* m_window;
     Camera* m_camera;
 
-    Object* m_obj;
+    Object* m_obj0;
+    Object* m_obj1;
 
     //to move
     ID3D11VertexShader* VS;
