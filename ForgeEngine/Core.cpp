@@ -207,9 +207,11 @@ bool Core::InitScene()
 
     m_obj0 = InstantiateObject<Object>();
     m_obj0->GetTransform()->SetPosition({ -2.5f, 0.0f, 0.0f });
+    m_obj0->GetTransform()->SetScale({ 0.01f, 0.01f, 0.01f });
 
     m_obj1 = InstantiateObject<Object>();
     m_obj1->GetTransform()->SetPosition({ 2.5f, 0.0f, 0.0f });
+    m_obj1->GetTransform()->SetScale({ 0.01f, 0.01f, 0.03f });
 
     Assimp::Importer importer;
     const aiScene* pScene = importer.ReadFile("model.fbx", aiProcess_Triangulate | aiProcess_ConvertToLeftHanded);
@@ -342,12 +344,12 @@ void Core::DrawScene()
 
     m_d3DeviceContext->PSSetSamplers(0, 1, &samplerState);
 
-    cbPerObj.WVP = XMMatrixTranspose(XMMatrixScaling(0.01f, 0.01f, 0.01f) * m_obj0->GetTransform()->GetWorldMatrix() * m_camera->GetViewMatrix() * m_camera->GetProjectionMatrix());
+    cbPerObj.WVP = XMMatrixTranspose(m_obj0->GetTransform()->GetWorldMatrix() * m_camera->GetViewMatrix() * m_camera->GetProjectionMatrix());
     m_d3DeviceContext->UpdateSubresource(cbPerObjectBuffer, 0, nullptr, &cbPerObj, 0, 0);
     m_d3DeviceContext->VSSetConstantBuffers(0, 1, &cbPerObjectBuffer);
     m_d3DeviceContext->DrawIndexed(261060, 0, 0);
 
-    cbPerObj.WVP = XMMatrixTranspose(XMMatrixScaling(0.01f, 0.01f, 0.01f) * m_obj1->GetTransform()->GetWorldMatrix() * m_camera->GetViewMatrix() * m_camera->GetProjectionMatrix());
+    cbPerObj.WVP = XMMatrixTranspose(m_obj1->GetTransform()->GetWorldMatrix() * m_camera->GetViewMatrix() * m_camera->GetProjectionMatrix());
     m_d3DeviceContext->UpdateSubresource(cbPerObjectBuffer, 0, nullptr, &cbPerObj, 0, 0);
     m_d3DeviceContext->VSSetConstantBuffers(0, 1, &cbPerObjectBuffer);
     m_d3DeviceContext->DrawIndexed(261060, 0, 0);

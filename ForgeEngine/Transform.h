@@ -9,6 +9,9 @@ public:
     Transform(Object* owner);
     virtual ~Transform();
     DirectX::XMMATRIX GetWorldMatrix();
+    
+    void SetScale(const DirectX::XMFLOAT3& scale);
+    
     void SetPosition(const DirectX::XMFLOAT3& pos);
 
     void Translate(const DirectX::XMFLOAT3& offset);
@@ -27,6 +30,7 @@ public:
     void LookAt(const DirectX::XMFLOAT3& target);
 
 private:
+    DirectX::XMFLOAT3 m_scale;
     DirectX::XMFLOAT3 m_position;
     DirectX::XMFLOAT4 m_rotation;
 

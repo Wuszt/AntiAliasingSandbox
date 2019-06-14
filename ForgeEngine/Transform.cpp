@@ -6,6 +6,7 @@ Transform::Transform(Object* owner) : Component(owner)
 {
     SetPosition(XMFLOAT3(0.0f,0.0f,0.0f));
     SetRotationFromEulerDegrees(XMFLOAT3(0.0f, 0.0f, 0.0f));
+    SetScale({ 1.0f, 1.0f, 1.0f });
 }
 
 Transform::~Transform()
@@ -15,10 +16,17 @@ Transform::~Transform()
 XMMATRIX Transform::GetWorldMatrix()
 {
     if (m_isDirty)
-        m_worldMatrix = XMMatrixRotationQuaternion(XMLoadFloat4(&m_rotation)) * XMMatrixTranslationFromVector(XMLoadFloat3(&m_position));
+        m_worldMatrix = XMMatrixScalingFromVector(XMLoadFloat3(&m_scale)) * XMMatrixRotationQuaternion(XMLoadFloat4(&m_rotation)) * XMMatrixTranslationFromVector(XMLoadFloat3(&m_position));
 
     m_isDirty = false;
     return m_worldMatrix;
+}
+
+void Transform::SetScale(const DirectX::XMFLOAT3& scale)
+{
+    m_scale = scale;
+
+    m_isDirty = true;
 }
 
 void Transform::SetPosition(const XMFLOAT3& pos)
@@ -44,6 +52,8 @@ void Transform::TranslateInWorld(const DirectX::XMFLOAT3& offset)
     m_position.x += offset.x;
     m_position.y += offset.y;
     m_position.z += offset.z;
+
+    m_isDirty = true;
 }
 
 DirectX::XMFLOAT3 Transform::GetRotationAsEuler() const
