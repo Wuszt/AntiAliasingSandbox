@@ -31,6 +31,7 @@
     <ClCompile Include="InputClass.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Core.cpp" />
+    <ClCompile Include="MeshRenderer.cpp" />
     <ClCompile Include="Object.cpp" />
     <ClCompile Include="Time.cpp" />
     <ClCompile Include="Transform.cpp" />
@@ -49,6 +50,7 @@
     <ClInclude Include="Core.h" />
     <ClInclude Include="DebugLog.h" />
     <ClInclude Include="InputClass.h" />
+    <ClInclude Include="MeshRenderer.h" />
     <ClInclude Include="Object.h" />
     <ClInclude Include="Time.h" />
     <ClInclude Include="Transform.h" />

@@ -37,6 +37,8 @@ public:
 
     void SetParent(Transform* const& parent, bool preserveTransform = false);
 
+    void SetFromMatrix(const DirectX::XMMATRIX& matrix);
+
 private:
     void SetDirty();
 

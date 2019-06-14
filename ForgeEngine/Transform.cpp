@@ -279,6 +279,27 @@ void Transform::SetParent(Transform* const& parent, bool preserveTransform)
         SetDirty();
 }
 
+void Transform::SetFromMatrix(const XMMATRIX& matrix)
+{
+    XMVECTOR vecScale;
+    XMVECTOR vecRotation;
+    XMVECTOR vecPosition;
+
+    XMFLOAT3 scale;
+    XMFLOAT4 rotation;
+    XMFLOAT3 position;
+
+    XMMatrixDecompose(&vecScale, &vecRotation, &vecPosition, matrix);
+
+    XMStoreFloat3(&scale, vecScale);
+    XMStoreFloat4(&rotation, vecRotation);
+    XMStoreFloat3(&position, vecPosition);
+
+    SetPosition(position);
+    SetScale(scale);
+    SetRotation(rotation);
+}
+
 void Transform::SetDirty()
 {
     m_isDirty = true;

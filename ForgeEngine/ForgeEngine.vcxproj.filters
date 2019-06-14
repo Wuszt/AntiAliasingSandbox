@@ -42,6 +42,7 @@
     <ClCompile Include="Object.cpp">
       <Filter>Framework</Filter>
     </ClCompile>
+    <ClCompile Include="MeshRenderer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <_EmbedManagedResourceFile Include="Effects.fx" />
@@ -77,5 +78,6 @@
     <ClInclude Include="Object.h">
       <Filter>Framework</Filter>
     </ClInclude>
+    <ClInclude Include="MeshRenderer.h" />
   </ItemGroup>
 </Project>
