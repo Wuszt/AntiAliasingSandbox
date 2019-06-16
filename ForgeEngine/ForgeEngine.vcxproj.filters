@@ -42,6 +42,9 @@
     <ClCompile Include="Object.cpp">
       <Filter>Framework</Filter>
     </ClCompile>
+    <ClCompile Include="RenderingSystem.cpp" />
+    <ClCompile Include="Model.cpp" />
+    <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="MeshRenderer.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -78,6 +81,9 @@
     <ClInclude Include="Object.h">
       <Filter>Framework</Filter>
     </ClInclude>
+    <ClInclude Include="RenderingSystem.h" />
+    <ClInclude Include="Model.h" />
+    <ClInclude Include="Mesh.h" />
     <ClInclude Include="MeshRenderer.h" />
   </ItemGroup>
 </Project>

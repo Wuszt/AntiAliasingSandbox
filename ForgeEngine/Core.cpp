@@ -12,6 +12,9 @@
 #include "Object.h"
 #include <DirectXTex/DirectXTex.h>
 
+#include "RenderingSystem.h"
+#include "MeshRenderer.h"
+
 using namespace DirectX;
 
 Core* Core::s_instance;
@@ -30,6 +33,8 @@ Core::Core(const HINSTANCE& hInstance, const int& ShowWnd, const int& width, con
             "Error", MB_OK);
         throw std::exception("Direct3D Initialization - Failed");
     }
+
+    m_renderingSystem = new RenderingSystem(m_d3Device, m_d3DeviceContext);
 
     D3D11_SAMPLER_DESC sampDesc;
     ZeroMemory(&sampDesc, sizeof(sampDesc));
@@ -210,69 +215,73 @@ bool Core::InitScene()
     m_camera->GetTransform()->LookAt(XMFLOAT3(0.0f, 0.0f, 0.0f));
 
     m_obj0 = InstantiateObject<Object>();
-    m_obj0->GetTransform()->SetPosition({ -2.5f, 0.0f, 0.0f });
+    m_obj0->GetTransform()->SetPosition({ 0.0f, 0.0f, 0.0f });
     m_obj0->GetTransform()->SetScale({ 0.01f, 0.01f, 0.01f });
+    m_obj0->AddComponent<MeshRenderer>("model.fbx");
 
-    m_obj1 = InstantiateObject<Object>();
-    m_obj1->GetTransform()->SetPosition({ 500.0f, -10.0f, 0.0f });
+   // m_obj1 = InstantiateObject<Object>();
+   // m_obj1->GetTransform()->SetPosition({ 2.5f, 0.0f, 0.0f });
     //m_obj1->GetTransform()->SetScale({ 0.01f, 0.01f, 0.01f });
-    m_obj1->GetTransform()->SetParent(m_obj0->GetTransform());
+    //m_obj1->GetTransform()->SetParent(m_obj0->GetTransform());
+   // m_obj1->AddComponent<MeshRenderer>("model.fbx");
 
-    Assimp::Importer importer;
-    const aiScene* pScene = importer.ReadFile("model.fbx", aiProcess_Triangulate | aiProcess_ConvertToLeftHanded);
+    //Assimp::Importer importer;
+    //const aiScene* pScene = importer.ReadFile("model.fbx", aiProcess_Triangulate | aiProcess_ConvertToLeftHanded);
 
-    std::vector<DWORD> indices;
-    std::vector<Vertex> vertices;
+    //std::vector<DWORD> indices;
+    //std::vector<Vertex> vertices;
 
-    for (UINT m = 0; m < pScene->mNumMeshes; ++m)
-    {
-        for (UINT i = 0; i < pScene->mMeshes[m]->mNumVertices; ++i)
-        {
-            aiVector3D vec = pScene->mMeshes[m]->mVertices[i];
-            aiVector3D uv = pScene->mMeshes[m]->mTextureCoords[0][i];
-            vertices.push_back(Vertex(vec.x, vec.y, vec.z, uv.x, uv.y));
-        }
+    //for (UINT m = 0; m < pScene->mNumMeshes; ++m)
+    //{
+    //    for (UINT i = 0; i < pScene->mMeshes[m]->mNumVertices; ++i)
+    //    {
+    //        aiVector3D vec = pScene->mMeshes[m]->mVertices[i];
+    //        aiVector3D uv = pScene->mMeshes[m]->mTextureCoords[0][i];
+    //        vertices.push_back(Vertex(vec.x, vec.y, vec.z, uv.x, uv.y));
+    //    }
 
-        for (UINT i = 0; i < pScene->mMeshes[m]->mNumFaces; ++i)
-        {
-            aiFace face = pScene->mMeshes[m]->mFaces[i];
+    //    for (UINT i = 0; i < pScene->mMeshes[m]->mNumFaces; ++i)
+    //    {
+    //        aiFace face = pScene->mMeshes[m]->mFaces[i];
 
-            for (UINT j = 0; j < face.mNumIndices; ++j)
-            {
-                indices.push_back(face.mIndices[j]);
-            }
-        }
-    }
+    //        for (UINT j = 0; j < face.mNumIndices; ++j)
+    //        {
+    //            indices.push_back(face.mIndices[j]);
+    //        }
+    //    }
+    //}
 
-    D3D11_BUFFER_DESC indexBufferDesc;
-    ZeroMemory(&indexBufferDesc, sizeof(indexBufferDesc));
+    //m_renderingSystem->InstantiateMeshRendererWithModelPath("model.fbx");
+   // m_renderingSystem->InstantiateMeshRendererWithModelPath("model.fbx");
+    //D3D11_BUFFER_DESC indexBufferDesc;
+    //ZeroMemory(&indexBufferDesc, sizeof(indexBufferDesc));
 
-    D3D11_SUBRESOURCE_DATA iinitData;
-    iinitData.pSysMem = indices.data();
+    //D3D11_SUBRESOURCE_DATA iinitData;
+    //iinitData.pSysMem = indices.data();
 
-    indexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-    indexBufferDesc.ByteWidth = sizeof(DWORD) * (UINT)indices.size(); //sizeof(DWORD) * 12 * 3; //indices amount
-    m_d3Device->CreateBuffer(&indexBufferDesc, &iinitData, &IndexBuffer);
-    m_d3DeviceContext->IASetIndexBuffer(IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
+    //indexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+    //indexBufferDesc.ByteWidth = sizeof(DWORD) * (UINT)indices.size(); //sizeof(DWORD) * 12 * 3; //indices amount
+    //m_d3Device->CreateBuffer(&indexBufferDesc, &iinitData, &IndexBuffer);
+    //m_d3DeviceContext->IASetIndexBuffer(IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
 
-    D3D11_BUFFER_DESC vertexBufferDesc;
-    ZeroMemory(&vertexBufferDesc, sizeof(vertexBufferDesc));
+    //D3D11_BUFFER_DESC vertexBufferDesc;
+    //ZeroMemory(&vertexBufferDesc, sizeof(vertexBufferDesc));
 
-    vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-    vertexBufferDesc.ByteWidth = sizeof(Vertex) * pScene->mMeshes[0]->mNumVertices;
-    vertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-    vertexBufferDesc.CPUAccessFlags = 0;
-    vertexBufferDesc.MiscFlags = 0;
+    //vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+    //vertexBufferDesc.ByteWidth = sizeof(Vertex) * pScene->mMeshes[0]->mNumVertices;
+    //vertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+    //vertexBufferDesc.CPUAccessFlags = 0;
+    //vertexBufferDesc.MiscFlags = 0;
 
-    D3D11_SUBRESOURCE_DATA vertexBufferData;
+    //D3D11_SUBRESOURCE_DATA vertexBufferData;
 
-    ZeroMemory(&vertexBufferData, sizeof(vertexBufferData));
-    vertexBufferData.pSysMem = vertices.data();
-    hr = m_d3Device->CreateBuffer(&vertexBufferDesc, &vertexBufferData, &VertBuffer);
+    //ZeroMemory(&vertexBufferData, sizeof(vertexBufferData));
+    //vertexBufferData.pSysMem = vertices.data();
+    //hr = m_d3Device->CreateBuffer(&vertexBufferDesc, &vertexBufferData, &VertBuffer);
 
-    UINT stride = sizeof(Vertex);
-    UINT offset = 0;
-    m_d3DeviceContext->IASetVertexBuffers(0, 1, &VertBuffer, &stride, &offset);
+//     UINT stride = sizeof(Vertex);
+//     UINT offset = 0;
+//     m_d3DeviceContext->IASetVertexBuffers(0, 1, &VertBuffer, &stride, &offset);
 
     hr = m_d3Device->CreateInputLayout(layout, numElements, VS_Buffer->GetBufferPointer(),
         VS_Buffer->GetBufferSize(), &vertLayout);
@@ -318,7 +327,7 @@ void Core::UpdateScene()
         obj->Update();
     }
 
-    m_obj0->GetTransform()->RotateLocal({ 0.0f, Time::GetDeltaTime(), Time::GetDeltaTime() });
+  //  m_obj0->GetTransform()->RotateLocal({ 0.0f, Time::GetDeltaTime(), Time::GetDeltaTime() });
 }
 
 void Core::AfterUpdateScene()
@@ -342,6 +351,8 @@ void Core::DrawScene()
         m_d3DeviceContext->PSSetShaderResources(0, 1, &srv);
     }
 
+
+
     float bgColor[4] = { (0.0f, 0.0f, 0.0f, 0.0f) };
     m_d3DeviceContext->ClearRenderTargetView(m_renderTargetView, bgColor);
 
@@ -349,15 +360,14 @@ void Core::DrawScene()
 
     m_d3DeviceContext->PSSetSamplers(0, 1, &samplerState);
 
-    cbPerObj.WVP = XMMatrixTranspose(m_obj0->GetTransform()->GetWorldMatrix() * m_camera->GetViewMatrix() * m_camera->GetProjectionMatrix());
-    m_d3DeviceContext->UpdateSubresource(cbPerObjectBuffer, 0, nullptr, &cbPerObj, 0, 0);
-    m_d3DeviceContext->VSSetConstantBuffers(0, 1, &cbPerObjectBuffer);
-    m_d3DeviceContext->DrawIndexed(261060, 0, 0);
+   // m_d3DeviceContext->DrawIndexed(261060, 0, 0);
 
-    cbPerObj.WVP = XMMatrixTranspose(m_obj1->GetTransform()->GetWorldMatrix() * m_camera->GetViewMatrix() * m_camera->GetProjectionMatrix());
-    m_d3DeviceContext->UpdateSubresource(cbPerObjectBuffer, 0, nullptr, &cbPerObj, 0, 0);
-    m_d3DeviceContext->VSSetConstantBuffers(0, 1, &cbPerObjectBuffer);
-    m_d3DeviceContext->DrawIndexed(261060, 0, 0);
+    //cbPerObj.WVP = XMMatrixTranspose(m_obj1->GetTransform()->GetWorldMatrix() * m_camera->GetViewMatrix() * m_camera->GetProjectionMatrix());
+   // m_d3DeviceContext->UpdateSubresource(cbPerObjectBuffer, 0, nullptr, &cbPerObj, 0, 0);
+    //m_d3DeviceContext->VSSetConstantBuffers(0, 1, &cbPerObjectBuffer);
+    //m_d3DeviceContext->DrawIndexed(261060, 0, 0);
+
+    m_renderingSystem->Render(m_camera);
 
     m_swapChain->Present(0, 0);
 }

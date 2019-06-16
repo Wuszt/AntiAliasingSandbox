@@ -10,6 +10,7 @@
 class Window;
 class Camera;
 class Object;
+class RenderingSystem;
 
 class Core
 {
@@ -18,6 +19,20 @@ public:
     virtual ~Core();
 
     void Run();
+
+    static inline RenderingSystem* GetRenderingSystem() { return s_instance->m_renderingSystem; }
+
+    template<typename T, typename ... Args>
+    static T* InstantiateObject(Args&&... args)
+    {
+        static_assert(std::is_base_of<Object, T>::value, "T must be an object!");
+
+        T* obj = new T(std::forward<Args>(args)...);
+
+        s_instance->m_objectsToAdd.push_back(obj);
+
+        return obj;
+    }
 
 protected:
     virtual HRESULT InitializeD3D(const HINSTANCE& hInstance);
@@ -43,18 +58,6 @@ private:
 
     static void DestroyObject(Object* const& obj);
 
-    template<typename T, typename ... Args>
-    static T* InstantiateObject(Args&&... args)
-    {
-        static_assert(std::is_base_of<Object, T>::value, "T must be an object!");
-
-        T* obj = new T(std::forward<Args>(args)...);
-
-        s_instance->m_objectsToAdd.push_back(obj);
-
-        return obj;
-    }
-
     static Core* s_instance;
 
     std::unordered_set<Object*> m_objects;
@@ -68,6 +71,7 @@ private:
     ID3D11DepthStencilView* m_depthStencilView;
     ID3D11Texture2D* m_depthStencilBuffer;
 
+    RenderingSystem* m_renderingSystem;
     Window* m_window;
     Camera* m_camera;
 
@@ -97,13 +101,6 @@ private:
         DirectX::XMFLOAT3 pos;
         DirectX::XMFLOAT2 texCoord;
     };
-
-    struct cbPerObject
-    {
-        DirectX::XMMATRIX WVP;
-    };
-
-    cbPerObject cbPerObj;
 
     D3D11_INPUT_ELEMENT_DESC layout[2] =
     {
