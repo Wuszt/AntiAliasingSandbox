@@ -9,6 +9,7 @@
 #include "Camera.h"
 #include "Transform.h"
 #include "Core.h"
+#include "DebugLog.h"
 
 using namespace DirectX;
 using namespace std;
@@ -129,12 +130,23 @@ vector<const Mesh*> RenderingSystem::LoadMeshesFromNode(const aiScene* const& sc
 
      for (unsigned int i = 0; i < node->mNumMeshes; ++i)
     {
+
         Mesh* mesh = new Mesh;
 
         vector<Vertex> vertices;
         vector<DWORD> indices;
 
         aiMesh* meshData = scene->mMeshes[node->mMeshes[i]];
+
+        aiMaterial* mat = scene->mMaterials[meshData->mMaterialIndex];
+
+//Opacity - ignoring transparency for now
+        float opacity;
+        mat->Get(AI_MATKEY_OPACITY, opacity);
+
+        if (opacity < 1.0f)
+            continue;
+//Finish opacity
 
         for (unsigned int x = 0; x < meshData->mNumVertices; ++x)
         {
