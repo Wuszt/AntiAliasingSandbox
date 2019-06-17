@@ -269,6 +269,7 @@ ID3D11Buffer* RenderingSystem::CreateIndexBuffer(const vector<DWORD>& indices)
 
     indexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
     indexBufferDesc.ByteWidth = sizeof(DWORD) * (UINT)indices.size();
+    indexBufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
     HRESULT hr = m_d3Device->CreateBuffer(&indexBufferDesc, &iinitData, &result);
 
     if (hr != S_OK)
