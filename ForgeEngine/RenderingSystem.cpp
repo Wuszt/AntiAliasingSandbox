@@ -101,7 +101,11 @@ const Model* RenderingSystem::LoadModelFromPath(const std::string& modelPath)
     const Model* model;
 
     Assimp::Importer importer;
-    const aiScene* pScene = importer.ReadFile(modelPath, aiProcess_Triangulate | aiProcess_ConvertToLeftHanded);
+    importer.SetPropertyBool(AI_CONFIG_IMPORT_FBX_PRESERVE_PIVOTS, false);
+    unsigned int flags = aiProcess_Triangulate
+        | aiProcess_ConvertToLeftHanded;
+
+    const aiScene* pScene = importer.ReadFile(modelPath, flags);
     model = LoadModelFromNode(pScene, pScene->mRootNode);
 
     return model;
@@ -128,9 +132,8 @@ vector<const Mesh*> RenderingSystem::LoadMeshesFromNode(const aiScene* const& sc
 {
     vector<const Mesh*> meshes;
 
-     for (unsigned int i = 0; i < node->mNumMeshes; ++i)
+    for (unsigned int i = 0; i < node->mNumMeshes; ++i)
     {
-
         Mesh* mesh = new Mesh;
 
         vector<Vertex> vertices;
@@ -140,13 +143,13 @@ vector<const Mesh*> RenderingSystem::LoadMeshesFromNode(const aiScene* const& sc
 
         aiMaterial* mat = scene->mMaterials[meshData->mMaterialIndex];
 
-//Opacity - ignoring transparency for now
+        //Opacity - ignoring transparency for now
         float opacity;
         mat->Get(AI_MATKEY_OPACITY, opacity);
 
         if (opacity < 1.0f)
             continue;
-//Finish opacity
+        //Finish opacity
 
         for (unsigned int x = 0; x < meshData->mNumVertices; ++x)
         {
