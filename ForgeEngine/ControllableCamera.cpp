@@ -22,7 +22,7 @@ void ControllableCamera::Update()
         XMFLOAT3 delta = InputClass::GetMouseDeltaPosition();
         float sensitivity = 0.001f;
         rotationHorizontal += delta.x * sensitivity;
-        rotationVertical += delta.y = sensitivity;
+        rotationVertical += delta.y * sensitivity;
         vertical += delta.z * 0.025f;
     }
 
