@@ -1,4 +1,5 @@
 #include "Transform.h"
+#include "Object.h"
 
 using namespace DirectX;
 
@@ -298,6 +299,22 @@ void Transform::SetFromMatrix(const XMMATRIX& matrix)
     SetPosition(position);
     SetScale(scale);
     SetRotation(rotation);
+}
+
+Transform* Transform::TryToFindChildWithName(const std::string & name)
+{
+    for (Transform* const& child : m_children)
+    {
+        if (child->GetOwner()->Name == name)
+            return child;
+
+        Transform* result = child->TryToFindChildWithName(name);
+
+        if (result != nullptr)
+            return result;
+    }
+
+    return nullptr;
 }
 
 void Transform::SetDirty()

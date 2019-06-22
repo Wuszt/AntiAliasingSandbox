@@ -35,9 +35,12 @@ public:
 
     void LookAt(const DirectX::XMFLOAT3& target);
 
+    inline Transform* GetParent() const { return m_parent; }
     void SetParent(Transform* const& parent, bool preserveTransform = false);
 
     void SetFromMatrix(const DirectX::XMMATRIX& matrix);
+
+    Transform* TryToFindChildWithName(const std::string& name);
 
 private:
     void SetDirty();

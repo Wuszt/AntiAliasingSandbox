@@ -5,11 +5,9 @@
 #include "RenderingSystem.h"
 #include "Model.h"
 #include "MeshRenderer.h"
-#include "Object.h"
 #include "Camera.h"
 #include "Transform.h"
 #include "Core.h"
-#include "DebugLog.h"
 
 using namespace DirectX;
 using namespace std;
@@ -93,6 +91,9 @@ void RenderingSystem::InitializeMeshRendererWithModel(MeshRenderer* const& meshR
         obj->GetTransform()->SetParent(meshRenderer->GetOwner()->GetTransform());
         obj->GetTransform()->SetFromMatrix(child->TransformMatrix);
         obj->AddComponent<MeshRenderer>(child);
+
+        if (child->Name.length() > 0)
+            obj->Name = child->Name;
     }
 }
 
@@ -101,7 +102,7 @@ const Model* RenderingSystem::LoadModelFromPath(const std::string& modelPath)
     const Model* model;
 
     Assimp::Importer importer;
-    importer.SetPropertyBool(AI_CONFIG_IMPORT_FBX_PRESERVE_PIVOTS, false);
+    //importer.SetPropertyBool(AI_CONFIG_IMPORT_FBX_PRESERVE_PIVOTS, false);
     unsigned int flags = aiProcess_Triangulate
         | aiProcess_ConvertToLeftHanded;
 
@@ -118,6 +119,8 @@ const Model* RenderingSystem::LoadModelFromNode(const aiScene* const& scene, con
     model->TransformMatrix = GetMatrixFromAssimp(node->mTransformation);
 
     model->Meshes = LoadMeshesFromNode(scene, node);
+
+    model->Name = string(node->mName.C_Str());
 
     for (unsigned int i = 0; i < node->mNumChildren; ++i)
     {

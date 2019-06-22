@@ -9,6 +9,8 @@ ControllableCamera::~ControllableCamera()
 
 void ControllableCamera::Update()
 {
+    Camera::Update();
+
     float horizontal = ((InputClass::GetKey(DIK_D) ? 1 : 0) - (InputClass::GetKey(DIK_A) ? 1 : 0)) * Time::GetDeltaTime() * 5.0f;
     float vertical = ((InputClass::GetKey(DIK_W) ? 1 : 0) - (InputClass::GetKey(DIK_S) ? 1 : 0)) * Time::GetDeltaTime() * 5.0f;
 

@@ -11,8 +11,10 @@ public:
     Object();
     virtual ~Object();
 
+    std::string Name;
     inline Transform* GetTransform() { return m_transform; }
-    virtual void Update() {}
+    virtual void Update();
+    virtual void Start() {}
 
     template<typename T>
     T* TryToGetComponent()
@@ -40,5 +42,6 @@ protected:
 
 private:
     std::vector<Component*> m_components;
+    bool m_started = false;
 };
 

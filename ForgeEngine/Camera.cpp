@@ -6,6 +6,7 @@ using namespace DirectX;
 Camera::Camera(const float& fov, const float& aspectRatio, const float& nearClip, const float& farClip) : Object()
 {
     m_projectionMatrix = XMMatrixPerspectiveFovLH(fov, aspectRatio, nearClip, farClip);
+    Name = "Camera";
 }
 
 Camera::~Camera()
