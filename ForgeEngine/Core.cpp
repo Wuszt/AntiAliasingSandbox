@@ -14,7 +14,6 @@
 
 #include "RenderingSystem.h"
 #include "MeshRenderer.h"
-#include "Car.h"
 
 using namespace DirectX;
 
@@ -215,7 +214,7 @@ bool Core::InitScene()
     m_camera->GetTransform()->SetPosition({ 0.0f, 0.0f, -5.0f });
     m_camera->GetTransform()->LookAt(XMFLOAT3(0.0f, 0.0f, 0.0f));
 
-    m_obj0 = InstantiateObject<Car>();
+    m_obj0 = InstantiateObject<Object>();
     m_obj0->GetTransform()->SetPosition({ 0.0f, 0.0f, 0.0f });
     m_obj0->GetTransform()->SetScale({ 0.01f, 0.01f, 0.01f });
     m_obj0->AddComponent<MeshRenderer>("model.fbx");

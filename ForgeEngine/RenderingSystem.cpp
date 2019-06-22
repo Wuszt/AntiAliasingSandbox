@@ -102,7 +102,7 @@ const Model* RenderingSystem::LoadModelFromPath(const std::string& modelPath)
     const Model* model;
 
     Assimp::Importer importer;
-    //importer.SetPropertyBool(AI_CONFIG_IMPORT_FBX_PRESERVE_PIVOTS, false);
+    importer.SetPropertyBool(AI_CONFIG_IMPORT_FBX_PRESERVE_PIVOTS, false);
     unsigned int flags = aiProcess_Triangulate
         | aiProcess_ConvertToLeftHanded;
 
@@ -115,11 +115,10 @@ const Model* RenderingSystem::LoadModelFromPath(const std::string& modelPath)
 const Model* RenderingSystem::LoadModelFromNode(const aiScene* const& scene, const aiNode* const& node)
 {
     Model* model = new Model();
-
     model->TransformMatrix = GetMatrixFromAssimp(node->mTransformation);
+    model->TransformMatrix = XMMatrixTranspose(model->TransformMatrix);
 
     model->Meshes = LoadMeshesFromNode(scene, node);
-
     model->Name = string(node->mName.C_Str());
 
     for (unsigned int i = 0; i < node->mNumChildren; ++i)
@@ -157,7 +156,10 @@ vector<const Mesh*> RenderingSystem::LoadMeshesFromNode(const aiScene* const& sc
         for (unsigned int x = 0; x < meshData->mNumVertices; ++x)
         {
             aiVector3D verts = meshData->mVertices[x];
-            aiVector3D uvs = meshData->mTextureCoords[0][x];
+
+            aiVector3D uvs;
+            if (meshData->mTextureCoords[0])
+                uvs = meshData->mTextureCoords[0][x];
             vertices.push_back(Vertex(verts.x, verts.y, verts.z, uvs.x, uvs.y));
         }
 
@@ -169,75 +171,6 @@ vector<const Mesh*> RenderingSystem::LoadMeshesFromNode(const aiScene* const& sc
                 indices.push_back(face.mIndices[x]);
             }
         }
-        //Vertex v[] =
-        //{
-        //    //Front
-        //    Vertex(-0.5f, -0.5f, -0.5f, 0.0f, 1.0f),
-        //    Vertex(-0.5f,  0.5f, -0.5f, 0.0f, 0.0f),
-        //    Vertex(0.5f,  0.5f, -0.5f, 1.0f, 0.0f),
-        //    Vertex(0.5f, -0.5f, -0.5f, 1.0f, 1.0f),
-
-        //    //Back
-        //    Vertex(0.5f, -0.5f, 0.5f, 0.0f, 1.0f),
-        //    Vertex(0.5f,  0.5f, 0.5f, 0.0f, 0.0f),
-        //    Vertex(-0.5f,  0.5f, 0.5f, 1.0f, 0.0f),
-        //    Vertex(-0.5f, -0.5f, 0.5f, 1.0f, 1.0f),
-
-        //    //Top
-        //    Vertex(-0.5f, 0.5f, -0.5f, 0.0f, 1.0f),
-        //    Vertex(-0.5f,  0.5f, 0.5f, 0.0f, 0.0f),
-        //    Vertex(0.5f,  0.5f, 0.5f, 1.0f, 0.0f),
-        //    Vertex(0.5f, 0.5f, -0.5f, 1.0f, 1.0f),
-
-        //    //Bottom
-        //    Vertex(0.5f, -0.5f, 0.5f, 0.0f, 1.0f),
-        //    Vertex(0.5f,  -0.5f, -0.5f, 0.0f, 0.0f),
-        //    Vertex(-0.5f,  -0.5f, -0.5f, 1.0f, 0.0f),
-        //    Vertex(-0.5f, -0.5f, 0.5f, 1.0f, 1.0f),
-
-        //    //Left
-        //    Vertex(-0.5f, -0.5f, 0.5f, 0.0f, 1.0f),
-        //    Vertex(-0.5f,  0.5f, 0.5f, 0.0f, 0.0f),
-        //    Vertex(-0.5f,  0.5f, -0.5f, 1.0f, 0.0f),
-        //    Vertex(-0.5f, -0.5f, -0.5f, 1.0f, 1.0f),
-
-        //    //Right
-        //    Vertex(0.5f, -0.5f, -0.5f, 0.0f, 1.0f),
-        //    Vertex(0.5f,  0.5f, -0.5f, 0.0f, 0.0f),
-        //    Vertex(0.5f,  0.5f, 0.5f, 1.0f, 0.0f),
-        //    Vertex(0.5f, -0.5f, 0.5f, 1.0f, 1.0f),
-        //};
-
-        //DWORD ind[] =
-        //{
-        //    //Front
-        //    0,1,2,
-        //    0,2,3,
-
-        //    //Back
-        //    4,5,6,
-        //    4,6,7,
-
-        //    //Top
-        //    8,9,10,
-        //    8,10,11,
-
-
-        //    //Bottom
-        //    14,13,12,
-        //    14,12,15,
-
-        //    //Left
-        //    16,17,18,
-        //    16,18,19,
-
-        //    //Right
-        //    20,21,22,
-        //    20,22,23
-        //};
-
-        //indices = vector<DWORD>(std::begin(ind), std::end(ind));
-        //vertices = vector<Vertex>(std::begin(v), std::end(v));
 
         mesh->IndexBuffer = CreateIndexBuffer(indices);
         mesh->VertexBuffer = CreateVertexBuffer(vertices);
@@ -298,15 +231,18 @@ ID3D11Buffer* RenderingSystem::CreateIndexBuffer(const vector<DWORD>& indices)
 
 DirectX::XMMATRIX RenderingSystem::GetMatrixFromAssimp(const aiMatrix4x4 &matrix)
 {
-    float arr[16];
+    //float arr[16];
 
-    for (int x = 0; x < 4; ++x)
-    {
-        for (int y = 0; y < 4; ++y)
-        {
-            arr[y + x * 4] = matrix[x][y];
-        }
-    }
+    //for (int x = 0; x < 4; ++x)
+    //{
+    //    for (int y = 0; y < 4; ++y)
+    //    {
+    //        arr[y + x * 4] = matrix[x][y];
+    //    }
+    //}
 
-    return XMMATRIX(arr);
+    return XMMATRIX(matrix.a1, matrix.a2, matrix.a3, matrix.a4,
+        matrix.b1, matrix.b2, matrix.b3, matrix.b4, 
+        matrix.c1, matrix.c2, matrix.c3, matrix.c4, 
+        matrix.d1, matrix.d2, matrix.d3, matrix.d4);
 }

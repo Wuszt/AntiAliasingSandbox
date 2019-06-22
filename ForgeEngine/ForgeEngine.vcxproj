@@ -20,7 +20,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Camera.cpp" />
-    <ClCompile Include="Car.cpp" />
     <ClCompile Include="Component.cpp" />
     <ClCompile Include="ControllableCamera.cpp" />
     <ClCompile Include="DebugLog.cpp">
@@ -49,7 +48,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Camera.h" />
-    <ClInclude Include="Car.h" />
     <ClInclude Include="Component.h" />
     <ClInclude Include="ControllableCamera.h" />
     <ClInclude Include="Core.h" />
