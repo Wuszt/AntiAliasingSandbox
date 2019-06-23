@@ -16,6 +16,7 @@ class InputClass
 {
 public:
     static bool Initialize(HINSTANCE, HWND);
+    static void Release();
 
     static void UpdateInput();
 

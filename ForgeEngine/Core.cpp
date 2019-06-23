@@ -6,8 +6,8 @@
 #include "Window.h"
 #include "ControllableCamera.h"
 #include "Transform.h"
-#include "Time.h"
-#include "InputClass.h"
+#include <DirectXCommonClasses/Time.h>
+#include <DirectXCommonClasses/InputClass.h>
 #include <exception>
 #include "Object.h"
 #include <DirectXTex/DirectXTex.h>

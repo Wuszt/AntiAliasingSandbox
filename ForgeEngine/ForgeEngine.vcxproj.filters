@@ -27,12 +27,6 @@
     <ClCompile Include="Core.cpp">
       <Filter>Framework</Filter>
     </ClCompile>
-    <ClCompile Include="InputClass.cpp">
-      <Filter>Framework</Filter>
-    </ClCompile>
-    <ClCompile Include="Time.cpp">
-      <Filter>Framework</Filter>
-    </ClCompile>
     <ClCompile Include="Transform.cpp">
       <Filter>Framework</Filter>
     </ClCompile>
@@ -65,12 +59,6 @@
       <Filter>Framework</Filter>
     </ClInclude>
     <ClInclude Include="Core.h">
-      <Filter>Framework</Filter>
-    </ClInclude>
-    <ClInclude Include="InputClass.h">
-      <Filter>Framework</Filter>
-    </ClInclude>
-    <ClInclude Include="Time.h">
       <Filter>Framework</Filter>
     </ClInclude>
     <ClInclude Include="Transform.h">
