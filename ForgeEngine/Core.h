@@ -15,10 +15,10 @@ class RenderingSystem;
 class Core
 {
 public:
-    Core(const HINSTANCE& hInstance, const int& ShowWnd, const int& width, const int& height);
+    Core();
     virtual ~Core();
 
-    void Run();
+    void Run(const HINSTANCE& hInstance, const int& ShowWnd, const int& width, const int& height);
 
     static inline RenderingSystem* GetRenderingSystem() { return s_instance->m_renderingSystem; }
 
@@ -35,12 +35,13 @@ public:
     }
 
 protected:
+    virtual void Initialize(const HINSTANCE& hInstance, const int& ShowWnd, const int& width, const int& height);
+
     virtual HRESULT InitializeD3D(const HINSTANCE& hInstance);
     virtual HRESULT InitializeSwapChain();
     virtual HRESULT InitializeDepthStencilBuffer();
 
-    int m_width;
-    int m_height;
+    virtual void InitScene();
 
 private:
     void FillDepthStencilDescWithDefaultValues(D3D11_TEXTURE2D_DESC& desc);
@@ -50,7 +51,6 @@ private:
     void AddPendingObjects();
     void DeletePendingObjects();
 
-    bool InitScene();
     void BeforeUpdateScene();
     void UpdateScene();
     void AfterUpdateScene();
@@ -75,7 +75,8 @@ private:
     Window* m_window;
     Camera* m_camera;
 
-    Object* m_obj0;
+    int m_width;
+    int m_height;
 
     //to move
     ID3D11VertexShader* VS;

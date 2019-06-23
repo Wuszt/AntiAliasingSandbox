@@ -19,43 +19,9 @@ using namespace DirectX;
 
 Core* Core::s_instance;
 
-Core::Core(const HINSTANCE& hInstance, const int& ShowWnd, const int& width, const int& height)
+Core::Core()
 {
     s_instance = this;
-
-    m_window = new Window(hInstance, ShowWnd, width, height, true);
-    m_width = width;
-    m_height = height;
-
-    if (InitializeD3D(hInstance) != S_OK)
-    {
-        MessageBox(0, "Direct3D Initialization - Failed",
-            "Error", MB_OK);
-        throw std::exception("Direct3D Initialization - Failed");
-    }
-
-    m_renderingSystem = new RenderingSystem(m_d3Device, m_d3DeviceContext);
-
-    D3D11_SAMPLER_DESC sampDesc;
-    ZeroMemory(&sampDesc, sizeof(sampDesc));
-    sampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-    sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-    sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-    sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-    sampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
-    sampDesc.MinLOD = 0;
-    sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
-
-    if (S_OK != m_d3Device->CreateSamplerState(&sampDesc, &samplerState))
-        throw std::exception("error");
-
-
-    if (!InitScene())
-    {
-        MessageBox(0, "Scene Initialization - Failed",
-            "Error", MB_OK);
-        throw std::exception("Scene Initialization - Failed");
-    }
 }
 
 Core::~Core()
@@ -85,12 +51,13 @@ Core::~Core()
     vertLayout->Release();
 
     samplerState->Release();
-    
+
     InputClass::Release();
 }
 
-void Core::Run()
+void Core::Run(const HINSTANCE& hInstance, const int& ShowWnd, const int& width, const int& height)
 {
+    Initialize(hInstance, ShowWnd, width, height);
 
     while (m_window->IsAlive())
     {
@@ -137,6 +104,69 @@ HRESULT Core::InitializeDepthStencilBuffer()
         m_d3DeviceContext->OMSetRenderTargets(1, &m_renderTargetView, m_depthStencilView);
 
     return hr;
+}
+
+void Core::Initialize(const HINSTANCE& hInstance, const int& ShowWnd, const int& width, const int& height)
+{
+    m_window = new Window(hInstance, ShowWnd, width, height, true);
+    m_width = width;
+    m_height = height;
+
+    if (InitializeD3D(hInstance) != S_OK)
+    {
+        MessageBox(0, "Direct3D Initialization - Failed",
+            "Error", MB_OK);
+        throw std::exception("Direct3D Initialization - Failed");
+    }
+
+    m_renderingSystem = new RenderingSystem(m_d3Device, m_d3DeviceContext);
+
+    D3D11_SAMPLER_DESC sampDesc;
+    ZeroMemory(&sampDesc, sizeof(sampDesc));
+    sampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+    sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+    sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+    sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+    sampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+    sampDesc.MinLOD = 0;
+    sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
+
+    if (S_OK != m_d3Device->CreateSamplerState(&sampDesc, &samplerState))
+        throw std::exception("error");
+
+
+    Time::Initialize();
+    InputClass::Initialize(*m_window->GetHInstance(), *m_window->GetHWND());
+
+    HRESULT hr = D3DCompileFromFile(L"Effects.fx", 0, 0, "VS", "vs_4_0", D3D10_SHADER_ENABLE_STRICTNESS | D3D10_SHADER_DEBUG, 0, &VS_Buffer, 0);
+    hr = D3DCompileFromFile(L"Effects.fx", 0, 0, "PS", "ps_4_0", D3D10_SHADER_ENABLE_STRICTNESS | D3D10_SHADER_DEBUG, 0, &PS_Buffer, 0);
+
+    hr = m_d3Device->CreateVertexShader(VS_Buffer->GetBufferPointer(), VS_Buffer->GetBufferSize(), NULL, &VS);
+    hr = m_d3Device->CreatePixelShader(PS_Buffer->GetBufferPointer(), PS_Buffer->GetBufferSize(), NULL, &PS);
+
+    m_d3DeviceContext->VSSetShader(VS, 0, 0);
+    m_d3DeviceContext->PSSetShader(PS, 0, 0);
+
+    hr = m_d3Device->CreateInputLayout(layout, numElements, VS_Buffer->GetBufferPointer(),
+        VS_Buffer->GetBufferSize(), &vertLayout);
+
+    m_d3DeviceContext->IASetInputLayout(vertLayout);
+
+    m_d3DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+    D3D11_VIEWPORT viewport;
+    ZeroMemory(&viewport, sizeof(D3D11_VIEWPORT));
+
+    viewport.TopLeftX = 0;
+    viewport.TopLeftY = 0;
+    viewport.Width = (float)m_width;
+    viewport.Height = (float)m_height;
+    viewport.MinDepth = 0.0f;
+    viewport.MaxDepth = 1.0f;
+
+    m_d3DeviceContext->RSSetViewports(1, &viewport);
+
+    InitScene();
 }
 
 HRESULT Core::InitializeD3D(const HINSTANCE& hInstance)
@@ -222,49 +252,11 @@ void Core::DeletePendingObjects()
     m_objectsToDelete.clear();
 }
 
-bool Core::InitScene()
+void Core::InitScene()
 {
-    Time::Initialize();
-    InputClass::Initialize(*m_window->GetHInstance(), *m_window->GetHWND());
-
-    HRESULT hr = D3DCompileFromFile(L"Effects.fx", 0, 0, "VS", "vs_4_0", D3D10_SHADER_ENABLE_STRICTNESS | D3D10_SHADER_DEBUG, 0, &VS_Buffer, 0);
-    hr = D3DCompileFromFile(L"Effects.fx", 0, 0, "PS", "ps_4_0", D3D10_SHADER_ENABLE_STRICTNESS | D3D10_SHADER_DEBUG, 0, &PS_Buffer, 0);
-
-    hr = m_d3Device->CreateVertexShader(VS_Buffer->GetBufferPointer(), VS_Buffer->GetBufferSize(), NULL, &VS);
-    hr = m_d3Device->CreatePixelShader(PS_Buffer->GetBufferPointer(), PS_Buffer->GetBufferSize(), NULL, &PS);
-
-    m_d3DeviceContext->VSSetShader(VS, 0, 0);
-    m_d3DeviceContext->PSSetShader(PS, 0, 0);
-
     m_camera = InstantiateObject<ControllableCamera>(0.4f * 3.14f, (float)m_width / m_height, 0.1f, 100.0f);
     m_camera->GetTransform()->SetPosition({ 0.0f, 0.0f, -5.0f });
     m_camera->GetTransform()->LookAt(XMFLOAT3(0.0f, 0.0f, 0.0f));
-
-    m_obj0 = InstantiateObject<Object>();
-    m_obj0->GetTransform()->SetPosition({ 0.0f, 0.0f, 0.0f });
-    m_obj0->GetTransform()->SetScale({ 0.01f, 0.01f, 0.01f });
-    m_obj0->AddComponent<MeshRenderer>("model.fbx");
-
-    hr = m_d3Device->CreateInputLayout(layout, numElements, VS_Buffer->GetBufferPointer(),
-        VS_Buffer->GetBufferSize(), &vertLayout);
-
-    m_d3DeviceContext->IASetInputLayout(vertLayout);
-
-    m_d3DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-    D3D11_VIEWPORT viewport;
-    ZeroMemory(&viewport, sizeof(D3D11_VIEWPORT));
-
-    viewport.TopLeftX = 0;
-    viewport.TopLeftY = 0;
-    viewport.Width = (float)m_width;
-    viewport.Height = (float)m_height;
-    viewport.MinDepth = 0.0f;
-    viewport.MaxDepth = 1.0f;
-
-    m_d3DeviceContext->RSSetViewports(1, &viewport);
-
-    return true;
 }
 
 void Core::BeforeUpdateScene()

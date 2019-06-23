@@ -51,6 +51,9 @@
     <ClCompile Include="DebugLog.cpp">
       <Filter>Framework</Filter>
     </ClCompile>
+    <ClCompile Include="MyApp.cpp">
+      <Filter>AAsProject</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <_EmbedManagedResourceFile Include="Effects.fx" />
@@ -94,6 +97,9 @@
     </ClInclude>
     <ClInclude Include="ControllableCamera.h">
       <Filter>Framework</Filter>
+    </ClInclude>
+    <ClInclude Include="MyApp.h">
+      <Filter>AAsProject</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
