@@ -1,5 +1,6 @@
 #include "Object.h"
 #include "Transform.h"
+#include "Component.h"
 
 using namespace DirectX;
 
@@ -13,7 +14,8 @@ Object::Object()
 
 Object::~Object()
 {
-    delete m_transform;
+    for (Component* const& comp : m_components)
+        delete comp;
 }
 
 void Object::Update()

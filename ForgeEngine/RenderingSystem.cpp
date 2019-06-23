@@ -18,10 +18,25 @@ RenderingSystem::RenderingSystem(ID3D11Device* const& d3Device, ID3D11DeviceCont
 {
     m_d3Device = d3Device;
     m_d3DeviceContext = d3DeviceContext;
+
+    D3D11_BUFFER_DESC cbbd;
+    ZeroMemory(&cbbd, sizeof(D3D11_BUFFER_DESC));
+
+    cbbd.Usage = D3D11_USAGE_DEFAULT;
+    cbbd.ByteWidth = sizeof(cbPerObject);
+    cbbd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+
+    m_d3Device->CreateBuffer(&cbbd, nullptr, &m_buff);
 }
 
 RenderingSystem::~RenderingSystem()
 {
+    for (auto const& entry : m_models)
+    {
+        ReleaseModel(entry.second);
+    }
+
+    m_buff->Release();
 }
 
 void RenderingSystem::Render(Camera* const& camera)
@@ -40,25 +55,8 @@ void RenderingSystem::Render(Camera* const& camera)
 
             cbPerObj.WVP = XMMatrixTranspose(renderer->GetOwner()->GetTransform()->GetWorldMatrix() * camera->GetViewMatrix() * camera->GetProjectionMatrix());
 
-            static ID3D11Buffer* buff = nullptr;
-
-            static bool tmp = false;
-
-            if (!tmp)
-            {
-                static D3D11_BUFFER_DESC cbbd;
-                ZeroMemory(&cbbd, sizeof(D3D11_BUFFER_DESC));
-
-                cbbd.Usage = D3D11_USAGE_DEFAULT;
-                cbbd.ByteWidth = sizeof(cbPerObject);
-                cbbd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-
-                m_d3Device->CreateBuffer(&cbbd, nullptr, &buff);
-                tmp = true;
-            }
-
-            m_d3DeviceContext->UpdateSubresource(buff, 0, nullptr, &cbPerObj, 0, 0);
-            m_d3DeviceContext->VSSetConstantBuffers(0, 1, &buff);
+            m_d3DeviceContext->UpdateSubresource(m_buff, 0, nullptr, &cbPerObj, 0, 0);
+            m_d3DeviceContext->VSSetConstantBuffers(0, 1, &m_buff);
 
             m_d3DeviceContext->PSSetShaderResources(0, 1, &mesh->Material->SRVs[TextureTypes::Diffuse][0]);
 
@@ -299,4 +297,21 @@ DirectX::XMMATRIX RenderingSystem::GetMatrixFromAssimp(const aiMatrix4x4 &matrix
         matrix.b1, matrix.b2, matrix.b3, matrix.b4,
         matrix.c1, matrix.c2, matrix.c3, matrix.c4,
         matrix.d1, matrix.d2, matrix.d3, matrix.d4);
+}
+
+void RenderingSystem::ReleaseModel(const Model* const& model)
+{
+    for (const Mesh* const& mesh : model->Meshes)
+    {
+        mesh->IndexBuffer->Release();
+        mesh->VertexBuffer->Release();
+        delete mesh;
+    }
+
+    for (const Model* const& child : model->Children)
+    {
+        ReleaseModel(child);
+    }
+
+    delete model;
 }

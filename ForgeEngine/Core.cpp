@@ -60,7 +60,34 @@ Core::Core(const HINSTANCE& hInstance, const int& ShowWnd, const int& width, con
 
 Core::~Core()
 {
+    for (Object* const& obj : m_objects)
+        delete obj;
+
+    for (Object* const& obj : m_objectsToAdd)
+        delete obj;
+
+    for (Object* const& obj : m_objectsToDelete)
+        delete obj;
+
+    m_swapChain->Release();
+    m_d3Device->Release();
+    m_d3DeviceContext->Release();
+    m_renderTargetView->Release();
+    m_depthStencilView->Release();
+
+    delete m_renderingSystem;
     delete m_window;
+
+    VS->Release();
+    PS->Release();
+    VS_Buffer->Release();
+    PS_Buffer->Release();
+    vertLayout->Release();
+
+    samplerState->Release();
+    
+    //input release
+    //time release
 }
 
 void Core::Run()
@@ -237,15 +264,6 @@ bool Core::InitScene()
     viewport.MaxDepth = 1.0f;
 
     m_d3DeviceContext->RSSetViewports(1, &viewport);
-
-    D3D11_BUFFER_DESC cbbd;
-    ZeroMemory(&cbbd, sizeof(D3D11_BUFFER_DESC));
-
-    cbbd.Usage = D3D11_USAGE_DEFAULT;
-    cbbd.ByteWidth = sizeof(cbPerObject);
-    cbbd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-
-    hr = m_d3Device->CreateBuffer(&cbbd, nullptr, &cbPerObjectBuffer);
 
     return true;
 }

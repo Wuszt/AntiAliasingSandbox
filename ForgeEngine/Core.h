@@ -76,7 +76,6 @@ private:
     Camera* m_camera;
 
     Object* m_obj0;
-    Object* m_obj1;
 
     //to move
     ID3D11VertexShader* VS;
@@ -84,23 +83,8 @@ private:
     ID3D10Blob* VS_Buffer;
     ID3D10Blob* PS_Buffer;
     ID3D11InputLayout* vertLayout;
-    ID3D11Buffer* cbPerObjectBuffer;
-
-    ID3D11Buffer* VertBuffer;
-    ID3D11Buffer* IndexBuffer;
 
     ID3D11SamplerState* samplerState;
-
-    struct Vertex
-    {
-        Vertex() {}
-        Vertex(const float& x, const float& y, const float& z,
-            const float& u, const float& v)
-            : pos(x, y, z), texCoord(u,v) {}
-
-        DirectX::XMFLOAT3 pos;
-        DirectX::XMFLOAT2 texCoord;
-    };
 
     D3D11_INPUT_ELEMENT_DESC layout[2] =
     {

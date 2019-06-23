@@ -61,6 +61,8 @@ private:
 
     DirectX::XMMATRIX GetMatrixFromAssimp(const aiMatrix4x4 &matrix);
 
+    void ReleaseModel(const Model* const& model);
+
     std::unordered_map<std::string,const Model* const> m_models;
 
     ID3D11Device* m_d3Device;
@@ -69,5 +71,7 @@ private:
     std::unordered_set<MeshRenderer*> m_meshRenderers;
 
     cbPerObject cbPerObj;
+
+    ID3D11Buffer* m_buff;
 };
 
