@@ -8,6 +8,8 @@
 #include "Camera.h"
 #include "Transform.h"
 #include "Core.h"
+#include "Material.h"
+#include <DirectXTex/DirectXTex.h>
 
 using namespace DirectX;
 using namespace std;
@@ -57,6 +59,8 @@ void RenderingSystem::Render(Camera* const& camera)
 
             m_d3DeviceContext->UpdateSubresource(buff, 0, nullptr, &cbPerObj, 0, 0);
             m_d3DeviceContext->VSSetConstantBuffers(0, 1, &buff);
+
+            m_d3DeviceContext->PSSetShaderResources(0, 1, &mesh->Material->SRVs[TextureTypes::Diffuse][0]);
 
             m_d3DeviceContext->DrawIndexed(mesh->IndicesAmount, 0, 0);
         }
@@ -123,7 +127,7 @@ const Model* RenderingSystem::LoadModelFromNode(const aiScene* const& scene, con
 
     for (unsigned int i = 0; i < node->mNumChildren; ++i)
     {
-        if(node->mChildren[i]->mNumMeshes == 0 && node->mChildren[i]->mChildren == 0)
+        if (node->mChildren[i]->mNumMeshes == 0 && node->mChildren[i]->mChildren == 0)
             continue;
 
         const Model* child = LoadModelFromNode(scene, node->mChildren[i]);
@@ -133,6 +137,17 @@ const Model* RenderingSystem::LoadModelFromNode(const aiScene* const& scene, con
     return model;
 }
 
+TextureTypes RenderingSystem::GetTextureTypeFromAssimp(const int& type)
+{
+    if (type == aiTextureType_DIFFUSE)
+        return TextureTypes::Diffuse;
+
+    if (type == aiTextureType_SPECULAR)
+        return TextureTypes::Specular;
+
+    return TextureTypes::Unknown;
+}
+
 vector<const Mesh*> RenderingSystem::LoadMeshesFromNode(const aiScene* const& scene, const aiNode* const& node)
 {
     vector<const Mesh*> meshes;
@@ -140,6 +155,8 @@ vector<const Mesh*> RenderingSystem::LoadMeshesFromNode(const aiScene* const& sc
     for (unsigned int i = 0; i < node->mNumMeshes; ++i)
     {
         Mesh* mesh = new Mesh;
+
+        mesh->Material = new Material();
 
         vector<Vertex> vertices;
         vector<DWORD> indices;
@@ -155,6 +172,31 @@ vector<const Mesh*> RenderingSystem::LoadMeshesFromNode(const aiScene* const& sc
         if (opacity < 1.0f)
             continue;
         //Finish opacity
+
+        aiString sr;
+        mat->Get(AI_MATKEY_TEXTURE(aiTextureType_DIFFUSE, 0), sr);
+        mat->Get(AI_MATKEY_TEXTURE(aiTextureType_SPECULAR, 0), sr);
+
+        for (int i = 0; i < AI_TEXTURE_TYPE_MAX; ++i)
+        {
+            int amount = mat->GetTextureCount((aiTextureType)i);
+
+            TextureTypes textureType = GetTextureTypeFromAssimp(i);
+
+            if (amount == 0)
+                continue;
+
+            mesh->Material->SRVs.insert({ textureType, vector<ID3D11ShaderResourceView*>() });
+
+            for (int a = 0; a < amount; ++a)
+            {
+                aiString path;
+                mat->GetTexture((aiTextureType)i, a, &path);
+                ID3D11ShaderResourceView* srv = GetResourceFromTexturePath(string(path.C_Str()));
+                mesh->Material->SRVs[textureType].push_back(srv);
+            }
+
+        }
 
         for (unsigned int x = 0; x < meshData->mNumVertices; ++x)
         {
@@ -232,20 +274,29 @@ ID3D11Buffer* RenderingSystem::CreateIndexBuffer(const vector<DWORD>& indices)
     return result;
 }
 
+ID3D11ShaderResourceView* RenderingSystem::GetResourceFromTexturePath(std::string path)
+{
+    const Image* images = nullptr;
+
+    DirectX::ScratchImage si;
+    DirectX::TexMetadata meta;
+
+    wstring ws(path.begin(), path.end());
+
+    LoadFromWICFile(ws.c_str(), WIC_FLAGS_NONE, &meta, si);
+    images = si.GetImages();
+
+
+    ID3D11ShaderResourceView* srv;
+    CreateShaderResourceView(m_d3Device, images, 1, meta, &srv);
+
+    return srv;
+}
+
 DirectX::XMMATRIX RenderingSystem::GetMatrixFromAssimp(const aiMatrix4x4 &matrix)
 {
-    //float arr[16];
-
-    //for (int x = 0; x < 4; ++x)
-    //{
-    //    for (int y = 0; y < 4; ++y)
-    //    {
-    //        arr[y + x * 4] = matrix[x][y];
-    //    }
-    //}
-
     return XMMATRIX(matrix.a1, matrix.a2, matrix.a3, matrix.a4,
-        matrix.b1, matrix.b2, matrix.b3, matrix.b4, 
-        matrix.c1, matrix.c2, matrix.c3, matrix.c4, 
+        matrix.b1, matrix.b2, matrix.b3, matrix.b4,
+        matrix.c1, matrix.c2, matrix.c3, matrix.c4,
         matrix.d1, matrix.d2, matrix.d3, matrix.d4);
 }

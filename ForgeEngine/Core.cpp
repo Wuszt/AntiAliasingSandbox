@@ -270,36 +270,12 @@ void Core::AfterUpdateScene()
 
 void Core::DrawScene()
 {
-    static const Image* images = nullptr;
-
-    if (images == nullptr)
-    {
-        DirectX::ScratchImage si;
-        DirectX::TexMetadata meta;
-        LoadFromWICFile(L"tmp.jpeg", WIC_FLAGS_NONE, &meta, si);
-        images = si.GetImages();
-
-
-        ID3D11ShaderResourceView* srv;
-        CreateShaderResourceView(m_d3Device, images, 1, meta, &srv);
-        m_d3DeviceContext->PSSetShaderResources(0, 1, &srv);
-    }
-
-
-
     float bgColor[4] = { (0.0f, 0.0f, 0.0f, 0.0f) };
     m_d3DeviceContext->ClearRenderTargetView(m_renderTargetView, bgColor);
 
     m_d3DeviceContext->ClearDepthStencilView(m_depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
     m_d3DeviceContext->PSSetSamplers(0, 1, &samplerState);
-
-   // m_d3DeviceContext->DrawIndexed(261060, 0, 0);
-
-    //cbPerObj.WVP = XMMatrixTranspose(m_obj1->GetTransform()->GetWorldMatrix() * m_camera->GetViewMatrix() * m_camera->GetProjectionMatrix());
-   // m_d3DeviceContext->UpdateSubresource(cbPerObjectBuffer, 0, nullptr, &cbPerObj, 0, 0);
-    //m_d3DeviceContext->VSSetConstantBuffers(0, 1, &cbPerObjectBuffer);
-    //m_d3DeviceContext->DrawIndexed(261060, 0, 0);
 
     m_renderingSystem->Render(m_camera);
 
