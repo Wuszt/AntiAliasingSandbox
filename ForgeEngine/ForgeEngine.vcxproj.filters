@@ -9,12 +9,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="ControllableCamera.cpp">
-      <Filter>AAsProject</Filter>
-    </ClCompile>
-    <ClCompile Include="DebugLog.cpp">
-      <Filter>AAsProject</Filter>
-    </ClCompile>
     <ClCompile Include="main.cpp">
       <Filter>AAsProject</Filter>
     </ClCompile>
@@ -36,22 +30,32 @@
     <ClCompile Include="Object.cpp">
       <Filter>Framework</Filter>
     </ClCompile>
-    <ClCompile Include="RenderingSystem.cpp" />
-    <ClCompile Include="Model.cpp" />
-    <ClCompile Include="Mesh.cpp" />
-    <ClCompile Include="MeshRenderer.cpp" />
-    <ClCompile Include="Material.cpp" />
+    <ClCompile Include="Material.cpp">
+      <Filter>Framework</Filter>
+    </ClCompile>
+    <ClCompile Include="Mesh.cpp">
+      <Filter>Framework</Filter>
+    </ClCompile>
+    <ClCompile Include="MeshRenderer.cpp">
+      <Filter>Framework</Filter>
+    </ClCompile>
+    <ClCompile Include="Model.cpp">
+      <Filter>Framework</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderingSystem.cpp">
+      <Filter>Framework</Filter>
+    </ClCompile>
+    <ClCompile Include="ControllableCamera.cpp">
+      <Filter>Framework</Filter>
+    </ClCompile>
+    <ClCompile Include="DebugLog.cpp">
+      <Filter>Framework</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <_EmbedManagedResourceFile Include="Effects.fx" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="ControllableCamera.h">
-      <Filter>AAsProject</Filter>
-    </ClInclude>
-    <ClInclude Include="DebugLog.h">
-      <Filter>AAsProject</Filter>
-    </ClInclude>
     <ClInclude Include="Camera.h">
       <Filter>Framework</Filter>
     </ClInclude>
@@ -70,10 +74,26 @@
     <ClInclude Include="Object.h">
       <Filter>Framework</Filter>
     </ClInclude>
-    <ClInclude Include="RenderingSystem.h" />
-    <ClInclude Include="Model.h" />
-    <ClInclude Include="Mesh.h" />
-    <ClInclude Include="MeshRenderer.h" />
-    <ClInclude Include="Material.h" />
+    <ClInclude Include="RenderingSystem.h">
+      <Filter>Framework</Filter>
+    </ClInclude>
+    <ClInclude Include="Material.h">
+      <Filter>Framework</Filter>
+    </ClInclude>
+    <ClInclude Include="Mesh.h">
+      <Filter>Framework</Filter>
+    </ClInclude>
+    <ClInclude Include="MeshRenderer.h">
+      <Filter>Framework</Filter>
+    </ClInclude>
+    <ClInclude Include="Model.h">
+      <Filter>Framework</Filter>
+    </ClInclude>
+    <ClInclude Include="DebugLog.h">
+      <Filter>Framework</Filter>
+    </ClInclude>
+    <ClInclude Include="ControllableCamera.h">
+      <Filter>Framework</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

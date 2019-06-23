@@ -86,8 +86,7 @@ Core::~Core()
 
     samplerState->Release();
     
-    //input release
-    //time release
+    InputClass::Release();
 }
 
 void Core::Run()
