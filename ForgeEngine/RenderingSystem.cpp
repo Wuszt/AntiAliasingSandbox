@@ -123,6 +123,9 @@ const Model* RenderingSystem::LoadModelFromNode(const aiScene* const& scene, con
 
     for (unsigned int i = 0; i < node->mNumChildren; ++i)
     {
+        if(node->mChildren[i]->mNumMeshes == 0 && node->mChildren[i]->mChildren == 0)
+            continue;
+
         const Model* child = LoadModelFromNode(scene, node->mChildren[i]);
         model->Children.push_back(child);
     }
