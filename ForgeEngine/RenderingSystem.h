@@ -40,7 +40,7 @@ public:
     RenderingSystem(ID3D11Device* const& d3Device, ID3D11DeviceContext* const& d3DeviceContext);
     ~RenderingSystem();
 
-    void Render(Camera* const& camera);
+    void RenderRegisteredMeshRenderers(Camera* const& camera);
 
     void InitializeMeshRendererWithModelPath(MeshRenderer* const& meshRenderer, const std::string& modelPath);
     void InitializeMeshRendererWithModel(MeshRenderer* const& meshRenderer, const Model* const& model);

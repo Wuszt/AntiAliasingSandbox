@@ -286,7 +286,7 @@ void Core::DrawScene()
 
     m_d3DeviceContext->PSSetSamplers(0, 1, &samplerState);
 
-    m_renderingSystem->Render(m_camera);
+    m_renderingSystem->RenderRegisteredMeshRenderers(m_camera);
 
     m_swapChain->Present(0, 0);
 }

@@ -39,7 +39,7 @@ RenderingSystem::~RenderingSystem()
     m_buff->Release();
 }
 
-void RenderingSystem::Render(Camera* const& camera)
+void RenderingSystem::RenderRegisteredMeshRenderers(Camera* const& camera)
 {
     int i = 0;
     for (MeshRenderer* const& renderer : m_meshRenderers)
