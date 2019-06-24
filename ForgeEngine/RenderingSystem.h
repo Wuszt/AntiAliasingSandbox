@@ -50,8 +50,6 @@ private:
 
     const Model* LoadModelFromNode(const aiScene* const& scene, const aiNode* const& node);
 
-    TextureTypes GetTextureTypeFromAssimp(const int& type);
-
     std::vector<const Mesh*> LoadMeshesFromNode(const aiScene* const& scene, const aiNode* const& node);
 
     ID3D11Buffer* CreateVertexBuffer(const std::vector<Vertex>& vertices);

@@ -58,7 +58,7 @@ void RenderingSystem::Render(Camera* const& camera)
             m_d3DeviceContext->UpdateSubresource(m_buff, 0, nullptr, &cbPerObj, 0, 0);
             m_d3DeviceContext->VSSetConstantBuffers(0, 1, &m_buff);
 
-            m_d3DeviceContext->PSSetShaderResources(0, 1, &mesh->Material->SRVs[TextureTypes::Diffuse][0]);
+            m_d3DeviceContext->PSSetShaderResources(0, 1, &mesh->Material->SRVs[0]);
 
             m_d3DeviceContext->DrawIndexed(mesh->IndicesAmount, 0, 0);
         }
@@ -135,17 +135,6 @@ const Model* RenderingSystem::LoadModelFromNode(const aiScene* const& scene, con
     return model;
 }
 
-TextureTypes RenderingSystem::GetTextureTypeFromAssimp(const int& type)
-{
-    if (type == aiTextureType_DIFFUSE)
-        return TextureTypes::Diffuse;
-
-    if (type == aiTextureType_SPECULAR)
-        return TextureTypes::Specular;
-
-    return TextureTypes::Unknown;
-}
-
 vector<const Mesh*> RenderingSystem::LoadMeshesFromNode(const aiScene* const& scene, const aiNode* const& node)
 {
     vector<const Mesh*> meshes;
@@ -179,19 +168,12 @@ vector<const Mesh*> RenderingSystem::LoadMeshesFromNode(const aiScene* const& sc
         {
             int amount = mat->GetTextureCount((aiTextureType)i);
 
-            TextureTypes textureType = GetTextureTypeFromAssimp(i);
-
-            if (amount == 0)
-                continue;
-
-            mesh->Material->SRVs.insert({ textureType, vector<ID3D11ShaderResourceView*>() });
-
             for (int a = 0; a < amount; ++a)
             {
                 aiString path;
                 mat->GetTexture((aiTextureType)i, a, &path);
                 ID3D11ShaderResourceView* srv = GetResourceFromTexturePath(string(path.C_Str()));
-                mesh->Material->SRVs[textureType].push_back(srv);
+                mesh->Material->SRVs.push_back(srv);
             }
 
         }
