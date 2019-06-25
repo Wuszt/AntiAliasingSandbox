@@ -19,9 +19,6 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <_EmbedManagedResourceFile Include="BaseVS.fx">
-      <FileType>Document</FileType>
-    </_EmbedManagedResourceFile>
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="Component.cpp" />
     <ClCompile Include="ControllableCamera.cpp" />
@@ -44,7 +41,7 @@
     <ClCompile Include="Window.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <_EmbedManagedResourceFile Include="BasePS.fx">
+    <_EmbedManagedResourceFile Include="Effects.fx">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <FileType>Document</FileType>
     </_EmbedManagedResourceFile>
