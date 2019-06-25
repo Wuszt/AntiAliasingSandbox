@@ -54,9 +54,7 @@
     <ClCompile Include="MyApp.cpp">
       <Filter>AAsProject</Filter>
     </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <_EmbedManagedResourceFile Include="Effects.fx" />
+    <ClCompile Include="BaseVS.fx" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Camera.h">
@@ -101,5 +99,8 @@
     <ClInclude Include="MyApp.h">
       <Filter>AAsProject</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <_EmbedManagedResourceFile Include="BasePS.fx" />
   </ItemGroup>
 </Project>
