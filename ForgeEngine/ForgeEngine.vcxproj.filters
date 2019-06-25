@@ -54,9 +54,9 @@
     <ClCompile Include="MyApp.cpp">
       <Filter>AAsProject</Filter>
     </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <_EmbedManagedResourceFile Include="Effects.fx" />
+    <ClCompile Include="ShadersManager.cpp">
+      <Filter>Framework</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Camera.h">
@@ -101,5 +101,11 @@
     <ClInclude Include="MyApp.h">
       <Filter>AAsProject</Filter>
     </ClInclude>
+    <ClInclude Include="ShadersManager.h">
+      <Filter>Framework</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <_EmbedManagedResourceFile Include="Base.fx" />
   </ItemGroup>
 </Project>

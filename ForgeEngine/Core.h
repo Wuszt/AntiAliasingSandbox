@@ -11,6 +11,7 @@ class Window;
 class Camera;
 class Object;
 class RenderingSystem;
+class ShadersManager;
 
 class Core
 {
@@ -71,6 +72,7 @@ private:
     ID3D11DepthStencilView* m_depthStencilView;
     ID3D11Texture2D* m_depthStencilBuffer;
 
+    ShadersManager* m_shadersManager;
     RenderingSystem* m_renderingSystem;
     Window* m_window;
     Camera* m_camera;

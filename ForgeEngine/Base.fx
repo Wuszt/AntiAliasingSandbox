@@ -26,5 +26,4 @@ VS_OUTPUT VS(float4 inPos : POSITION, float2 inTexCoord : TEXCOORD)
 float4 PS(VS_OUTPUT input) : SV_TARGET
 {
     return ObjTexture.Sample(ObjSamplerState, input.TexCoord);
-
 }

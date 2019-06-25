@@ -14,6 +14,7 @@
 
 #include "RenderingSystem.h"
 #include "MeshRenderer.h"
+#include "ShadersManager.h"
 
 using namespace DirectX;
 
@@ -44,10 +45,6 @@ Core::~Core()
     delete m_renderingSystem;
     delete m_window;
 
-    VS->Release();
-    PS->Release();
-    VS_Buffer->Release();
-    PS_Buffer->Release();
     vertLayout->Release();
 
     samplerState->Release();
@@ -138,17 +135,12 @@ void Core::Initialize(const HINSTANCE& hInstance, const int& ShowWnd, const int&
     Time::Initialize();
     InputClass::Initialize(*m_window->GetHInstance(), *m_window->GetHWND());
 
-    HRESULT hr = D3DCompileFromFile(L"Effects.fx", 0, 0, "VS", "vs_4_0", D3D10_SHADER_ENABLE_STRICTNESS | D3D10_SHADER_DEBUG, 0, &VS_Buffer, 0);
-    hr = D3DCompileFromFile(L"Effects.fx", 0, 0, "PS", "ps_4_0", D3D10_SHADER_ENABLE_STRICTNESS | D3D10_SHADER_DEBUG, 0, &PS_Buffer, 0);
-
-    hr = m_d3Device->CreateVertexShader(VS_Buffer->GetBufferPointer(), VS_Buffer->GetBufferSize(), NULL, &VS);
-    hr = m_d3Device->CreatePixelShader(PS_Buffer->GetBufferPointer(), PS_Buffer->GetBufferSize(), NULL, &PS);
-
-    m_d3DeviceContext->VSSetShader(VS, 0, 0);
-    m_d3DeviceContext->PSSetShader(PS, 0, 0);
-
-    hr = m_d3Device->CreateInputLayout(layout, numElements, VS_Buffer->GetBufferPointer(),
-        VS_Buffer->GetBufferSize(), &vertLayout);
+    m_shadersManager = new ShadersManager(m_d3Device);
+    auto* trfds = m_shadersManager->GetShaders("Base.fx");
+    m_d3DeviceContext->VSSetShader(trfds->VS.Shader, 0, 0);
+    m_d3DeviceContext->PSSetShader(trfds->PS.Shader, 0, 0);
+    HRESULT hr = m_d3Device->CreateInputLayout(layout, numElements, trfds->VS.ByteCode->GetBufferPointer(),
+        trfds->VS.ByteCode->GetBufferSize(), &vertLayout);
 
     m_d3DeviceContext->IASetInputLayout(vertLayout);
 
@@ -267,6 +259,10 @@ void Core::BeforeUpdateScene()
 
 void Core::UpdateScene()
 {
+    auto* trfds = m_shadersManager->GetShaders("Base.fx");
+    m_d3DeviceContext->VSSetShader(trfds->VS.Shader, 0, 0);
+    m_d3DeviceContext->PSSetShader(trfds->PS.Shader, 0, 0);
+
     for (Object* obj : m_objects)
     {
         obj->Update();

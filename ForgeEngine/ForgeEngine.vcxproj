@@ -37,11 +37,12 @@
     <ClCompile Include="MyApp.cpp" />
     <ClCompile Include="Object.cpp" />
     <ClCompile Include="RenderingSystem.cpp" />
+    <ClCompile Include="ShadersManager.cpp" />
     <ClCompile Include="Transform.cpp" />
     <ClCompile Include="Window.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <_EmbedManagedResourceFile Include="Effects.fx">
+    <_EmbedManagedResourceFile Include="Base.fx">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <FileType>Document</FileType>
     </_EmbedManagedResourceFile>
@@ -59,6 +60,7 @@
     <ClInclude Include="MyApp.h" />
     <ClInclude Include="Object.h" />
     <ClInclude Include="RenderingSystem.h" />
+    <ClInclude Include="ShadersManager.h" />
     <ClInclude Include="Transform.h" />
     <ClInclude Include="Window.h" />
   </ItemGroup>
