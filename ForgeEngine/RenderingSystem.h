@@ -16,6 +16,7 @@ struct Mesh;
 class Object;
 class MeshRenderer;
 class Camera;
+class ShadersManager;
 
 
 struct Vertex
@@ -42,15 +43,15 @@ public:
 
     void RenderRegisteredMeshRenderers(Camera* const& camera);
 
-    void InitializeMeshRendererWithModelPath(MeshRenderer* const& meshRenderer, const std::string& modelPath);
-    void InitializeMeshRendererWithModel(MeshRenderer* const& meshRenderer, const Model* const& model);
+    void InitializeMeshRendererWithModelPath(MeshRenderer* const& meshRenderer, const std::string& modelPath, const std::string& shaderPath);
+    void InitializeMeshRendererWithModel(MeshRenderer* const& meshRenderer, const Model* const& model, const std::string& shaderPath);
 
 private:
-    const Model* LoadModelFromPath(const std::string& modelPath);
+    const Model* LoadModelFromPath(const std::string& modelPath, const std::string& shaderPath);
 
-    const Model* LoadModelFromNode(const aiScene* const& scene, const aiNode* const& node);
+    const Model* LoadModelFromNode(const aiScene* const& scene, const aiNode* const& node, const std::string& shaderPath);
 
-    std::vector<const Mesh*> LoadMeshesFromNode(const aiScene* const& scene, const aiNode* const& node);
+    std::vector<const Mesh*> LoadMeshesFromNode(const aiScene* const& scene, const aiNode* const& node, const std::string& shaderPath);
 
     ID3D11Buffer* CreateVertexBuffer(const std::vector<Vertex>& vertices);
     ID3D11Buffer* CreateIndexBuffer(const std::vector<DWORD>& indices);
@@ -71,5 +72,7 @@ private:
     cbPerObject cbPerObj;
 
     ID3D11Buffer* m_buff;
+
+    ShadersManager* m_shadersManager;
 };
 

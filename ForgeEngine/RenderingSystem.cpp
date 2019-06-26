@@ -10,6 +10,7 @@
 #include "Core.h"
 #include "Material.h"
 #include <DirectXTex/DirectXTex.h>
+#include "ShadersManager.h"
 
 using namespace DirectX;
 using namespace std;
@@ -27,6 +28,8 @@ RenderingSystem::RenderingSystem(ID3D11Device* const& d3Device, ID3D11DeviceCont
     cbbd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 
     m_d3Device->CreateBuffer(&cbbd, nullptr, &m_buff);
+
+    m_shadersManager = new ShadersManager(d3Device);
 }
 
 RenderingSystem::~RenderingSystem()
@@ -41,12 +44,10 @@ RenderingSystem::~RenderingSystem()
 
 void RenderingSystem::RenderRegisteredMeshRenderers(Camera* const& camera)
 {
-    int i = 0;
     for (MeshRenderer* const& renderer : m_meshRenderers)
     {
         for (const Mesh* const& mesh : *renderer->m_meshes)
         {
-            ++i;
             m_d3DeviceContext->IASetIndexBuffer(mesh->IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
 
             UINT stride = sizeof(Vertex);
@@ -60,12 +61,21 @@ void RenderingSystem::RenderRegisteredMeshRenderers(Camera* const& camera)
 
             m_d3DeviceContext->PSSetShaderResources(0, 1, &mesh->Material->SRVs[0]);
 
+            static const CachedShaders* s_cachedShaders;
+
+            s_cachedShaders = m_shadersManager->GetShaders(mesh->Material->ShaderPath);
+
+            m_d3DeviceContext->VSSetShader(s_cachedShaders->VS.Shader, 0, 0);
+            m_d3DeviceContext->PSSetShader(s_cachedShaders->PS.Shader, 0, 0);
+
+            m_d3DeviceContext->IASetInputLayout(s_cachedShaders->inputLayout);
+
             m_d3DeviceContext->DrawIndexed(mesh->IndicesAmount, 0, 0);
         }
     }
 }
 
-void RenderingSystem::InitializeMeshRendererWithModelPath(MeshRenderer* const& meshRenderer, const std::string& modelPath)
+void RenderingSystem::InitializeMeshRendererWithModelPath(MeshRenderer* const& meshRenderer, const std::string& modelPath, const std::string& shaderPath)
 {
     auto alreadyCreated = m_models.find(modelPath);
     const Model* model = nullptr;
@@ -75,14 +85,14 @@ void RenderingSystem::InitializeMeshRendererWithModelPath(MeshRenderer* const& m
         model = alreadyCreated->second;
     else
     {
-        model = LoadModelFromPath(modelPath);
+        model = LoadModelFromPath(modelPath, shaderPath);
         m_models.insert({ modelPath, model });
     }
 
-    InitializeMeshRendererWithModel(meshRenderer, model);
+    InitializeMeshRendererWithModel(meshRenderer, model, shaderPath);
 }
 
-void RenderingSystem::InitializeMeshRendererWithModel(MeshRenderer* const& meshRenderer, const Model* const& model)
+void RenderingSystem::InitializeMeshRendererWithModel(MeshRenderer* const& meshRenderer, const Model* const& model, const std::string& shaderPath)
 {
     meshRenderer->m_meshes = &(model->Meshes);
     m_meshRenderers.insert(meshRenderer);
@@ -92,14 +102,14 @@ void RenderingSystem::InitializeMeshRendererWithModel(MeshRenderer* const& meshR
         Object* obj = Core::InstantiateObject<Object>();
         obj->GetTransform()->SetParent(meshRenderer->GetOwner()->GetTransform());
         obj->GetTransform()->SetFromMatrix(child->TransformMatrix);
-        obj->AddComponent<MeshRenderer>(child);
+        obj->AddComponent<MeshRenderer>(child, shaderPath);
 
         if (child->Name.length() > 0)
             obj->Name = child->Name;
     }
 }
 
-const Model* RenderingSystem::LoadModelFromPath(const std::string& modelPath)
+const Model* RenderingSystem::LoadModelFromPath(const std::string& modelPath, const std::string& shaderPath)
 {
     const Model* model;
 
@@ -109,18 +119,18 @@ const Model* RenderingSystem::LoadModelFromPath(const std::string& modelPath)
         | aiProcess_ConvertToLeftHanded;
 
     const aiScene* pScene = importer.ReadFile(modelPath, flags);
-    model = LoadModelFromNode(pScene, pScene->mRootNode);
+    model = LoadModelFromNode(pScene, pScene->mRootNode, shaderPath);
 
     return model;
 }
 
-const Model* RenderingSystem::LoadModelFromNode(const aiScene* const& scene, const aiNode* const& node)
+const Model* RenderingSystem::LoadModelFromNode(const aiScene* const& scene, const aiNode* const& node, const std::string& shaderPath)
 {
     Model* model = new Model();
     model->TransformMatrix = GetMatrixFromAssimp(node->mTransformation);
     model->TransformMatrix = XMMatrixTranspose(model->TransformMatrix);
 
-    model->Meshes = LoadMeshesFromNode(scene, node);
+    model->Meshes = LoadMeshesFromNode(scene, node, shaderPath);
     model->Name = string(node->mName.C_Str());
 
     for (unsigned int i = 0; i < node->mNumChildren; ++i)
@@ -128,14 +138,14 @@ const Model* RenderingSystem::LoadModelFromNode(const aiScene* const& scene, con
         if (node->mChildren[i]->mNumMeshes == 0 && node->mChildren[i]->mChildren == 0)
             continue;
 
-        const Model* child = LoadModelFromNode(scene, node->mChildren[i]);
+        const Model* child = LoadModelFromNode(scene, node->mChildren[i], shaderPath);
         model->Children.push_back(child);
     }
 
     return model;
 }
 
-vector<const Mesh*> RenderingSystem::LoadMeshesFromNode(const aiScene* const& scene, const aiNode* const& node)
+vector<const Mesh*> RenderingSystem::LoadMeshesFromNode(const aiScene* const& scene, const aiNode* const& node, const std::string& shaderPath)
 {
     vector<const Mesh*> meshes;
 
@@ -174,6 +184,7 @@ vector<const Mesh*> RenderingSystem::LoadMeshesFromNode(const aiScene* const& sc
                 mat->GetTexture((aiTextureType)i, a, &path);
                 ID3D11ShaderResourceView* srv = GetResourceFromTexturePath(string(path.C_Str()));
                 mesh->Material->SRVs.push_back(srv);
+                mesh->Material->ShaderPath = shaderPath;
             }
 
         }

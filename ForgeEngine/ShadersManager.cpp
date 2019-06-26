@@ -5,6 +5,13 @@
 
 using namespace std;
 
+D3D11_INPUT_ELEMENT_DESC layout[2] =
+{
+    { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+    { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+};
+UINT numElements = ARRAYSIZE(layout);
+
 
 ShadersManager::ShadersManager(ID3D11Device* const& device)
 {
@@ -13,6 +20,10 @@ ShadersManager::ShadersManager(ID3D11Device* const& device)
 
 ShadersManager::~ShadersManager()
 {
+    for (auto& pair : m_cachedShaders)
+    {
+        ReleaseShader(pair.second);
+    }
 }
 
 const CachedShaders* ShadersManager::GetShaders(const string& path)
@@ -39,6 +50,8 @@ const CachedShaders* ShadersManager::GetShaders(const string& path)
 
     if (cached == nullptr)
         cached = &m_cachedShaders.insert({ path, CachedShaders() }).first->second;
+    else
+        ReleaseShader(*cached);
 
     bool firstTry = false;
     while (true)
@@ -71,9 +84,22 @@ const CachedShaders* ShadersManager::GetShaders(const string& path)
     m_device->CreateVertexShader(cached->VS.ByteCode->GetBufferPointer(), cached->VS.ByteCode->GetBufferSize(), NULL, &cached->VS.Shader);
     m_device->CreatePixelShader(cached->PS.ByteCode->GetBufferPointer(), cached->PS.ByteCode->GetBufferSize(), NULL, &cached->PS.Shader);
 
+    m_device->CreateInputLayout(layout, numElements, cached->VS.ByteCode->GetBufferPointer(),
+        cached->VS.ByteCode->GetBufferSize(), &cached->inputLayout);
+
     GetFileAttributesEx(path.c_str(), GetFileExInfoStandard, &fInfo);
     cached->LastModificationTime = fInfo.ftLastWriteTime.dwHighDateTime;
     cached->LastModificationTime = cached->LastModificationTime << 32 | fInfo.ftLastWriteTime.dwLowDateTime;
 
     return cached;
+}
+
+void ShadersManager::ReleaseShader(CachedShaders& cachedShader)
+{
+    cachedShader.inputLayout->Release();
+    cachedShader.PS.ByteCode->Release();
+    cachedShader.PS.Shader->Release();
+
+    cachedShader.VS.ByteCode->Release();
+    cachedShader.VS.Shader->Release();
 }

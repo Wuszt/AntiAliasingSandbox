@@ -72,7 +72,6 @@ private:
     ID3D11DepthStencilView* m_depthStencilView;
     ID3D11Texture2D* m_depthStencilBuffer;
 
-    ShadersManager* m_shadersManager;
     RenderingSystem* m_renderingSystem;
     Window* m_window;
     Camera* m_camera;
@@ -81,21 +80,7 @@ private:
     int m_height;
 
     //to move
-    ID3D11VertexShader* VS;
-    ID3D11PixelShader* PS;
-    ID3D10Blob* VS_Buffer;
-    ID3D10Blob* PS_Buffer;
-    ID3D11InputLayout* vertLayout;
-
     ID3D11SamplerState* samplerState;
-
-    D3D11_INPUT_ELEMENT_DESC layout[2] =
-    {
-        { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-        { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-    };
-    UINT numElements = ARRAYSIZE(layout);
-
     //end to move
 };
 

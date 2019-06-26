@@ -45,8 +45,6 @@ Core::~Core()
     delete m_renderingSystem;
     delete m_window;
 
-    vertLayout->Release();
-
     samplerState->Release();
 
     InputClass::Release();
@@ -134,15 +132,6 @@ void Core::Initialize(const HINSTANCE& hInstance, const int& ShowWnd, const int&
 
     Time::Initialize();
     InputClass::Initialize(*m_window->GetHInstance(), *m_window->GetHWND());
-
-    m_shadersManager = new ShadersManager(m_d3Device);
-    auto* trfds = m_shadersManager->GetShaders("Base.fx");
-    m_d3DeviceContext->VSSetShader(trfds->VS.Shader, 0, 0);
-    m_d3DeviceContext->PSSetShader(trfds->PS.Shader, 0, 0);
-    HRESULT hr = m_d3Device->CreateInputLayout(layout, numElements, trfds->VS.ByteCode->GetBufferPointer(),
-        trfds->VS.ByteCode->GetBufferSize(), &vertLayout);
-
-    m_d3DeviceContext->IASetInputLayout(vertLayout);
 
     m_d3DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
@@ -259,10 +248,6 @@ void Core::BeforeUpdateScene()
 
 void Core::UpdateScene()
 {
-    auto* trfds = m_shadersManager->GetShaders("Base.fx");
-    m_d3DeviceContext->VSSetShader(trfds->VS.Shader, 0, 0);
-    m_d3DeviceContext->PSSetShader(trfds->PS.Shader, 0, 0);
-
     for (Object* obj : m_objects)
     {
         obj->Update();
