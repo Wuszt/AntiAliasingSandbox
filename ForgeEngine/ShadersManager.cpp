@@ -47,38 +47,39 @@ const CachedShaders* ShadersManager::GetShaders(const string& path)
             return cached;
     }
 
-
     if (cached == nullptr)
         cached = &m_cachedShaders.insert({ path, CachedShaders() }).first->second;
     else
         ReleaseShader(*cached);
 
-    bool firstTry = false;
     while (true)
     {
         HRESULT hr = D3DCompileFromFile(std::wstring(path.begin(), path.end()).c_str(), 0, 0, "VS", "vs_4_0", D3D10_SHADER_ENABLE_STRICTNESS | D3D10_SHADER_DEBUG, 0, &cached->VS.ByteCode, 0);
 
         if (hr == S_OK)
             break;
-
-        if (firstTry)
+        else if (hr == HRESULT_FROM_WIN32(ERROR_SHARING_VIOLATION))
+        {
             Sleep(100);
-        else
-            MessageBox(0, (string("VS ") + path + string(" compilation error")).c_str(), "Error", MB_OK);
+            continue;
+        }
+
+        MessageBox(0, (string("VS ") + path + string(" compilation error")).c_str(), "Error", MB_OK);
     }
 
-    firstTry = false;
     while (true)
     {
         HRESULT hr = D3DCompileFromFile(std::wstring(path.begin(), path.end()).c_str(), 0, 0, "PS", "ps_4_0", D3D10_SHADER_ENABLE_STRICTNESS | D3D10_SHADER_DEBUG, 0, &cached->PS.ByteCode, 0);
 
         if (hr == S_OK)
             break;
-
-        if (firstTry)
+        else if (hr == HRESULT_FROM_WIN32(ERROR_SHARING_VIOLATION))
+        {
             Sleep(100);
-        else
-            MessageBox(0, (string("PS ") + path + string(" compilation error")).c_str(), "Error", MB_OK);
+            continue;
+        }
+
+        MessageBox(0, (string("PS ") + path + string(" compilation error")).c_str(), "Error", MB_OK);
     }
 
     m_device->CreateVertexShader(cached->VS.ByteCode->GetBufferPointer(), cached->VS.ByteCode->GetBufferSize(), NULL, &cached->VS.Shader);
