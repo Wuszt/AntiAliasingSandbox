@@ -45,6 +45,9 @@ RenderingSystem::~RenderingSystem()
     }
 
     m_buff->Release();
+
+    m_fontWrapper->Release();
+    m_textFactory->Release();
 }
 
 void RenderingSystem::RenderRegisteredMeshRenderers(Camera* const& camera)

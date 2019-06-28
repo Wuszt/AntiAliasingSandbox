@@ -35,12 +35,18 @@ public:
         return obj;
     }
 
+    static void OnResizeCallback(const int& w, const int& h) //too fix in future
+    {
+        s_instance->OnResizeWindow(w, h);
+    }
+
 protected:
     virtual void Initialize(const HINSTANCE& hInstance, const int& ShowWnd, const int& width, const int& height);
 
-    virtual HRESULT InitializeD3D(const HINSTANCE& hInstance);
+    virtual HRESULT InitializeD3D();
     virtual HRESULT InitializeSwapChain();
     virtual HRESULT InitializeDepthStencilBuffer();
+    virtual void InitializeViewport();
 
     virtual void InitScene();
 
@@ -56,6 +62,8 @@ private:
     void UpdateScene();
     void AfterUpdateScene();
     void DrawScene();
+
+    void OnResizeWindow(const int& width, const int& height);
 
     static void DestroyObject(Object* const& obj);
 

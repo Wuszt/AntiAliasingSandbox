@@ -3,6 +3,8 @@
 
 LRESULT CALLBACK Window::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
+    Window* window;
+
     switch (msg)
     {
     case WM_KEYDOWN:
@@ -16,8 +18,13 @@ LRESULT CALLBACK Window::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPar
         return 0;
 
     case WM_NCDESTROY:
-        Window* window = (Window*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
+        window = (Window*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
         window->SetAsDead();
+        return 0;
+
+    case WM_SIZE:
+        window = (Window*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
+        window->m_justResized = true;
         return 0;
     }
 
@@ -26,6 +33,22 @@ LRESULT CALLBACK Window::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPar
         wParam,
         lParam);
 }
+
+void Window::OnResized()
+{
+    m_justResized = false;
+
+    RECT WindowRect;
+    GetClientRect(m_hwnd, &WindowRect);
+    m_width = WindowRect.right - WindowRect.left;
+    m_height = WindowRect.bottom - WindowRect.top;
+
+    for (auto& callback : m_resizeListeners)
+    {
+        callback(m_width, m_height);
+    }
+}
+
 
 Window::Window(const HINSTANCE& hInstance, const int& ShowWnd, const int& width, const int& height, const bool& windowed)
 {
@@ -89,7 +112,7 @@ Window::Window(const HINSTANCE& hInstance, const int& ShowWnd, const int& width,
             "Error", MB_OK | MB_ICONERROR);
         throw std::exception("Error creating window");
     }
-    
+
     ShowWindow(m_hwnd, ShowWnd);
     UpdateWindow(m_hwnd);
 
@@ -118,4 +141,17 @@ void Window::Update()
         TranslateMessage(&msg);
         DispatchMessage(&msg);
     }
+
+    if (m_justResized)
+        OnResized();
+}
+
+void Window::AddResizeListener(void(*callback)(const int&, const int&))
+{
+    m_resizeListeners.insert(callback);
+}
+
+void Window::RemoveResizeListener(void(*callback)(const int&, const int&))
+{
+    m_resizeListeners.erase(callback);
 }

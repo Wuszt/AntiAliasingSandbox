@@ -1,5 +1,6 @@
 #pragma once
 #include <windows.h>
+#include <unordered_set>
 
 class Window
 {
@@ -16,6 +17,9 @@ public:
     inline UINT GetWidth() const { return m_width; }
     inline UINT GetHeight() const { return m_height; }
 
+    void AddResizeListener(void(*callback)(const int&, const int&));
+    void RemoveResizeListener(void(*callback)(const int&, const int&));
+
 private:
     HWND m_hwnd;
     HINSTANCE m_hInstance;
@@ -23,6 +27,12 @@ private:
 
     UINT m_width;
     UINT m_height;
+
+    bool m_justResized = false;
+
+    void OnResized();
+
+    std::unordered_set<void(*)(const int&,const int&)> m_resizeListeners;
     
     inline void SetAsDead() { m_isAlive = false; }
 

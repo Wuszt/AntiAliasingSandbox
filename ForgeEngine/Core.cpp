@@ -73,6 +73,9 @@ void Core::Run(const HINSTANCE& hInstance, const int& ShowWnd, const int& width,
 
 HRESULT Core::InitializeSwapChain()
 {
+    if (m_swapChain != nullptr)
+        m_swapChain->Release();
+
     DXGI_MODE_DESC bufferDesc;
     FillSwapChainBufferDescWithDefaultValues(bufferDesc);
 
@@ -85,6 +88,12 @@ HRESULT Core::InitializeSwapChain()
 
 HRESULT Core::InitializeDepthStencilBuffer()
 {
+    if (m_depthStencilBuffer != nullptr)
+        m_depthStencilBuffer->Release();
+
+    if (m_depthStencilView != nullptr)
+        m_depthStencilView->Release();
+
     D3D11_TEXTURE2D_DESC depthStencilDesc;
     FillDepthStencilDescWithDefaultValues(depthStencilDesc);
 
@@ -101,11 +110,26 @@ HRESULT Core::InitializeDepthStencilBuffer()
     return hr;
 }
 
+void Core::InitializeViewport()
+{
+    D3D11_VIEWPORT viewport;
+    ZeroMemory(&viewport, sizeof(D3D11_VIEWPORT));
+
+    viewport.TopLeftX = 0;
+    viewport.TopLeftY = 0;
+    viewport.Width = (float)m_window->GetWidth();
+    viewport.Height = (float)m_window->GetHeight();
+    viewport.MinDepth = 0.0f;
+    viewport.MaxDepth = 1.0f;
+
+    m_d3DeviceContext->RSSetViewports(1, &viewport);
+}
+
 void Core::Initialize(const HINSTANCE& hInstance, const int& ShowWnd, const int& width, const int& height)
 {
     m_window = new Window(hInstance, ShowWnd, width, height, true);
 
-    if (InitializeD3D(hInstance) != S_OK)
+    if (InitializeD3D() != S_OK)
     {
         MessageBox(0, "Direct3D Initialization - Failed",
             "Error", MB_OK);
@@ -133,23 +157,18 @@ void Core::Initialize(const HINSTANCE& hInstance, const int& ShowWnd, const int&
 
     m_d3DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-    D3D11_VIEWPORT viewport;
-    ZeroMemory(&viewport, sizeof(D3D11_VIEWPORT));
+    InitializeViewport();
 
-    viewport.TopLeftX = 0;
-    viewport.TopLeftY = 0;
-    viewport.Width = (float)width;
-    viewport.Height = (float)height;
-    viewport.MinDepth = 0.0f;
-    viewport.MaxDepth = 1.0f;
-
-    m_d3DeviceContext->RSSetViewports(1, &viewport);
+    m_window->AddResizeListener(Core::OnResizeCallback);
 
     InitScene();
 }
 
-HRESULT Core::InitializeD3D(const HINSTANCE& hInstance)
+HRESULT Core::InitializeD3D()
 {
+    if (m_renderTargetView != nullptr)
+        m_renderTargetView->Release();
+
     InitializeSwapChain();
     ID3D11Texture2D* BackBuffer;
     HRESULT hr = m_swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&BackBuffer);
@@ -233,7 +252,8 @@ void Core::DeletePendingObjects()
 
 void Core::InitScene()
 {
-    m_camera = InstantiateObject<ControllableCamera>(0.4f * 3.14f, (float)m_window->GetWidth() / m_window->GetHeight(), 0.1f, 100.0f);
+    m_camera = InstantiateObject<ControllableCamera>();
+    m_camera->Initialize(0.4f * 3.14f, (float)m_window->GetWidth() / m_window->GetHeight(), 0.1f, 100.0f);
     m_camera->GetTransform()->SetPosition({ 0.0f, 0.0f, -5.0f });
     m_camera->GetTransform()->LookAt(XMFLOAT3(0.0f, 0.0f, 0.0f));
 }
@@ -267,7 +287,30 @@ void Core::DrawScene()
 
     m_renderingSystem->RenderRegisteredMeshRenderers(m_camera);
 
+    m_renderingSystem->DrawText(std::to_string(m_window->GetWidth()) + "," + std::to_string(m_window->GetHeight()), 50.0f, 50.0f, 50.0f, 0xffffffff);
+
     m_swapChain->Present(0, 0);
+}
+
+void Core::OnResizeWindow(const int& width, const int& height)
+{
+    m_camera->Initialize(0.25f * 3.14f, (float)m_window->GetWidth() / m_window->GetHeight(), 0.1f, 100.0f);
+
+    if (m_renderTargetView != nullptr)
+        m_renderTargetView->Release();
+
+    DXGI_SWAP_CHAIN_DESC swapChainDesc;
+    m_swapChain->GetDesc(&swapChainDesc);
+    HRESULT hr = m_swapChain->ResizeBuffers(swapChainDesc.BufferCount, m_window->GetWidth(), m_window->GetHeight(), swapChainDesc.BufferDesc.Format, swapChainDesc.Flags);
+
+    ID3D11Texture2D* BackBuffer;
+    hr = m_swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&BackBuffer);
+
+    hr = m_d3Device->CreateRenderTargetView(BackBuffer, NULL, &m_renderTargetView);
+    BackBuffer->Release();
+
+    InitializeDepthStencilBuffer();
+    InitializeViewport();
 }
 
 void Core::DestroyObject(Object* const& obj)
