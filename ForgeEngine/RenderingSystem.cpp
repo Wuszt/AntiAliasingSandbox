@@ -12,6 +12,8 @@
 #include <DirectXTex/DirectXTex.h>
 #include "ShadersManager.h"
 
+#include <sstream>
+
 using namespace DirectX;
 using namespace std;
 
@@ -30,6 +32,9 @@ RenderingSystem::RenderingSystem(ID3D11Device* const& d3Device, ID3D11DeviceCont
     m_d3Device->CreateBuffer(&cbbd, nullptr, &m_buff);
 
     m_shadersManager = new ShadersManager(d3Device);
+
+    FW1CreateFactory(FW1_VERSION, &m_textFactory);
+    m_textFactory->CreateFontWrapper(d3Device, L"Arial", &m_fontWrapper);
 }
 
 RenderingSystem::~RenderingSystem()
@@ -107,6 +112,11 @@ void RenderingSystem::InitializeMeshRendererWithModel(MeshRenderer* const& meshR
         if (child->Name.length() > 0)
             obj->Name = child->Name;
     }
+}
+
+void RenderingSystem::DrawText(const string& text, const float& size, const float& x, const float& y, const uint32_t& color)
+{
+    m_fontWrapper->DrawString(m_d3DeviceContext, wstring(text.begin(), text.end()).c_str(), size, x, y, color, FW1_RESTORESTATE);
 }
 
 const Model* RenderingSystem::LoadModelFromPath(const std::string& modelPath, const std::string& shaderPath)

@@ -6,8 +6,8 @@
 #include <vector>
 #include <assimp/matrix4x4.h>
 #include "Material.h"
-
 #include <d3d11.h>
+#include <FW1FontWrapper/FW1FontWrapper.h>
 
 struct aiScene;
 struct aiNode;
@@ -46,6 +46,8 @@ public:
     void InitializeMeshRendererWithModelPath(MeshRenderer* const& meshRenderer, const std::string& modelPath, const std::string& shaderPath);
     void InitializeMeshRendererWithModel(MeshRenderer* const& meshRenderer, const Model* const& model, const std::string& shaderPath);
 
+    void DrawText(const std::string& text, const float& size, const float& x, const float& y, const uint32_t& color);
+
 private:
     const Model* LoadModelFromPath(const std::string& modelPath, const std::string& shaderPath);
 
@@ -74,5 +76,9 @@ private:
     ID3D11Buffer* m_buff;
 
     ShadersManager* m_shadersManager;
+
+    IFW1Factory* m_textFactory;
+    IFW1FontWrapper* m_fontWrapper;
+
 };
 
