@@ -104,8 +104,6 @@ HRESULT Core::InitializeDepthStencilBuffer()
 void Core::Initialize(const HINSTANCE& hInstance, const int& ShowWnd, const int& width, const int& height)
 {
     m_window = new Window(hInstance, ShowWnd, width, height, true);
-    m_width = width;
-    m_height = height;
 
     if (InitializeD3D(hInstance) != S_OK)
     {
@@ -140,8 +138,8 @@ void Core::Initialize(const HINSTANCE& hInstance, const int& ShowWnd, const int&
 
     viewport.TopLeftX = 0;
     viewport.TopLeftY = 0;
-    viewport.Width = (float)m_width;
-    viewport.Height = (float)m_height;
+    viewport.Width = (float)width;
+    viewport.Height = (float)height;
     viewport.MinDepth = 0.0f;
     viewport.MaxDepth = 1.0f;
 
@@ -171,8 +169,8 @@ void Core::FillDepthStencilDescWithDefaultValues(D3D11_TEXTURE2D_DESC& desc)
 {
     ZeroMemory(&desc, sizeof(desc));
 
-    desc.Width = m_width;
-    desc.Height = m_height;
+    desc.Width = m_window->GetWidth();
+    desc.Height = m_window->GetHeight();
     desc.MipLevels = 1;
     desc.ArraySize = 1;
     desc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
@@ -186,8 +184,8 @@ void Core::FillSwapChainBufferDescWithDefaultValues(DXGI_MODE_DESC& desc)
 {
     ZeroMemory(&desc, sizeof(DXGI_MODE_DESC));
 
-    desc.Width = m_width;
-    desc.Height = m_height;
+    desc.Width = m_window->GetWidth();
+    desc.Height = m_window->GetHeight();
     desc.RefreshRate.Numerator = 60;
     desc.RefreshRate.Denominator = 1;
     desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -235,7 +233,7 @@ void Core::DeletePendingObjects()
 
 void Core::InitScene()
 {
-    m_camera = InstantiateObject<ControllableCamera>(0.4f * 3.14f, (float)m_width / m_height, 0.1f, 100.0f);
+    m_camera = InstantiateObject<ControllableCamera>(0.4f * 3.14f, (float)m_window->GetWidth() / m_window->GetHeight(), 0.1f, 100.0f);
     m_camera->GetTransform()->SetPosition({ 0.0f, 0.0f, -5.0f });
     m_camera->GetTransform()->LookAt(XMFLOAT3(0.0f, 0.0f, 0.0f));
 }

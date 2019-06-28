@@ -29,6 +29,9 @@ LRESULT CALLBACK Window::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPar
 
 Window::Window(const HINSTANCE& hInstance, const int& ShowWnd, const int& width, const int& height, const bool& windowed)
 {
+    m_width = width;
+    m_height = height;
+
     typedef struct _WNDCLASS {
         UINT cbSize;
         UINT style;

@@ -76,9 +76,6 @@ private:
     Window* m_window;
     Camera* m_camera;
 
-    int m_width;
-    int m_height;
-
     //to move
     ID3D11SamplerState* samplerState;
     //end to move
