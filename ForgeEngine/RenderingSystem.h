@@ -46,7 +46,7 @@ public:
     void InitializeMeshRendererWithModelPath(MeshRenderer* const& meshRenderer, const std::string& modelPath, const std::string& shaderPath);
     void InitializeMeshRendererWithModel(MeshRenderer* const& meshRenderer, const Model* const& model, const std::string& shaderPath);
 
-    void DrawText(const std::string& text, const float& size, const float& x, const float& y, const uint32_t& color);
+    void DrawText(const std::string& text, const float& size, const float& x, const float& y, const DirectX::XMFLOAT4& color);
 
 private:
     const Model* LoadModelFromPath(const std::string& modelPath, const std::string& shaderPath);

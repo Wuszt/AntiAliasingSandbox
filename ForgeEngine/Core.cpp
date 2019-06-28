@@ -287,7 +287,7 @@ void Core::DrawScene()
 
     m_renderingSystem->RenderRegisteredMeshRenderers(m_camera);
 
-    m_renderingSystem->DrawText(std::to_string(m_window->GetWidth()) + "," + std::to_string(m_window->GetHeight()), 50.0f, 50.0f, 50.0f, 0xffffffff);
+    m_renderingSystem->DrawText(std::to_string(m_window->GetWidth()) + "," + std::to_string(m_window->GetHeight()), 50.0f, 50.0f, 50.0f, XMFLOAT4(1.0f, 0.5f + 0.5f * sin(Time::GetTime()),0.0f, 1.0f));
 
     m_swapChain->Present(0, 0);
 }

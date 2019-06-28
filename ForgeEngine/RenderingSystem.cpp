@@ -117,9 +117,14 @@ void RenderingSystem::InitializeMeshRendererWithModel(MeshRenderer* const& meshR
     }
 }
 
-void RenderingSystem::DrawText(const string& text, const float& size, const float& x, const float& y, const uint32_t& color)
+void RenderingSystem::DrawText(const string& text, const float& size, const float& x, const float& y, const XMFLOAT4& color)
 {
-    m_fontWrapper->DrawString(m_d3DeviceContext, wstring(text.begin(), text.end()).c_str(), size, x, y, color, FW1_RESTORESTATE);
+    UINT clr = (UINT)(min(max(color.x, 0.0f), 1.0f) * 0xff)
+             | (UINT)(min(max(color.y, 0.0f), 1.0f) * 0xff00)
+             | (UINT)(min(max(color.z, 0.0f), 1.0f) * 0xff0000)
+             | (UINT)(min(max(color.w, 0.0f), 1.0f) * 0xff000000);
+
+    m_fontWrapper->DrawString(m_d3DeviceContext, wstring(text.begin(), text.end()).c_str(), size, x, y, clr, FW1_RESTORESTATE);
 }
 
 const Model* RenderingSystem::LoadModelFromPath(const std::string& modelPath, const std::string& shaderPath)
