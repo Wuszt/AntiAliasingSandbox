@@ -49,7 +49,7 @@ const CachedShaders* ShadersManager::GetShaders(const string& path)
             if (cached->Compiled)
                 return cached;
 
-            DebugLog::LogError((string("Shader: ") + path + string(" compilation error!!")).c_str());
+            DebugLog::LogError(path + " compilation error!!");
             return GetShaders("Placeholder.fx");
         }
     }

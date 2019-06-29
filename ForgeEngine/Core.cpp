@@ -16,6 +16,7 @@
 #include "MeshRenderer.h"
 #include "ShadersManager.h"
 #include "DebugLog.h"
+#include "PerformanceAnalyzer.h"
 
 using namespace DirectX;
 
@@ -58,6 +59,7 @@ void Core::Run(const HINSTANCE& hInstance, const int& ShowWnd, const int& width,
 
     while (m_window->IsAlive())
     {
+        PerformanceAnalyzer::StartAnalyzing(FRAME_ANALYZE_NAME);
         m_window->Update();
         Time::UpdateTime(false);
         InputClass::UpdateInput();
@@ -69,7 +71,20 @@ void Core::Run(const HINSTANCE& hInstance, const int& ShowWnd, const int& width,
         DeletePendingObjects();
         AddPendingObjects();
 
+        DebugLog::Log("gfdgd");
+
         DrawScene();
+
+        PerformanceAnalyzer::FinishAnalyzing(FRAME_ANALYZE_NAME);
+
+        PerformanceAnalyzer::StartAnalyzing("UI");
+        PerformanceAnalyzer::Draw();
+        DebugLog::Draw();
+        PerformanceAnalyzer::FinishAnalyzing("UI");
+
+        PerformanceAnalyzer::StartAnalyzing(FRAME_ANALYZE_NAME);
+        m_swapChain->Present(0, 0);
+        PerformanceAnalyzer::FinishAnalyzing(FRAME_ANALYZE_NAME);
     }
 }
 
@@ -157,6 +172,7 @@ void Core::Initialize(const HINSTANCE& hInstance, const int& ShowWnd, const int&
     Time::Initialize();
     InputClass::Initialize(*m_window->GetHInstance(), *m_window->GetHWND());
     DebugLog::Initialize(m_renderingSystem, m_window);
+    PerformanceAnalyzer::Initialize(m_renderingSystem, m_window);
 
     m_d3DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
@@ -289,10 +305,6 @@ void Core::DrawScene()
     m_d3DeviceContext->PSSetSamplers(0, 1, &samplerState);
 
     m_renderingSystem->RenderRegisteredMeshRenderers(m_camera);
-
-    DebugLog::Draw();
-
-    m_swapChain->Present(0, 0);
 }
 
 void Core::OnResizeWindow(const int& width, const int& height)

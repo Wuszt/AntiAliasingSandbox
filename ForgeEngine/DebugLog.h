@@ -22,6 +22,7 @@ struct LogInfo : public ErrorInfo
 {
     std::string Message;
     DirectX::XMFLOAT4 Color;
+    bool ShownAtLeastOnce = false;
 };
 
 class DebugLog

@@ -12,6 +12,7 @@
 #include <DirectXTex/DirectXTex.h>
 #include "ShadersManager.h"
 #include <d3d9types.h>
+#include "PerformanceAnalyzer.h"
 
 #include <sstream>
 
@@ -72,7 +73,9 @@ void RenderingSystem::RenderRegisteredMeshRenderers(Camera* const& camera)
 
             static const CachedShaders* s_cachedShaders;
 
+            PerformanceAnalyzer::StartAnalyzing("Getting Shader");
             s_cachedShaders = m_shadersManager->GetShaders(mesh->Material->ShaderPath);
+            PerformanceAnalyzer::FinishAnalyzing("Getting Shader");
 
             m_d3DeviceContext->VSSetShader(s_cachedShaders->VS.Shader, 0, 0);
             m_d3DeviceContext->PSSetShader(s_cachedShaders->PS.Shader, 0, 0);

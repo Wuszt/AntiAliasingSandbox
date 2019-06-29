@@ -36,6 +36,7 @@
     <ClCompile Include="Model.cpp" />
     <ClCompile Include="MyApp.cpp" />
     <ClCompile Include="Object.cpp" />
+    <ClCompile Include="PerformanceAnalyzer.cpp" />
     <ClCompile Include="RenderingSystem.cpp" />
     <ClCompile Include="ShadersManager.cpp" />
     <ClCompile Include="Transform.cpp" />
@@ -59,6 +60,7 @@
     <ClInclude Include="Model.h" />
     <ClInclude Include="MyApp.h" />
     <ClInclude Include="Object.h" />
+    <ClInclude Include="PerformanceAnalyzer.h" />
     <ClInclude Include="RenderingSystem.h" />
     <ClInclude Include="ShadersManager.h" />
     <ClInclude Include="Transform.h" />

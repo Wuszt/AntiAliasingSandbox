@@ -64,13 +64,14 @@ void DebugLog::PrintLogs()
 {
     for (int i = 0; i < m_logsQueue.size(); ++i)
     {
-        if (m_logsQueue[i].DeathTime < Time::GetTime())
+        if (m_logsQueue[i].ShownAtLeastOnce && m_logsQueue[i].DeathTime < Time::GetTime())
         {
             m_logsQueue.erase(m_logsQueue.begin() + i);
             --i;
             continue;
         }
 
+        m_logsQueue[i].ShownAtLeastOnce = true;
         m_renderingSystem->DrawText(m_logsQueue[i].Message, LOG_TEXT_SIZE, MARGIN, MARGIN + LOG_TEXT_SIZE * i, m_logsQueue[i].Color, TextAnchor::Top | TextAnchor::Left);
     }
 }
