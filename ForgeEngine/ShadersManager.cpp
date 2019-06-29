@@ -45,13 +45,25 @@ const CachedShaders* ShadersManager::GetShaders(const string& path)
         lastMod = lastMod << 32 | fInfo.ftLastWriteTime.dwLowDateTime;
 
         if (lastMod == cached->LastModificationTime)
-            return cached;
+        {
+            if (cached->Compiled)
+                return cached;
+
+            DebugLog::LogError((string("Shader: ") + path + string(" compilation error!!")).c_str());
+            return GetShaders("Placeholder.fx");
+        }
     }
 
     if (cached == nullptr)
         cached = &m_cachedShaders.insert({ path, CachedShaders() }).first->second;
-    else
+    else if (cached->Compiled)
         ReleaseShader(*cached);
+
+    GetFileAttributesEx(path.c_str(), GetFileExInfoStandard, &fInfo);
+    cached->LastModificationTime = fInfo.ftLastWriteTime.dwHighDateTime;
+    cached->LastModificationTime = cached->LastModificationTime << 32 | fInfo.ftLastWriteTime.dwLowDateTime;
+
+    cached->Compiled = false;
 
     HRESULT hr;
 
@@ -65,7 +77,6 @@ const CachedShaders* ShadersManager::GetShaders(const string& path)
         if (hr != S_OK)
         {
             DebugLog::LogError((string("Shader: ") + path + string(" compilation error!!")).c_str());
-            m_cachedShaders.erase(path);
             return GetShaders("Placeholder.fx");
         }
 
@@ -77,9 +88,7 @@ const CachedShaders* ShadersManager::GetShaders(const string& path)
     m_device->CreateInputLayout(layout, numElements, cached->VS.ByteCode->GetBufferPointer(),
         cached->VS.ByteCode->GetBufferSize(), &cached->inputLayout);
 
-    GetFileAttributesEx(path.c_str(), GetFileExInfoStandard, &fInfo);
-    cached->LastModificationTime = fInfo.ftLastWriteTime.dwHighDateTime;
-    cached->LastModificationTime = cached->LastModificationTime << 32 | fInfo.ftLastWriteTime.dwLowDateTime;
+    cached->Compiled = true;
 
     return cached;
 }

@@ -16,6 +16,7 @@ struct CompiledShader
 
 struct CachedShaders
 {
+    bool Compiled = false;
     uint64_t LastModificationTime;
     CompiledShader<ID3D11VertexShader> VS;
     CompiledShader<ID3D11PixelShader> PS;
