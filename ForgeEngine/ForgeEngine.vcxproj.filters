@@ -57,7 +57,7 @@
     <ClCompile Include="ShadersManager.cpp">
       <Filter>Framework</Filter>
     </ClCompile>
-    <ClCompile Include="PerformanceAnalyzer.cpp">
+    <ClCompile Include="Profiler.cpp">
       <Filter>Framework</Filter>
     </ClCompile>
   </ItemGroup>
@@ -107,7 +107,7 @@
     <ClInclude Include="ShadersManager.h">
       <Filter>Framework</Filter>
     </ClInclude>
-    <ClInclude Include="PerformanceAnalyzer.h">
+    <ClInclude Include="Profiler.h">
       <Filter>Framework</Filter>
     </ClInclude>
   </ItemGroup>

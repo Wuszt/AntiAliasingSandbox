@@ -12,7 +12,7 @@
 #include <DirectXTex/DirectXTex.h>
 #include "ShadersManager.h"
 #include <d3d9types.h>
-#include "PerformanceAnalyzer.h"
+#include "Profiler.h"
 
 #include <sstream>
 

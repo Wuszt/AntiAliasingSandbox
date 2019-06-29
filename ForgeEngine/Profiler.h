@@ -9,27 +9,27 @@
 class RenderingSystem;
 class Window;
 
-class PerformanceAnalyzer
+class Profiler
 {
 public:
-    PerformanceAnalyzer(const RenderingSystem* const& renderingSystem, const Window* const& window);
-    ~PerformanceAnalyzer();
+    Profiler(const RenderingSystem* const& renderingSystem, const Window* const& window);
+    ~Profiler();
 
     static void Initialize(const RenderingSystem* const& renderingSystem, const Window* const& window);
     static void Release();
 
     static void Draw();
 
-    static void StartAnalyzing(const std::string& name);
-    static double FinishAnalyzing(const std::string& name);
+    static void StartProfiling(const std::string& name);
+    static double EndProfiling(const std::string& name);
 
 private:
-    static PerformanceAnalyzer* s_instance;
+    static Profiler* s_instance;
 
     const RenderingSystem* m_renderingSystem;
     const Window* m_window;
 
-    std::unordered_map<std::string, LARGE_INTEGER> m_analyzers;
+    std::unordered_map<std::string, LARGE_INTEGER> m_profilers;
     std::unordered_map<std::string, double> m_results;
     LARGE_INTEGER m_frequency;
 };
