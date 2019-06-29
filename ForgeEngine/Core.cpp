@@ -71,8 +71,6 @@ void Core::Run(const HINSTANCE& hInstance, const int& ShowWnd, const int& width,
         DeletePendingObjects();
         AddPendingObjects();
 
-        DebugLog::Log("gfdgd");
-
         DrawScene();
 
         PerformanceAnalyzer::StartAnalyzing("UI");
