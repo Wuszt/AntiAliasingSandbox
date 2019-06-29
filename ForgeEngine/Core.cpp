@@ -75,14 +75,11 @@ void Core::Run(const HINSTANCE& hInstance, const int& ShowWnd, const int& width,
 
         DrawScene();
 
-        PerformanceAnalyzer::FinishAnalyzing(FRAME_ANALYZE_NAME);
-
         PerformanceAnalyzer::StartAnalyzing("UI");
         PerformanceAnalyzer::Draw();
         DebugLog::Draw();
         PerformanceAnalyzer::FinishAnalyzing("UI");
 
-        PerformanceAnalyzer::StartAnalyzing(FRAME_ANALYZE_NAME);
         m_swapChain->Present(0, 0);
         PerformanceAnalyzer::FinishAnalyzing(FRAME_ANALYZE_NAME);
     }
