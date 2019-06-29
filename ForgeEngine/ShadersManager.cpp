@@ -2,6 +2,7 @@
 #include <windows.h>
 #include <d3d11.h>
 #include <d3dcompiler.h>
+#include "DebugLog.h"
 
 using namespace std;
 
@@ -52,35 +53,23 @@ const CachedShaders* ShadersManager::GetShaders(const string& path)
     else
         ReleaseShader(*cached);
 
-    while (true)
+    HRESULT hr;
+
+    do
     {
-        HRESULT hr = D3DCompileFromFile(std::wstring(path.begin(), path.end()).c_str(), 0, 0, "VS", "vs_4_0", D3D10_SHADER_ENABLE_STRICTNESS | D3D10_SHADER_DEBUG, 0, &cached->VS.ByteCode, 0);
+        hr = D3DCompileFromFile(std::wstring(path.begin(), path.end()).c_str(), 0, 0, "VS", "vs_4_0", D3D10_SHADER_ENABLE_STRICTNESS | D3D10_SHADER_DEBUG, 0, &cached->VS.ByteCode, 0);
 
         if (hr == S_OK)
-            break;
-        else if (hr == HRESULT_FROM_WIN32(ERROR_SHARING_VIOLATION))
+            hr = D3DCompileFromFile(std::wstring(path.begin(), path.end()).c_str(), 0, 0, "PS", "ps_4_0", D3D10_SHADER_ENABLE_STRICTNESS | D3D10_SHADER_DEBUG, 0, &cached->PS.ByteCode, 0);
+
+        if (hr != S_OK)
         {
-            Sleep(100);
-            continue;
+            DebugLog::LogError((string("Shader: ") + path + string(" compilation error!!")).c_str());
+            m_cachedShaders.erase(path);
+            return GetShaders("Placeholder.fx");
         }
 
-        MessageBox(0, (string("VS ") + path + string(" compilation error")).c_str(), "Error", MB_OK);
-    }
-
-    while (true)
-    {
-        HRESULT hr = D3DCompileFromFile(std::wstring(path.begin(), path.end()).c_str(), 0, 0, "PS", "ps_4_0", D3D10_SHADER_ENABLE_STRICTNESS | D3D10_SHADER_DEBUG, 0, &cached->PS.ByteCode, 0);
-
-        if (hr == S_OK)
-            break;
-        else if (hr == HRESULT_FROM_WIN32(ERROR_SHARING_VIOLATION))
-        {
-            Sleep(100);
-            continue;
-        }
-
-        MessageBox(0, (string("PS ") + path + string(" compilation error")).c_str(), "Error", MB_OK);
-    }
+    } while (hr == HRESULT_FROM_WIN32(ERROR_SHARING_VIOLATION));
 
     m_device->CreateVertexShader(cached->VS.ByteCode->GetBufferPointer(), cached->VS.ByteCode->GetBufferSize(), NULL, &cached->VS.Shader);
     m_device->CreatePixelShader(cached->PS.ByteCode->GetBufferPointer(), cached->PS.ByteCode->GetBufferSize(), NULL, &cached->PS.Shader);

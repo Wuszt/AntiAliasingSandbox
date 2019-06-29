@@ -11,6 +11,7 @@
 #include "Material.h"
 #include <DirectXTex/DirectXTex.h>
 #include "ShadersManager.h"
+#include <d3d9types.h>
 
 #include <sstream>
 
@@ -117,14 +118,24 @@ void RenderingSystem::InitializeMeshRendererWithModel(MeshRenderer* const& meshR
     }
 }
 
-void RenderingSystem::DrawText(const string& text, const float& size, const float& x, const float& y, const XMFLOAT4& color)
+void RenderingSystem::DrawText(const string& text, const float& size, const float& x, const float& y, const XMFLOAT4& color, const TextAnchor& anchor) const
 {
-    UINT clr = (UINT)(min(max(color.x, 0.0f), 1.0f) * 0xff)
-             | (UINT)(min(max(color.y, 0.0f), 1.0f) * 0xff00)
-             | (UINT)(min(max(color.z, 0.0f), 1.0f) * 0xff0000)
-             | (UINT)(min(max(color.w, 0.0f), 1.0f) * 0xff000000);
+    UINT clr = (UINT)(min(max(color.x, 0.0f), 1.0f) * 255)
+            | ((UINT)(min(max(color.y, 0.0f), 1.0f) * 255)) << 8
+            | ((UINT)(min(max(color.z, 0.0f), 1.0f) * 255)) << 16
+            | ((UINT)(min(max(color.w, 0.0f), 1.0f) * 255)) << 24;
 
-    m_fontWrapper->DrawString(m_d3DeviceContext, wstring(text.begin(), text.end()).c_str(), size, x, y, clr, FW1_RESTORESTATE);
+    UINT flags = FW1_RESTORESTATE;
+    flags |= ((UINT)anchor & (UINT)TextAnchor::Bottom) ? FW1_BOTTOM : 0;
+    flags |= ((UINT)anchor & (UINT)TextAnchor::Left) ? FW1_LEFT : 0;
+    flags |= ((UINT)anchor & (UINT)TextAnchor::Right) ? FW1_RIGHT : 0;
+
+    if (flags & FW1_LEFT || flags & FW1_RIGHT)
+        flags |= ((UINT)anchor & (UINT)TextAnchor::Center) ? FW1_VCENTER : 0;
+    else
+        flags |= ((UINT)anchor & (UINT)TextAnchor::Center) ? FW1_CENTER : 0;
+
+    m_fontWrapper->DrawString(m_d3DeviceContext, wstring(text.begin(), text.end()).c_str(), size, x, y, clr, flags);
 }
 
 const Model* RenderingSystem::LoadModelFromPath(const std::string& modelPath, const std::string& shaderPath)

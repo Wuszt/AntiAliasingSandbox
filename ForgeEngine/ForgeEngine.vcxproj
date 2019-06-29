@@ -64,6 +64,11 @@
     <ClInclude Include="Transform.h" />
     <ClInclude Include="Window.h" />
   </ItemGroup>
+  <ItemGroup>
+    <_EmbedManagedResourceFile Include="Placeholder.fx">
+      <FileType>Document</FileType>
+    </_EmbedManagedResourceFile>
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{9A8FC3E5-37C4-4DB4-BDA8-8F3FDE4A48E0}</ProjectGuid>

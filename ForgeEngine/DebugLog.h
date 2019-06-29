@@ -1,59 +1,72 @@
 #pragma once
 
-#define VISUAL_CONSOLE
-
 #include <DirectXMath.h>
-
-#ifdef VISUAL_CONSOLE
 #include <sstream>
-#include <windows.h>
-#else
-#include <string>
-#include <iostream>
-#endif
+#include <unordered_map>
+#include <vector>
 
+#define MARGIN 5.0f
+#define ERROR_LIFE_TIME 5.0f
+#define ERROR_TEXT_SIZE 30.0f
+#define LOG_TEXT_SIZE 20.0f
 
-struct DirectX::XMFLOAT3;
+class RenderingSystem;
+class Window;
+
+struct ErrorInfo
+{
+    float DeathTime;
+};
+
+struct LogInfo : public ErrorInfo
+{
+    std::string Message;
+    DirectX::XMFLOAT4 Color;
+};
 
 class DebugLog
 {
 public:
-    DebugLog() = delete;
-    ~DebugLog() = delete;
+    static void Initialize(const RenderingSystem* const& renderingSystem, const Window* const& window);
+    static void Draw();
+    static void Release();
 
     template<class T>
-    static void Print(const T& val)
+    static void LogError(const T& val)
     {
-        if (!s_isInitialized)
-            Initialize();
+        s_instance->AddOrUpdateError(GetString(val));
+    }
 
-#ifdef VISUAL_CONSOLE
-        PrintToVisualConsole(val);
-#else
-        PrintToOutsideConsole
-#endif
+    template<class T>
+    static void Log(const T& val, const float& lifeTime = 0.0f, const DirectX::XMFLOAT4& color = DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f))
+    {
+        s_instance->AddToLogsQueue(GetString(val), color, lifeTime);
     }
 
 private:
-    static void Initialize();
-    static bool s_isInitialized;
+    DebugLog(const RenderingSystem* const& renderingSystem, const Window* const& window);
+    ~DebugLog();
 
-    static void InitializeOutsideConsole();
+    static DebugLog* s_instance;
 
     template<class T>
-    static void PrintToVisualConsole(const T& val)
+    static std::string GetString(const T& val)
     {
         std::ostringstream ss;
-        ss << val << "\n";
-
-        OutputDebugString(ss.str().c_str());
+        ss << val;
+        return ss.str();
     }
 
-    template<class T>
-    static void PrintToOutsideConsole(const T& val)
-    {
-        std::cout << val << "\n";
-    }
+    const RenderingSystem* m_renderingSystem;
+    const Window* m_window;
+    void AddToLogsQueue(const std::string& message, const DirectX::XMFLOAT4& color, const float& lifeTime);
+    void AddOrUpdateError(const std::string& message);
+    void PrintAll();
+    void PrintLogs();
+    void PrintErrors();
+
+    std::unordered_map<std::string, ErrorInfo> m_errorsQueue;
+    std::vector<LogInfo> m_logsQueue;
 };
 
 std::ostream& operator<< (std::ostream& os, const DirectX::XMFLOAT3& vec);

@@ -2,6 +2,7 @@
 #include <DirectXCommonClasses/InputClass.h>
 #include <DirectXCommonClasses/Time.h>
 #include "Transform.h"
+#include "DebugLog.h"
 
 ControllableCamera::~ControllableCamera()
 {

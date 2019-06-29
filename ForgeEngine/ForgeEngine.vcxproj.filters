@@ -108,4 +108,7 @@
   <ItemGroup>
     <_EmbedManagedResourceFile Include="Base.fx" />
   </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="Placeholder.fx" />
+  </ItemGroup>
 </Project>

@@ -15,6 +15,7 @@
 #include "RenderingSystem.h"
 #include "MeshRenderer.h"
 #include "ShadersManager.h"
+#include "DebugLog.h"
 
 using namespace DirectX;
 
@@ -48,6 +49,7 @@ Core::~Core()
     samplerState->Release();
 
     InputClass::Release();
+    DebugLog::Release();
 }
 
 void Core::Run(const HINSTANCE& hInstance, const int& ShowWnd, const int& width, const int& height)
@@ -154,6 +156,7 @@ void Core::Initialize(const HINSTANCE& hInstance, const int& ShowWnd, const int&
 
     Time::Initialize();
     InputClass::Initialize(*m_window->GetHInstance(), *m_window->GetHWND());
+    DebugLog::Initialize(m_renderingSystem, m_window);
 
     m_d3DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
@@ -287,7 +290,7 @@ void Core::DrawScene()
 
     m_renderingSystem->RenderRegisteredMeshRenderers(m_camera);
 
-    m_renderingSystem->DrawText(std::to_string(m_window->GetWidth()) + "," + std::to_string(m_window->GetHeight()), 50.0f, 50.0f, 50.0f, XMFLOAT4(1.0f, 0.5f + 0.5f * sin(Time::GetTime()),0.0f, 1.0f));
+    DebugLog::Draw();
 
     m_swapChain->Present(0, 0);
 }
