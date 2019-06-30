@@ -1,4 +1,6 @@
 #include "ProfilingSession.h"
+#include <d3d11.h>
+#include <cassert>
 
 ProfilingSession::ProfilingSession(const int& maxSamples)
 {
@@ -6,6 +8,8 @@ ProfilingSession::ProfilingSession(const int& maxSamples)
     m_currentResult = 0;
     m_results.reserve(maxSamples);
 }
+
+ProfilingSession::~ProfilingSession() {}
 
 double ProfilingSession::GetAverageResult()
 {
@@ -30,6 +34,14 @@ void ProfilingSession::SaveResult(const double& result)
     m_currentResult = (m_currentResult + 1) % m_maxSamplesAmount;
 }
 
+void ProfilingSession::OnStartProfiling(const ProfilingSession* const& parent, const int& order)
+{
+    assert(!m_active);
+    m_active = true;
+    m_parent = parent;
+    m_order = order;
+}
+
 void CPUProfilingSession::OnStartProfiling(const ProfilingSession* const& parent, const int& order)
 {
     ProfilingSession::OnStartProfiling(parent, order);
@@ -45,17 +57,38 @@ void CPUProfilingSession::OnEndProfiling()
     SaveResult((double)(now.QuadPart - StartTick.QuadPart));
 }
 
-//void GPUProfilingSession::OnStartProfiling()
-//{
-//    throw std::logic_error("The method or operation is not implemented.");
-//}
-//
-//void GPUProfilingSession::OnEndProfiling()
-//{
-//    throw std::logic_error("The method or operation is not implemented.");
-//}
-//
-//void GPUProfilingSession::OnCollectingData()
-//{
-//    throw std::logic_error("The method or operation is not implemented.");
-//}
+GPUProfilingSession::GPUProfilingSession(ID3D11Device* const& d3Device, ID3D11DeviceContext* const& d3Context, const int& maxSamples) : ProfilingSession(maxSamples)
+{
+    m_d3Context = d3Context;
+
+    D3D11_QUERY_DESC desc;
+    desc.MiscFlags = 0;
+    desc.Query = D3D11_QUERY_TIMESTAMP;
+
+    d3Device->CreateQuery(&desc, &m_start);
+    d3Device->CreateQuery(&desc, &m_end);
+}
+
+void GPUProfilingSession::OnStartProfiling(const ProfilingSession* const& parent, const int& order)
+{
+    ProfilingSession::OnStartProfiling(parent, order);
+
+    m_d3Context->End(m_start);
+}
+
+void GPUProfilingSession::OnEndProfiling()
+{
+    ProfilingSession::OnEndProfiling();
+
+    m_d3Context->End(m_end);
+}
+
+void GPUProfilingSession::OnEndFrame()
+{
+    static UINT64 start, end;
+
+    m_d3Context->GetData(m_start, &start, sizeof(UINT64), 0);
+    m_d3Context->GetData(m_end, &end, sizeof(UINT64), 0);
+
+    SaveResult((double)(end - start));
+}

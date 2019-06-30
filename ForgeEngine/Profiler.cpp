@@ -5,26 +5,35 @@
 #include "RenderingSystem.h"
 #include <string>
 #include "ProfilingSession.h"
+#include <d3d11.h>
 
 using namespace DirectX;
 using namespace std;
 
-Profiler::Profiler(const RenderingSystem* const& renderingSystem, const Window* const& window)
+Profiler::Profiler(ID3D11Device* const& d3Device, ID3D11DeviceContext* const& d3Context, const RenderingSystem* const& renderingSystem, const Window* const& window)
 {
     m_renderingSystem = renderingSystem;
     m_window = window;
     QueryPerformanceFrequency(&m_CPUfrequency);
-    m_CPUfrequency.QuadPart /= 1000;
-}
 
+    m_d3Context = d3Context;
+    m_d3Device = d3Device;
+
+    D3D11_QUERY_DESC desc;
+    desc.MiscFlags = 0;
+    desc.Query = D3D11_QUERY_TIMESTAMP_DISJOINT;
+
+    d3Device->CreateQuery(&desc, &m_queryJoints[0]);
+    d3Device->CreateQuery(&desc, &m_queryJoints[1]);
+}
 
 Profiler::~Profiler()
 {
 }
 
-void Profiler::Initialize(const RenderingSystem* const& renderingSystem, const Window* const& window)
+void Profiler::Initialize(ID3D11Device* const& d3Device, ID3D11DeviceContext* const& d3Context, const RenderingSystem* const& renderingSystem, const Window* const& window)
 {
-    s_instance = new Profiler(renderingSystem, window);
+    s_instance = new Profiler(d3Device, d3Context, renderingSystem, window);
 }
 
 void Profiler::Release()
@@ -47,6 +56,16 @@ void Profiler::EndCPUProfiling(const std::string& name)
     s_instance->OnEndCPUProfiling(name);
 }
 
+void Profiler::StartGPUProfiling(const std::string& name)
+{
+    s_instance->OnStartGPUProfiling(name);
+}
+
+void Profiler::EndGPUProfiling(const std::string& name)
+{
+    s_instance->OnEndGPUProfiling(name);
+}
+
 void Profiler::StartFrame()
 {
     s_instance->OnStartFrame();
@@ -63,7 +82,7 @@ void Profiler::OnStartCPUProfiling(const std::string& name)
 {
     auto found = m_cpuProfilers.find(name);
 
-    CPUProfilingSession* session;
+    ProfilingSession* session;
 
     if (found == m_cpuProfilers.end())
     {
@@ -72,15 +91,40 @@ void Profiler::OnStartCPUProfiling(const std::string& name)
     else
         session = found->second;
 
-    session->OnStartProfiling(m_currentCPUSession, m_orderCounter++);
+    session->OnStartProfiling(m_currentCPUSession, m_cpuOrderCounter++);
 
     m_currentCPUSession = session;
 }
 
 void Profiler::OnEndCPUProfiling(const std::string& name)
 {
-    CPUProfilingSession* session = m_cpuProfilers[name];
+    ProfilingSession* session = m_cpuProfilers[name];
     m_currentCPUSession = session->GetParent();
+    session->OnEndProfiling();
+}
+
+void Profiler::OnStartGPUProfiling(const std::string& name)
+{
+    auto found = m_gpuProfilers[m_frameCounter % 2].find(name);
+
+    ProfilingSession* session;
+
+    if (found == m_gpuProfilers[m_frameCounter % 2].end())
+    {
+        session = m_gpuProfilers[m_frameCounter % 2].emplace(name, new GPUProfilingSession(m_d3Device, m_d3Context, SAMPLES_AMOUNT)).first->second;
+    }
+    else
+        session = found->second;
+
+    session->OnStartProfiling(m_currentGPUSession, m_gpuOrderCounter++);
+
+    m_currentGPUSession = session;
+}
+
+void Profiler::OnEndGPUProfiling(const std::string& name)
+{
+    ProfilingSession* session = m_gpuProfilers[m_frameCounter % 2][name];
+    m_currentGPUSession = session->GetParent();
     session->OnEndProfiling();
 }
 
@@ -99,27 +143,68 @@ void Profiler::OnDraw()
 void Profiler::OnStartFrame()
 {
     m_currentCPUSession = nullptr;
-    m_orderCounter = 0;
+    m_cpuOrderCounter = 0;
+    m_gpuOrderCounter = 0;
+
+    ++m_frameCounter;
+
+    m_d3Context->Begin(m_queryJoints[m_frameCounter % 2]);
 }
 
 void Profiler::OnEndFrame()
 {
-    m_cachedMessages.resize(m_cpuProfilers.size());
-    for (const auto& profiler : m_cpuProfilers)
+    m_d3Context->End(m_queryJoints[m_frameCounter % 2]);
+
+    Profiler::StartCPUProfiling("Waiting for GPU");
+
+    while (m_d3Context->GetData(m_queryJoints[(m_frameCounter + 1) % 2], NULL, 0, 0) == S_FALSE)
+        Sleep(1);
+
+    Profiler::EndCPUProfiling("Waiting for GPU");
+
+    D3D10_QUERY_DATA_TIMESTAMP_DISJOINT tsDisjoint;
+    m_d3Context->GetData(m_queryJoints[(m_frameCounter + 1) % 2], &tsDisjoint, sizeof(tsDisjoint), 0);
+    if (tsDisjoint.Disjoint && m_frameCounter > 1)
+        DebugLog::LogError("Profiler GPU Query found disjoint!");
+    else
+    {
+        for (auto const& session : m_cpuProfilers)
+        {
+            session.second->OnEndFrame();
+        }
+
+        for (auto const& session : m_gpuProfilers[(m_frameCounter + 1) % 2])
+        {
+            session.second->OnEndFrame();
+        }
+    }
+
+    m_cachedMessages.resize(m_cpuProfilers.size() + m_gpuProfilers[m_frameCounter % 2].size());
+
+    PrepareLogsHierarchy(m_cpuProfilers.begin(), m_cpuProfilers.end(), (double)m_CPUfrequency.QuadPart, 0);
+
+    PrepareLogsHierarchy(m_gpuProfilers[(m_frameCounter + 1) % 2].begin(), m_gpuProfilers[(m_frameCounter + 1) % 2].end(), (double)tsDisjoint.Frequency, (int)m_cpuProfilers.size());
+}
+
+void Profiler::PrepareLogsHierarchy(std::unordered_map<std::string, ProfilingSession*>::iterator begin, std::unordered_map<std::string, ProfilingSession*>::iterator end, const double& freq, const int& offset)
+{
+    auto it = begin;
+    while (it != end)
     {
         static double result;
-        result = profiler.second->GetAverageResult() / m_CPUfrequency.QuadPart;
+        result = it->second->GetAverageResult() / (freq / 1000.0);
 
         string spaces = "";
-        const ProfilingSession* prof = profiler.second;
+        const ProfilingSession* prof = it->second;
         while ((prof = prof->GetParent()) && prof->GetParent())
         {
             spaces += "|        ";
         }
 
-        if (profiler.second->GetParent())
+        if (it->second->GetParent())
             spaces += "|-----";
 
-        m_cachedMessages[profiler.second->GetOrder()] = spaces + profiler.first + ": " + to_string(result) + "ms";
+        m_cachedMessages[offset + it->second->GetOrder()] = spaces + it->first + ": " + to_string(result) + "ms";
+        ++it;
     }
 }

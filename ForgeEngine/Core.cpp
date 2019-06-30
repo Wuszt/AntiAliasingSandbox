@@ -72,11 +72,11 @@ void Core::Run(const HINSTANCE& hInstance, const int& ShowWnd, const int& width,
 
     while (m_window->IsAlive())
     {
-        m_d3DeviceContext->Begin(disjoint0);
-
         Profiler::StartFrame();
-        Profiler::StartCPUProfiling(FRAME_ANALYZE_NAME);
 
+        Profiler::StartGPUProfiling("GPU Frame");
+
+        Profiler::StartCPUProfiling(FRAME_ANALYZE_NAME);
         Profiler::StartCPUProfiling("Engine frame");
 
         m_window->Update();
@@ -90,48 +90,39 @@ void Core::Run(const HINSTANCE& hInstance, const int& ShowWnd, const int& width,
         DeletePendingObjects();
         AddPendingObjects();
 
+        Profiler::StartGPUProfiling("SCENE DRAWING");
         DrawScene();
-        m_d3DeviceContext->End(queryStart);
+        Profiler::EndGPUProfiling("SCENE DRAWING");
+
+
         Profiler::StartCPUProfiling("UI");
+        Profiler::StartGPUProfiling("GPU UI");
         Profiler::StartCPUProfiling("Profiler");
+
         Profiler::Draw();
+
         Profiler::EndCPUProfiling("Profiler");
         Profiler::StartCPUProfiling("DebugLog");
+
         DebugLog::Draw();
+
         Profiler::EndCPUProfiling("DebugLog");
+        Profiler::EndGPUProfiling("GPU UI");
         Profiler::EndCPUProfiling("UI");
-        m_d3DeviceContext->End(queryEnd);
 
         Profiler::StartCPUProfiling("Empty");
         Profiler::EndCPUProfiling("Empty");
 
         Profiler::StartCPUProfiling("Swapchain");
+
+        Profiler::StartGPUProfiling("GPU Swapchain");
         m_swapChain->Present(0, 0);
+        Profiler::EndGPUProfiling("GPU Swapchain");
+
         Profiler::EndCPUProfiling("Swapchain");
         Profiler::EndCPUProfiling("Engine frame");
 
-        m_d3DeviceContext->End(disjoint0);
-
-        Profiler::StartCPUProfiling("Waiting for GPU");
-
-        while (m_d3DeviceContext->GetData(disjoint0, NULL, 0, 0) == S_FALSE);
-        Sleep(1);
-
-        D3D10_QUERY_DATA_TIMESTAMP_DISJOINT tsDisjoint;
-        m_d3DeviceContext->GetData(disjoint0, &tsDisjoint, sizeof(tsDisjoint), 0);
-        if (tsDisjoint.Disjoint)
-            continue;;
-
-        UINT64 frameStart, frameEnd;
-
-        m_d3DeviceContext->GetData(queryStart, &frameStart, sizeof(UINT64), 0);
-        m_d3DeviceContext->GetData(queryEnd, &frameEnd, sizeof(UINT64), 0);
-
-        double time = 1000.0 * (frameEnd - frameStart) / (double)tsDisjoint.Frequency;
-
-        Profiler::EndCPUProfiling("Waiting for GPU");
-
-        DebugLog::Log(time);
+        Profiler::EndGPUProfiling("GPU Frame");
 
         Profiler::EndCPUProfiling(FRAME_ANALYZE_NAME);
         Profiler::EndFrame();
@@ -222,7 +213,7 @@ void Core::Initialize(const HINSTANCE& hInstance, const int& ShowWnd, const int&
     Time::Initialize();
     InputClass::Initialize(*m_window->GetHInstance(), *m_window->GetHWND());
     DebugLog::Initialize(m_renderingSystem, m_window);
-    Profiler::Initialize(m_renderingSystem, m_window);
+    Profiler::Initialize(m_d3Device, m_d3DeviceContext, m_renderingSystem, m_window);
 
     m_d3DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 

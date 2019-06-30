@@ -2,19 +2,26 @@
 #include <vector>
 #include <Windows.h>
 
+struct ID3D11Query;
+struct ID3D11DeviceContext;
+struct ID3D11Device;
+
 class ProfilingSession
 {
 public:
     ProfilingSession(const int& maxSamples);
-    virtual ~ProfilingSession() = default;
+    virtual ~ProfilingSession() = 0;
 
     double GetAverageResult();
-    virtual void OnStartProfiling(const ProfilingSession* const& parent, const int& order) { m_active = true; m_parent = parent; m_order = order; }
+    virtual void OnStartProfiling(const ProfilingSession* const& parent, const int& order);
     virtual void OnEndProfiling() { m_active = false; }
 
     inline bool IsActive() { return m_active; }
     inline const ProfilingSession* GetParent() const { return m_parent; }
     inline int GetOrder() { return m_order; }
+
+    virtual void OnStartFrame() {}
+    virtual void OnEndFrame() {}
 
 protected:
     void SaveResult(const double& result);
@@ -32,6 +39,7 @@ class CPUProfilingSession : public ProfilingSession
 {
 public:
     CPUProfilingSession(const int& maxSamples) : ProfilingSession(maxSamples) {}
+    virtual ~CPUProfilingSession() override {}
 
     virtual void OnStartProfiling(const ProfilingSession* const& parent, const int& order) override;
     virtual void OnEndProfiling() override;
@@ -40,16 +48,20 @@ private:
     LARGE_INTEGER StartTick;
 };
 
-//class GPUProfilingSession : public ProfilingSession
-//{
-//
-//public:
-//    virtual void OnStartProfiling() override;
-//
-//
-//    virtual void OnEndProfiling() override;
-//
-//
-//    void OnCollectingData();
-//
-//};
+class GPUProfilingSession : public ProfilingSession
+{
+
+public:
+    GPUProfilingSession(ID3D11Device* const& d3Device, ID3D11DeviceContext* const& d3Context, const int& maxSamples);
+    virtual ~GPUProfilingSession() override {}
+
+    virtual void OnStartProfiling(const ProfilingSession* const& parent, const int& order) override;
+    virtual void OnEndProfiling() override;
+    virtual void OnEndFrame() override;
+
+private:
+    ID3D11Query* m_start;
+    ID3D11Query* m_end;
+
+    ID3D11DeviceContext* m_d3Context;
+};
