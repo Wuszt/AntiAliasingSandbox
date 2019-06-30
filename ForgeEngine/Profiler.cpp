@@ -4,6 +4,7 @@
 #include <DirectXMath.h>
 #include "RenderingSystem.h"
 #include <string>
+#include "ProfilingSession.h"
 
 using namespace DirectX;
 using namespace std;
@@ -12,8 +13,8 @@ Profiler::Profiler(const RenderingSystem* const& renderingSystem, const Window* 
 {
     m_renderingSystem = renderingSystem;
     m_window = window;
-    QueryPerformanceFrequency(&m_frequency);
-    m_frequency.QuadPart /= 1000;
+    QueryPerformanceFrequency(&m_CPUfrequency);
+    m_CPUfrequency.QuadPart /= 1000;
 }
 
 
@@ -33,63 +34,92 @@ void Profiler::Release()
 
 void Profiler::Draw()
 {
-    const auto& frame = s_instance->m_results.find(FRAME_ANALYZE_NAME);
-
-    if (frame != s_instance->m_results.end())
-        s_instance->m_renderingSystem->DrawText("[CPU] Frame took: " + to_string(frame->second) + "ms", PA_TEXT_SIZE, s_instance->m_window->GetWidth() * 0.5f, 0.0f, DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), TextAnchor::Top | TextAnchor::Center);
-
-    int i = 1;
-    for (const auto& pr : s_instance->m_results)
-    {
-        if(pr.first == FRAME_ANALYZE_NAME)
-            continue;
-
-        s_instance->m_renderingSystem->DrawText("[CPU] " + pr.first + " took: " + to_string(pr.second) + "ms", PA_TEXT_SIZE, s_instance->m_window->GetWidth() * 0.5f, i * PA_TEXT_SIZE, DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), TextAnchor::Top | TextAnchor::Center);
-        ++i;
-    }
-
-    s_instance->m_results.clear();
+    s_instance->OnDraw();
 }
 
-void Profiler::StartProfiling(const std::string& name)
+void Profiler::StartCPUProfiling(const std::string& name)
 {
-    auto found = s_instance->m_profilers.find(name);
-
-    if (found != s_instance->m_profilers.end())
-    {
-        DebugLog::LogError(name + " analyzer already started");
-        return;
-    }
-
-    auto it = s_instance->m_profilers.emplace(name, LARGE_INTEGER());
-    QueryPerformanceCounter(&it.first->second);
+    s_instance->OnStartCPUProfiling(name);
 }
 
-double Profiler::EndProfiling(const std::string& name)
+void Profiler::EndCPUProfiling(const std::string& name)
 {
-    static LARGE_INTEGER current;
+    s_instance->OnEndCPUProfiling(name);
+}
 
-    auto found = s_instance->m_profilers.find(name);
+void Profiler::StartFrame()
+{
+    s_instance->OnStartFrame();
+}
 
-    if (found == s_instance->m_profilers.end())
-    {
-        DebugLog::LogError(name + " analyzer haven't been started");
-    }
-
-    QueryPerformanceCounter(&current);
-
-    double duration = static_cast<double>(current.QuadPart - found->second.QuadPart) / s_instance->m_frequency.QuadPart;
-
-    s_instance->m_profilers.erase(name);
-
-    auto foundResult = s_instance->m_results.find(name);
-
-    if (foundResult != s_instance->m_results.end())
-        foundResult->second += duration;
-    else
-        s_instance->m_results.emplace(name, duration);
-
-    return duration;
+void Profiler::EndFrame()
+{
+    s_instance->OnEndFrame();
 }
 
 Profiler* Profiler::s_instance;
+
+void Profiler::OnStartCPUProfiling(const std::string& name)
+{
+    auto found = m_cpuProfilers.find(name);
+
+    CPUProfilingSession* session;
+
+    if (found == m_cpuProfilers.end())
+    {
+        session = m_cpuProfilers.emplace(name, new CPUProfilingSession(SAMPLES_AMOUNT)).first->second;
+    }
+    else
+        session = found->second;
+
+    session->OnStartProfiling(m_currentCPUSession, m_orderCounter++);
+
+    m_currentCPUSession = session;
+}
+
+void Profiler::OnEndCPUProfiling(const std::string& name)
+{
+    CPUProfilingSession* session = m_cpuProfilers[name];
+    m_currentCPUSession = session->GetParent();
+    session->OnEndProfiling();
+}
+
+void Profiler::OnDraw()
+{
+    int i = 0;
+    for (const auto& mess : m_cachedMessages)
+    {
+        ++i;
+        m_renderingSystem->DrawText(mess, PA_TEXT_SIZE, s_instance->m_window->GetWidth() * 0.5f, i * PA_TEXT_SIZE, DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), TextAnchor::Top | TextAnchor::Left);
+    }
+
+    m_cachedMessages.clear();
+}
+
+void Profiler::OnStartFrame()
+{
+    m_currentCPUSession = nullptr;
+    m_orderCounter = 0;
+}
+
+void Profiler::OnEndFrame()
+{
+    m_cachedMessages.resize(m_cpuProfilers.size());
+    for (const auto& profiler : m_cpuProfilers)
+    {
+        static double result;
+        result = profiler.second->GetAverageResult() / m_CPUfrequency.QuadPart;
+
+        string spaces = "";
+        const ProfilingSession* prof = profiler.second;
+        while ((prof = prof->GetParent()) && prof->GetParent())
+        {
+            spaces += "|        ";
+        }
+
+        if (profiler.second->GetParent())
+            spaces += "|-----";
+
+        m_cachedMessages[profiler.second->GetOrder()] = spaces + profiler.first + ": " + to_string(result) + "ms";
+    }
+}

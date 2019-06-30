@@ -84,6 +84,10 @@ private:
     Window* m_window;
     Camera* m_camera;
 
+    ID3D11Query* queryStart;
+    ID3D11Query* queryEnd;
+    ID3D11Query* disjoint0;
+
     //to move
     ID3D11SamplerState* samplerState;
     //end to move

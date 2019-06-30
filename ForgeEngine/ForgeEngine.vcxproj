@@ -37,6 +37,7 @@
     <ClCompile Include="MyApp.cpp" />
     <ClCompile Include="Object.cpp" />
     <ClCompile Include="Profiler.cpp" />
+    <ClCompile Include="ProfilingSession.cpp" />
     <ClCompile Include="RenderingSystem.cpp" />
     <ClCompile Include="ShadersManager.cpp" />
     <ClCompile Include="Transform.cpp" />
@@ -61,6 +62,7 @@
     <ClInclude Include="MyApp.h" />
     <ClInclude Include="Object.h" />
     <ClInclude Include="Profiler.h" />
+    <ClInclude Include="ProfilingSession.h" />
     <ClInclude Include="RenderingSystem.h" />
     <ClInclude Include="ShadersManager.h" />
     <ClInclude Include="Transform.h" />

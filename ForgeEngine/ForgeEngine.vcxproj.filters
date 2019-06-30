@@ -60,6 +60,7 @@
     <ClCompile Include="Profiler.cpp">
       <Filter>Framework</Filter>
     </ClCompile>
+    <ClCompile Include="ProfilingSession.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Camera.h">
@@ -110,6 +111,7 @@
     <ClInclude Include="Profiler.h">
       <Filter>Framework</Filter>
     </ClInclude>
+    <ClInclude Include="ProfilingSession.h" />
   </ItemGroup>
   <ItemGroup>
     <_EmbedManagedResourceFile Include="Base.fx" />
