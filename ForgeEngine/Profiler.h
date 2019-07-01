@@ -4,7 +4,9 @@
 #include <vector>
 #include <Windows.h>
 
-#define SAMPLES_AMOUNT 100000
+#define SAMPLES_AMOUNT 500
+
+#define QUERY_LATENCY 5
 
 #define PA_TEXT_SIZE 20.0f
 #define FRAME_ANALYZE_NAME "Frame"
@@ -56,12 +58,12 @@ private:
     void OnStartFrame();
     void OnEndFrame();
 
-    void PrepareLogsHierarchy(std::unordered_map<std::string, ProfilingSession*>::iterator begin, std::unordered_map<std::string, ProfilingSession*>::iterator end, const double& freq, const int& offset);
+    void PrepareLogsHierarchy(std::unordered_map<std::string, ProfilingSession*>::iterator begin, std::unordered_map<std::string, ProfilingSession*>::iterator end, const UINT64& freq, const int& offset);
 
     std::unordered_map<std::string, ProfilingSession*> m_cpuProfilers;
     LARGE_INTEGER m_CPUfrequency;
 
-    std::unordered_map<std::string, ProfilingSession*> m_gpuProfilers[2];
+    std::unordered_map<std::string, ProfilingSession*> m_gpuProfilers[QUERY_LATENCY];
 
     std::vector<std::string> m_cachedMessages;
     int m_cpuOrderCounter;
@@ -72,7 +74,7 @@ private:
 
     ID3D11Device* m_d3Device;
     ID3D11DeviceContext* m_d3Context;
-    ID3D11Query* m_queryJoints[2];
+    ID3D11Query* m_queryJoints[QUERY_LATENCY];
 
     int m_frameCounter = 0;
 };

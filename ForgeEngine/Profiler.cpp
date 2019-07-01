@@ -23,8 +23,8 @@ Profiler::Profiler(ID3D11Device* const& d3Device, ID3D11DeviceContext* const& d3
     desc.MiscFlags = 0;
     desc.Query = D3D11_QUERY_TIMESTAMP_DISJOINT;
 
-    d3Device->CreateQuery(&desc, &m_queryJoints[0]);
-    d3Device->CreateQuery(&desc, &m_queryJoints[1]);
+    for (int i = 0; i < QUERY_LATENCY; ++i)
+        d3Device->CreateQuery(&desc, &m_queryJoints[i]);
 }
 
 Profiler::~Profiler()
@@ -105,13 +105,13 @@ void Profiler::OnEndCPUProfiling(const std::string& name)
 
 void Profiler::OnStartGPUProfiling(const std::string& name)
 {
-    auto found = m_gpuProfilers[m_frameCounter % 2].find(name);
+    auto found = m_gpuProfilers[m_frameCounter % QUERY_LATENCY].find(name);
 
     ProfilingSession* session;
 
-    if (found == m_gpuProfilers[m_frameCounter % 2].end())
+    if (found == m_gpuProfilers[m_frameCounter % QUERY_LATENCY].end())
     {
-        session = m_gpuProfilers[m_frameCounter % 2].emplace(name, new GPUProfilingSession(m_d3Device, m_d3Context, SAMPLES_AMOUNT)).first->second;
+        session = m_gpuProfilers[m_frameCounter % QUERY_LATENCY].emplace(name, new GPUProfilingSession(m_d3Device, m_d3Context, SAMPLES_AMOUNT)).first->second;
     }
     else
         session = found->second;
@@ -123,7 +123,7 @@ void Profiler::OnStartGPUProfiling(const std::string& name)
 
 void Profiler::OnEndGPUProfiling(const std::string& name)
 {
-    ProfilingSession* session = m_gpuProfilers[m_frameCounter % 2][name];
+    ProfilingSession* session = m_gpuProfilers[m_frameCounter % QUERY_LATENCY][name];
     m_currentGPUSession = session->GetParent();
     session->OnEndProfiling();
 }
@@ -148,23 +148,22 @@ void Profiler::OnStartFrame()
 
     ++m_frameCounter;
 
-    m_d3Context->Begin(m_queryJoints[m_frameCounter % 2]);
+    m_d3Context->Begin(m_queryJoints[m_frameCounter % QUERY_LATENCY]);
 }
 
 void Profiler::OnEndFrame()
 {
-    m_d3Context->End(m_queryJoints[m_frameCounter % 2]);
+    m_d3Context->End(m_queryJoints[m_frameCounter % QUERY_LATENCY]);
 
     Profiler::StartCPUProfiling("Waiting for GPU");
 
-    while (m_d3Context->GetData(m_queryJoints[(m_frameCounter + 1) % 2], NULL, 0, 0) == S_FALSE)
-        Sleep(1);
+    while (m_d3Context->GetData(m_queryJoints[(m_frameCounter + 1) % QUERY_LATENCY], NULL, 0, 0) == S_FALSE);
 
     Profiler::EndCPUProfiling("Waiting for GPU");
 
     D3D10_QUERY_DATA_TIMESTAMP_DISJOINT tsDisjoint;
-    m_d3Context->GetData(m_queryJoints[(m_frameCounter + 1) % 2], &tsDisjoint, sizeof(tsDisjoint), 0);
-    if (tsDisjoint.Disjoint && m_frameCounter > 1)
+    m_d3Context->GetData(m_queryJoints[(m_frameCounter + 1) % QUERY_LATENCY], &tsDisjoint, sizeof(tsDisjoint), 0);
+    if (tsDisjoint.Disjoint && m_frameCounter > QUERY_LATENCY-1)
         DebugLog::LogError("Profiler GPU Query found disjoint!");
     else
     {
@@ -173,26 +172,26 @@ void Profiler::OnEndFrame()
             session.second->OnEndFrame();
         }
 
-        for (auto const& session : m_gpuProfilers[(m_frameCounter + 1) % 2])
+        for (auto const& session : m_gpuProfilers[(m_frameCounter + 1) % QUERY_LATENCY])
         {
             session.second->OnEndFrame();
         }
     }
 
-    m_cachedMessages.resize(m_cpuProfilers.size() + m_gpuProfilers[m_frameCounter % 2].size());
+    m_cachedMessages.resize(m_cpuProfilers.size() + m_gpuProfilers[m_frameCounter % QUERY_LATENCY].size());
 
-    PrepareLogsHierarchy(m_cpuProfilers.begin(), m_cpuProfilers.end(), (double)m_CPUfrequency.QuadPart, 0);
+    PrepareLogsHierarchy(m_cpuProfilers.begin(), m_cpuProfilers.end(), (UINT64)m_CPUfrequency.QuadPart, 0);
 
-    PrepareLogsHierarchy(m_gpuProfilers[(m_frameCounter + 1) % 2].begin(), m_gpuProfilers[(m_frameCounter + 1) % 2].end(), (double)tsDisjoint.Frequency, (int)m_cpuProfilers.size());
+    PrepareLogsHierarchy(m_gpuProfilers[(m_frameCounter + 1) % QUERY_LATENCY].begin(), m_gpuProfilers[(m_frameCounter + 1) % QUERY_LATENCY].end(), tsDisjoint.Frequency, (int)m_cpuProfilers.size());
 }
 
-void Profiler::PrepareLogsHierarchy(std::unordered_map<std::string, ProfilingSession*>::iterator begin, std::unordered_map<std::string, ProfilingSession*>::iterator end, const double& freq, const int& offset)
+void Profiler::PrepareLogsHierarchy(std::unordered_map<std::string, ProfilingSession*>::iterator begin, std::unordered_map<std::string, ProfilingSession*>::iterator end, const UINT64& freq, const int& offset)
 {
     auto it = begin;
     while (it != end)
     {
         static double result;
-        result = it->second->GetAverageResult() / (freq / 1000.0);
+        result = it->second->GetAverageResult() / (freq / 1000);
 
         string spaces = "";
         const ProfilingSession* prof = it->second;

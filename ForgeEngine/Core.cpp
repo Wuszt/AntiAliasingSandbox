@@ -265,7 +265,7 @@ void Core::FillSwapChainBufferDescWithDefaultValues(DXGI_MODE_DESC& desc)
 
     desc.Width = m_window->GetWidth();
     desc.Height = m_window->GetHeight();
-    desc.RefreshRate.Numerator = 60;
+    desc.RefreshRate.Numerator = 0;
     desc.RefreshRate.Denominator = 1;
     desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
     desc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
