@@ -18,6 +18,7 @@ public:
 
     inline bool IsActive() { return m_active; }
     inline const ProfilingSession* GetParent() const { return m_parent; }
+    inline void SetParent(const ProfilingSession* const& session) { m_parent = session; }
     inline int GetOrder() { return m_order; }
 
     virtual void OnStartFrame() {}

@@ -74,8 +74,7 @@ void Core::Run(const HINSTANCE& hInstance, const int& ShowWnd, const int& width,
     {
         Profiler::StartFrame();
 
-        Profiler::StartGPUProfiling("GPU Frame");
-
+        Profiler::StartGPUProfiling(FRAME_ANALYZE_NAME);
         Profiler::StartCPUProfiling(FRAME_ANALYZE_NAME);
         Profiler::StartCPUProfiling("Engine frame");
 
@@ -90,40 +89,36 @@ void Core::Run(const HINSTANCE& hInstance, const int& ShowWnd, const int& width,
         DeletePendingObjects();
         AddPendingObjects();
 
-        Profiler::StartGPUProfiling("SCENE DRAWING");
+        Profiler::StartGPUProfiling("Drawing");
         DrawScene();
-        Profiler::EndGPUProfiling("SCENE DRAWING");
+        Profiler::EndGPUProfiling("Drawing");
 
 
         Profiler::StartCPUProfiling("UI");
-        Profiler::StartGPUProfiling("GPU UI");
+        Profiler::StartGPUProfiling("UI");
+
         Profiler::StartCPUProfiling("Profiler");
-
         Profiler::Draw();
-
         Profiler::EndCPUProfiling("Profiler");
+
         Profiler::StartCPUProfiling("DebugLog");
-
         DebugLog::Draw();
-
         Profiler::EndCPUProfiling("DebugLog");
-        Profiler::EndGPUProfiling("GPU UI");
+
+        Profiler::EndGPUProfiling("UI");
         Profiler::EndCPUProfiling("UI");
 
         Profiler::StartCPUProfiling("Empty");
         Profiler::EndCPUProfiling("Empty");
 
         Profiler::StartCPUProfiling("Swapchain");
-
-        Profiler::StartGPUProfiling("GPU Swapchain");
+        Profiler::StartGPUProfiling("Swapchain");
         m_swapChain->Present(0, 0);
-        Profiler::EndGPUProfiling("GPU Swapchain");
-
+        Profiler::EndGPUProfiling("Swapchain");
         Profiler::EndCPUProfiling("Swapchain");
+
         Profiler::EndCPUProfiling("Engine frame");
-
-        Profiler::EndGPUProfiling("GPU Frame");
-
+        Profiler::EndGPUProfiling(FRAME_ANALYZE_NAME);
         Profiler::EndCPUProfiling(FRAME_ANALYZE_NAME);
         Profiler::EndFrame();
     }

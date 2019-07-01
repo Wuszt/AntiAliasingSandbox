@@ -58,14 +58,14 @@ private:
     void OnStartFrame();
     void OnEndFrame();
 
-    void PrepareLogsHierarchy(std::unordered_map<std::string, ProfilingSession*>::iterator begin, std::unordered_map<std::string, ProfilingSession*>::iterator end, const UINT64& freq, const int& offset);
+    void PrepareLogsHierarchy(std::unordered_map<std::string, ProfilingSession*>::iterator begin, std::unordered_map<std::string, ProfilingSession*>::iterator end, const int& length, const UINT64& freq);
 
     std::unordered_map<std::string, ProfilingSession*> m_cpuProfilers;
     LARGE_INTEGER m_CPUfrequency;
 
     std::unordered_map<std::string, ProfilingSession*> m_gpuProfilers[QUERY_LATENCY];
 
-    std::vector<std::string> m_cachedMessages;
+    std::string m_cachedMessages;
     int m_cpuOrderCounter;
     int m_gpuOrderCounter;
 
