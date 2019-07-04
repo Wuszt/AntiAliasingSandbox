@@ -3,6 +3,7 @@
 
 struct ID3D11Device;
 struct ID3D11RenderTargetView;
+struct ID3D11DeviceContext;
 class Window;
 
 class RTV
@@ -22,7 +23,7 @@ private:
 class RenderTargetViewsManager
 {
 public:
-    RenderTargetViewsManager(ID3D11Device* const& device, Window* const& window);
+    RenderTargetViewsManager(ID3D11Device* const& device, ID3D11DeviceContext* const& context, Window* const& window);
     ~RenderTargetViewsManager();
 
     RTV* AcquireRTV();
@@ -37,6 +38,7 @@ private:
     RTV* GetOrCreateRTV();
 
     ID3D11Device* m_d3Device;
+    ID3D11DeviceContext* m_d3Context;
     Window* m_window;
 
     std::unordered_set<RTV*> m_availableRTVs;
