@@ -7,7 +7,7 @@
 
 #define MARGIN 5.0f
 #define ERROR_LIFE_TIME 5.0f
-#define ERROR_TEXT_SIZE 30.0f
+#define ERROR_TEXT_SIZE 20.0f
 #define LOG_TEXT_SIZE 20.0f
 
 class RenderingSystem;

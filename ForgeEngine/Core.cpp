@@ -18,6 +18,7 @@
 #include "DebugLog.h"
 #include "Profiler.h"
 #include "RenderTargetViewsManager.h"
+#include "PostProcessor.h"
 
 using namespace DirectX;
 
@@ -52,6 +53,9 @@ Core::~Core()
 
     InputClass::Release();
     DebugLog::Release();
+
+    delete m_shadersManager;
+    delete m_rtvsManager;
 }
 
 void Core::Run(const HINSTANCE& hInstance, const int& ShowWnd, const int& width, const int& height)
@@ -73,8 +77,6 @@ void Core::Run(const HINSTANCE& hInstance, const int& ShowWnd, const int& width,
 
     while (m_window->IsAlive())
     {
-        RTV* rtv = m_rtvsManager->AcquireRTV();
-
         Profiler::StartFrame();
 
         Profiler::StartGPUProfiling(FRAME_ANALYZE_NAME);
@@ -124,8 +126,6 @@ void Core::Run(const HINSTANCE& hInstance, const int& ShowWnd, const int& width,
         Profiler::EndGPUProfiling(FRAME_ANALYZE_NAME);
         Profiler::EndCPUProfiling(FRAME_ANALYZE_NAME);
         Profiler::EndFrame();
-
-        m_rtvsManager->ReleaseRTV(rtv);
     }
 }
 
@@ -194,8 +194,10 @@ void Core::Initialize(const HINSTANCE& hInstance, const int& ShowWnd, const int&
         throw std::exception("Direct3D Initialization - Failed");
     }
 
-    m_rtvsManager = new RenderTargetViewsManager(m_d3Device, m_window);
-    m_renderingSystem = new RenderingSystem(m_d3Device, m_d3DeviceContext);
+    m_shadersManager = new ShadersManager(m_d3Device);
+    m_rtvsManager = new RenderTargetViewsManager(m_d3Device, m_d3DeviceContext, m_window);
+    m_renderingSystem = new RenderingSystem(m_d3Device, m_d3DeviceContext, m_shadersManager);
+    m_postProcessor = new PostProcessor(m_d3Device, m_d3DeviceContext, m_shadersManager);
 
     D3D11_SAMPLER_DESC sampDesc;
     ZeroMemory(&sampDesc, sizeof(sampDesc));
@@ -339,6 +341,12 @@ void Core::AfterUpdateScene()
 
 void Core::DrawScene()
 {
+    RTV* renderTarget = m_rtvsManager->AcquireRTV();
+    ID3D11RenderTargetView* rtv = renderTarget->GetRTV();
+    m_d3DeviceContext->OMSetRenderTargets(1, &rtv, m_depthStencilView);
+
+    m_shadersManager->GetShaders("DesaturationPP.fx");
+
     float bgColor[4] = { (0.0f, 0.0f, 0.0f, 0.0f) };
     m_d3DeviceContext->ClearRenderTargetView(m_renderTargetView, bgColor);
 
@@ -347,6 +355,9 @@ void Core::DrawScene()
     m_d3DeviceContext->PSSetSamplers(0, 1, &samplerState);
 
     m_renderingSystem->RenderRegisteredMeshRenderers(m_camera);
+
+    m_postProcessor->DrawPass("CopyingPP.fx", { renderTarget->GetTexture() }, m_renderTargetView);
+    m_rtvsManager->ReleaseRTV(renderTarget);
 }
 
 void Core::OnResizeWindow(const int& width, const int& height)

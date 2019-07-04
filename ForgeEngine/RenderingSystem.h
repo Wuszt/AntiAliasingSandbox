@@ -48,7 +48,7 @@ struct cbPerObject
 class RenderingSystem
 {
 public:
-    RenderingSystem(ID3D11Device* const& d3Device, ID3D11DeviceContext* const& d3DeviceContext);
+    RenderingSystem(ID3D11Device* const& d3Device, ID3D11DeviceContext* const& d3DeviceContext, ShadersManager* const& shadersManager);
     ~RenderingSystem();
 
     void RenderRegisteredMeshRenderers(Camera* const& camera);

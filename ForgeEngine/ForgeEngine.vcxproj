@@ -36,6 +36,7 @@
     <ClCompile Include="Model.cpp" />
     <ClCompile Include="MyApp.cpp" />
     <ClCompile Include="Object.cpp" />
+    <ClCompile Include="PostProcessor.cpp" />
     <ClCompile Include="Profiler.cpp" />
     <ClCompile Include="ProfilingSession.cpp" />
     <ClCompile Include="RenderingSystem.cpp" />
@@ -62,6 +63,7 @@
     <ClInclude Include="Model.h" />
     <ClInclude Include="MyApp.h" />
     <ClInclude Include="Object.h" />
+    <ClInclude Include="PostProcessor.h" />
     <ClInclude Include="Profiler.h" />
     <ClInclude Include="ProfilingSession.h" />
     <ClInclude Include="RenderingSystem.h" />
@@ -72,6 +74,46 @@
   </ItemGroup>
   <ItemGroup>
     <_EmbedManagedResourceFile Include="Placeholder.fx">
+      <FileType>Document</FileType>
+    </_EmbedManagedResourceFile>
+  </ItemGroup>
+  <ItemGroup>
+    <_EmbedManagedResourceFile Include="DesaturationPP.fx">
+      <FileType>Document</FileType>
+    </_EmbedManagedResourceFile>
+  </ItemGroup>
+  <ItemGroup>
+    <_EmbedManagedResourceFile Include="CopyingPP.fx">
+      <FileType>Document</FileType>
+    </_EmbedManagedResourceFile>
+  </ItemGroup>
+  <ItemGroup>
+    <_EmbedManagedResourceFile Include="SobelPP.fx">
+      <FileType>Document</FileType>
+    </_EmbedManagedResourceFile>
+  </ItemGroup>
+  <ItemGroup>
+    <_EmbedManagedResourceFile Include="SobelTweaking.fx">
+      <FileType>Document</FileType>
+    </_EmbedManagedResourceFile>
+  </ItemGroup>
+  <ItemGroup>
+    <_EmbedManagedResourceFile Include="GaussianBlurPP.fx">
+      <FileType>Document</FileType>
+    </_EmbedManagedResourceFile>
+  </ItemGroup>
+  <ItemGroup>
+    <_EmbedManagedResourceFile Include="OutlinePP.fx">
+      <FileType>Document</FileType>
+    </_EmbedManagedResourceFile>
+  </ItemGroup>
+  <ItemGroup>
+    <_EmbedManagedResourceFile Include="CellShadingPP.fx">
+      <FileType>Document</FileType>
+    </_EmbedManagedResourceFile>
+  </ItemGroup>
+  <ItemGroup>
+    <_EmbedManagedResourceFile Include="KuwaharaPP.fx">
       <FileType>Document</FileType>
     </_EmbedManagedResourceFile>
   </ItemGroup>

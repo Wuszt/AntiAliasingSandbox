@@ -19,7 +19,7 @@
 using namespace DirectX;
 using namespace std;
 
-RenderingSystem::RenderingSystem(ID3D11Device* const& d3Device, ID3D11DeviceContext* const& d3DeviceContext)
+RenderingSystem::RenderingSystem(ID3D11Device* const& d3Device, ID3D11DeviceContext* const& d3DeviceContext, ShadersManager* const& shadersManager)
 {
     m_d3Device = d3Device;
     m_d3DeviceContext = d3DeviceContext;
@@ -33,7 +33,7 @@ RenderingSystem::RenderingSystem(ID3D11Device* const& d3Device, ID3D11DeviceCont
 
     m_d3Device->CreateBuffer(&cbbd, nullptr, &m_buff);
 
-    m_shadersManager = new ShadersManager(d3Device);
+    m_shadersManager = shadersManager;
 
     FW1CreateFactory(FW1_VERSION, &m_textFactory);
     m_textFactory->CreateFontWrapper(d3Device, L"Arial", &m_fontWrapper);

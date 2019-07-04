@@ -7,6 +7,12 @@
     <Filter Include="AAsProject">
       <UniqueIdentifier>{9ca70490-ebe7-4f24-a4b4-17e1814b4214}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Shaders">
+      <UniqueIdentifier>{aa656806-87b3-4048-b1d5-cf54fa2cb3d9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\PPs">
+      <UniqueIdentifier>{8d0cb3cb-1eb8-4f7a-80b0-743ee81ad9ff}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -62,6 +68,7 @@
     </ClCompile>
     <ClCompile Include="ProfilingSession.cpp" />
     <ClCompile Include="RenderTargetViewsManager.cpp" />
+    <ClCompile Include="PostProcessor.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Camera.h">
@@ -114,9 +121,40 @@
     </ClInclude>
     <ClInclude Include="ProfilingSession.h" />
     <ClInclude Include="RenderTargetViewsManager.h" />
+    <ClInclude Include="PostProcessor.h" />
   </ItemGroup>
   <ItemGroup>
-    <_EmbedManagedResourceFile Include="Base.fx" />
-    <_EmbedManagedResourceFile Include="Placeholder.fx" />
+    <_EmbedManagedResourceFile Include="Base.fx">
+      <Filter>Shaders</Filter>
+    </_EmbedManagedResourceFile>
+    <_EmbedManagedResourceFile Include="DesaturationPP.fx">
+      <Filter>Shaders\PPs</Filter>
+    </_EmbedManagedResourceFile>
+    <_EmbedManagedResourceFile Include="Placeholder.fx">
+      <Filter>Shaders\PPs</Filter>
+    </_EmbedManagedResourceFile>
+    <_EmbedManagedResourceFile Include="SobelPP.fx">
+      <Filter>Shaders\PPs</Filter>
+    </_EmbedManagedResourceFile>
+    <_EmbedManagedResourceFile Include="SobelTweaking.fx">
+      <Filter>Shaders\PPs</Filter>
+    </_EmbedManagedResourceFile>
+    <_EmbedManagedResourceFile Include="CopyingPP.fx">
+      <Filter>Shaders\PPs</Filter>
+    </_EmbedManagedResourceFile>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="GaussianBlurPP.fx">
+      <Filter>Shaders\PPs</Filter>
+    </FxCompile>
+    <FxCompile Include="Outline.fx">
+      <Filter>Shaders\PPs</Filter>
+    </FxCompile>
+    <FxCompile Include="CellShadingPP.fx">
+      <Filter>Shaders\PPs</Filter>
+    </FxCompile>
+    <FxCompile Include="KuwaharaPP.fx">
+      <Filter>Shaders\PPs</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

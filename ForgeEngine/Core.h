@@ -13,6 +13,7 @@ class Object;
 class RenderingSystem;
 class ShadersManager;
 class RenderTargetViewsManager;
+class PostProcessor;
 
 class Core
 {
@@ -85,6 +86,8 @@ private:
     Window* m_window;
     Camera* m_camera;
     RenderTargetViewsManager* m_rtvsManager;
+    ShadersManager* m_shadersManager;
+    PostProcessor* m_postProcessor;
 
     ID3D11Query* queryStart;
     ID3D11Query* queryEnd;
