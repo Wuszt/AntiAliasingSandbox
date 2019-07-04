@@ -130,9 +130,6 @@
     <_EmbedManagedResourceFile Include="DesaturationPP.fx">
       <Filter>Shaders\PPs</Filter>
     </_EmbedManagedResourceFile>
-    <_EmbedManagedResourceFile Include="Placeholder.fx">
-      <Filter>Shaders\PPs</Filter>
-    </_EmbedManagedResourceFile>
     <_EmbedManagedResourceFile Include="SobelPP.fx">
       <Filter>Shaders\PPs</Filter>
     </_EmbedManagedResourceFile>
@@ -141,6 +138,9 @@
     </_EmbedManagedResourceFile>
     <_EmbedManagedResourceFile Include="CopyingPP.fx">
       <Filter>Shaders\PPs</Filter>
+    </_EmbedManagedResourceFile>
+    <_EmbedManagedResourceFile Include="Placeholder.fx">
+      <Filter>Shaders</Filter>
     </_EmbedManagedResourceFile>
   </ItemGroup>
   <ItemGroup>
