@@ -61,6 +61,7 @@
       <Filter>Framework</Filter>
     </ClCompile>
     <ClCompile Include="ProfilingSession.cpp" />
+    <ClCompile Include="RenderTargetViewsManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Camera.h">
@@ -112,11 +113,10 @@
       <Filter>Framework</Filter>
     </ClInclude>
     <ClInclude Include="ProfilingSession.h" />
+    <ClInclude Include="RenderTargetViewsManager.h" />
   </ItemGroup>
   <ItemGroup>
     <_EmbedManagedResourceFile Include="Base.fx" />
-  </ItemGroup>
-  <ItemGroup>
-    <FxCompile Include="Placeholder.fx" />
+    <_EmbedManagedResourceFile Include="Placeholder.fx" />
   </ItemGroup>
 </Project>

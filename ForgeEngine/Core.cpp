@@ -17,6 +17,7 @@
 #include "ShadersManager.h"
 #include "DebugLog.h"
 #include "Profiler.h"
+#include "RenderTargetViewsManager.h"
 
 using namespace DirectX;
 
@@ -72,6 +73,8 @@ void Core::Run(const HINSTANCE& hInstance, const int& ShowWnd, const int& width,
 
     while (m_window->IsAlive())
     {
+        RTV* rtv = m_rtvsManager->AcquireRTV();
+
         Profiler::StartFrame();
 
         Profiler::StartGPUProfiling(FRAME_ANALYZE_NAME);
@@ -121,6 +124,8 @@ void Core::Run(const HINSTANCE& hInstance, const int& ShowWnd, const int& width,
         Profiler::EndGPUProfiling(FRAME_ANALYZE_NAME);
         Profiler::EndCPUProfiling(FRAME_ANALYZE_NAME);
         Profiler::EndFrame();
+
+        m_rtvsManager->ReleaseRTV(rtv);
     }
 }
 
@@ -189,6 +194,7 @@ void Core::Initialize(const HINSTANCE& hInstance, const int& ShowWnd, const int&
         throw std::exception("Direct3D Initialization - Failed");
     }
 
+    m_rtvsManager = new RenderTargetViewsManager(m_d3Device, m_window);
     m_renderingSystem = new RenderingSystem(m_d3Device, m_d3DeviceContext);
 
     D3D11_SAMPLER_DESC sampDesc;
@@ -204,11 +210,11 @@ void Core::Initialize(const HINSTANCE& hInstance, const int& ShowWnd, const int&
     if (S_OK != m_d3Device->CreateSamplerState(&sampDesc, &samplerState))
         throw std::exception("error");
 
-
     Time::Initialize();
     InputClass::Initialize(*m_window->GetHInstance(), *m_window->GetHWND());
     DebugLog::Initialize(m_renderingSystem, m_window);
     Profiler::Initialize(m_d3Device, m_d3DeviceContext, m_renderingSystem, m_window);
+
 
     m_d3DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 

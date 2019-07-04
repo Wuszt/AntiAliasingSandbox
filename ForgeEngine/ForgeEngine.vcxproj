@@ -39,6 +39,7 @@
     <ClCompile Include="Profiler.cpp" />
     <ClCompile Include="ProfilingSession.cpp" />
     <ClCompile Include="RenderingSystem.cpp" />
+    <ClCompile Include="RenderTargetViewsManager.cpp" />
     <ClCompile Include="ShadersManager.cpp" />
     <ClCompile Include="Transform.cpp" />
     <ClCompile Include="Window.cpp" />
@@ -64,6 +65,7 @@
     <ClInclude Include="Profiler.h" />
     <ClInclude Include="ProfilingSession.h" />
     <ClInclude Include="RenderingSystem.h" />
+    <ClInclude Include="RenderTargetViewsManager.h" />
     <ClInclude Include="ShadersManager.h" />
     <ClInclude Include="Transform.h" />
     <ClInclude Include="Window.h" />
