@@ -67,8 +67,7 @@ void Core::Run(const HINSTANCE& hInstance, const int& ShowWnd, const int& width,
     {
         Profiler::StartFrame();
 
-        Profiler::StartGPUProfiling(FRAME_ANALYZE_NAME);
-        Profiler::StartCPUProfiling(FRAME_ANALYZE_NAME);
+        Profiler::StartProfiling(FRAME_ANALYZE_NAME);
         Profiler::StartCPUProfiling("Engine frame");
 
         m_window->Update();
@@ -82,37 +81,37 @@ void Core::Run(const HINSTANCE& hInstance, const int& ShowWnd, const int& width,
         DeletePendingObjects();
         AddPendingObjects();
 
-        Profiler::StartGPUProfiling("Drawing");
+        Profiler::StartProfiling("Drawing");
         DrawScene();
-        Profiler::EndGPUProfiling("Drawing");
+        Profiler::EndProfiling("Drawing");
 
+        Profiler::StartProfiling("PostProcessing");
+        CopyTemporaryRTVToTarget();
+        Profiler::EndProfiling("PostProcessing");
 
-        Profiler::StartCPUProfiling("UI");
-        Profiler::StartGPUProfiling("UI");
+        {
+            Profiler::StartProfiling("UI");
 
-        Profiler::StartCPUProfiling("Profiler");
-        Profiler::Draw();
-        Profiler::EndCPUProfiling("Profiler");
+            Profiler::StartProfiling("Profiler");
+            Profiler::Draw();
+            Profiler::EndProfiling("Profiler");
 
-        Profiler::StartCPUProfiling("DebugLog");
-        DebugLog::Draw();
-        Profiler::EndCPUProfiling("DebugLog");
+            Profiler::StartProfiling("DebugLog");
+            DebugLog::Draw();
+            Profiler::EndProfiling("DebugLog");
 
-        Profiler::EndGPUProfiling("UI");
-        Profiler::EndCPUProfiling("UI");
+            Profiler::EndProfiling("UI");
+        }
 
-        Profiler::StartCPUProfiling("Empty");
-        Profiler::EndCPUProfiling("Empty");
+        Profiler::StartProfiling("Empty");
+        Profiler::EndProfiling("Empty");
 
-        Profiler::StartCPUProfiling("Swapchain");
-        Profiler::StartGPUProfiling("Swapchain");
+        Profiler::StartProfiling("Swapchain");
         m_swapChain->Present(0, 0);
-        Profiler::EndGPUProfiling("Swapchain");
-        Profiler::EndCPUProfiling("Swapchain");
+        Profiler::EndProfiling("Swapchain");
 
         Profiler::EndCPUProfiling("Engine frame");
-        Profiler::EndGPUProfiling(FRAME_ANALYZE_NAME);
-        Profiler::EndCPUProfiling(FRAME_ANALYZE_NAME);
+        Profiler::EndProfiling(FRAME_ANALYZE_NAME);
         Profiler::EndFrame();
     }
 }

@@ -66,6 +66,18 @@ void Profiler::EndGPUProfiling(const std::string& name)
     s_instance->OnEndGPUProfiling(name);
 }
 
+void Profiler::StartProfiling(const std::string& name)
+{
+    StartGPUProfiling(name);
+    StartCPUProfiling(name);
+}
+
+void Profiler::EndProfiling(const std::string& name)
+{
+    EndCPUProfiling(name);
+    EndGPUProfiling(name);
+}
+
 void Profiler::StartFrame()
 {
     s_instance->OnStartFrame();
@@ -132,6 +144,7 @@ void Profiler::OnEndGPUProfiling(const std::string& name)
 
     m_currentGPUSession = session->GetParent();
     session->OnEndProfiling();
+
 }
 
 void Profiler::OnDraw()
@@ -153,6 +166,8 @@ void Profiler::OnStartFrame()
 void Profiler::OnEndFrame()
 {
     m_d3Context->End(m_queryJoints[m_frameCounter % QUERY_LATENCY]);
+
+    m_d3Context->Flush();
 
     Profiler::StartCPUProfiling("Waiting for GPU");
 

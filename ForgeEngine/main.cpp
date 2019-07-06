@@ -5,7 +5,7 @@
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
 {
     Core* core = new MyApp();
-    core->Run(hInstance, nShowCmd, 1024, 1024);
+    core->Run(hInstance, nShowCmd, 1600, 900);
     delete core;
 
     return 0;

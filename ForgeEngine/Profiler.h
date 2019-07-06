@@ -8,7 +8,7 @@
 
 #define QUERY_LATENCY 5
 
-#define PA_TEXT_SIZE 20.0f
+#define PA_TEXT_SIZE 15.0f
 #define FRAME_ANALYZE_NAME "Frame"
 
 class RenderingSystem;
@@ -38,6 +38,9 @@ public:
 
     static void StartGPUProfiling(const std::string& name);
     static void EndGPUProfiling(const std::string& name);
+
+    static void StartProfiling(const std::string& name);
+    static void EndProfiling(const std::string& name);
 
     static void StartFrame();
     static void EndFrame();
