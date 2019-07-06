@@ -67,11 +67,18 @@ void RenderingSystem::RenderRegisteredMeshRenderers(Camera* const& camera)
             m_d3DeviceContext->UpdateSubresource(m_buff, 0, nullptr, &cbPerObj, 0, 0);
             m_d3DeviceContext->VSSetConstantBuffers(0, 1, &m_buff);
 
-            m_d3DeviceContext->PSSetShaderResources(0, 1, &mesh->Material->SRVs[0]);
+            if (mesh->Material->SRVs.size() > 0)
+                m_d3DeviceContext->PSSetShaderResources(0, 1, &mesh->Material->SRVs[0]);
 
             static const CachedShaders* s_cachedShaders;
 
-            s_cachedShaders = ShadersManager::GetShadersManager()->GetShaders(mesh->Material->ShaderPath);
+            static std::string shaderPath;
+            shaderPath = mesh->Material->ShaderPath;
+
+            if (shaderPath.empty())
+                shaderPath = "Base.fx";
+
+            s_cachedShaders = ShadersManager::GetShadersManager()->GetShaders(shaderPath);
 
             m_d3DeviceContext->VSSetShader(s_cachedShaders->VS.Shader, 0, 0);
             m_d3DeviceContext->PSSetShader(s_cachedShaders->PS.Shader, 0, 0);
@@ -120,9 +127,9 @@ void RenderingSystem::InitializeMeshRendererWithModel(MeshRenderer* const& meshR
 void RenderingSystem::DrawText(const string& text, const float& size, const float& x, const float& y, const XMFLOAT4& color, const TextAnchor& anchor) const
 {
     UINT clr = (UINT)(min(max(color.x, 0.0f), 1.0f) * 255)
-            | ((UINT)(min(max(color.y, 0.0f), 1.0f) * 255)) << 8
-            | ((UINT)(min(max(color.z, 0.0f), 1.0f) * 255)) << 16
-            | ((UINT)(min(max(color.w, 0.0f), 1.0f) * 255)) << 24;
+        | ((UINT)(min(max(color.y, 0.0f), 1.0f) * 255)) << 8
+        | ((UINT)(min(max(color.z, 0.0f), 1.0f) * 255)) << 16
+        | ((UINT)(min(max(color.w, 0.0f), 1.0f) * 255)) << 24;
 
     UINT flags = FW1_RESTORESTATE;
     flags |= ((UINT)anchor & (UINT)TextAnchor::Bottom) ? FW1_BOTTOM : 0;
@@ -192,10 +199,11 @@ vector<const Mesh*> RenderingSystem::LoadMeshesFromNode(const aiScene* const& sc
 
         //Opacity - ignoring transparency for now
         float opacity;
-        mat->Get(AI_MATKEY_OPACITY, opacity);
-
-        if (opacity < 1.0f)
-            continue;
+        if (AI_SUCCESS == mat->Get(AI_MATKEY_OPACITY, opacity))
+        {
+            if (opacity < 1.0f)
+                continue;
+        }
         //Finish opacity
 
         aiString sr;
