@@ -115,6 +115,6 @@ DebugLog* DebugLog::s_instance;
 
 std::ostream& operator<<(std::ostream& os, const DirectX::XMFLOAT3& vec)
 {
-    os << "[" + to_string(vec.x) + " , " + to_string(vec.y) + " , " + to_string(vec.z) + "]";
+    os << "[" << vec.x << " , " << vec.y << " , " << vec.z << "]";
     return os;
 }

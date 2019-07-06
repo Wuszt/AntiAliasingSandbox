@@ -79,6 +79,12 @@ private:
     ID3D11DeviceContext* m_d3Context;
     ID3D11Query* m_queryJoints[QUERY_LATENCY];
 
-    int m_frameCounter = 0;
+    int m_framesCounter = 0;
+    float m_tmpTime = 0.0f;
+    float m_tmpFramesCounter = 0;
+    double m_profilingTime = 0;
+
+    int m_currentFPS;
+    float m_currentFrameDuration;
 };
 

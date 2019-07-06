@@ -6,6 +6,8 @@
 #include <string>
 #include "ProfilingSession.h"
 #include <d3d11.h>
+#include <DirectXCommonClasses/Time.h>
+#include <sstream>
 
 using namespace DirectX;
 using namespace std;
@@ -48,22 +50,46 @@ void Profiler::Draw()
 
 void Profiler::StartCPUProfiling(const std::string& name)
 {
+    static LARGE_INTEGER start, end;
+    QueryPerformanceCounter(&start);
+
     s_instance->OnStartCPUProfiling(name);
+
+    QueryPerformanceCounter(&end);
+    s_instance->m_profilingTime += (double)(end.QuadPart - start.QuadPart);
 }
 
 void Profiler::EndCPUProfiling(const std::string& name)
 {
+    static LARGE_INTEGER start, end;
+    QueryPerformanceCounter(&start);
+
     s_instance->OnEndCPUProfiling(name);
+
+    QueryPerformanceCounter(&end);
+    s_instance->m_profilingTime += (double)(end.QuadPart - start.QuadPart);
 }
 
 void Profiler::StartGPUProfiling(const std::string& name)
 {
+    static LARGE_INTEGER start, end;
+    QueryPerformanceCounter(&start);
+
     s_instance->OnStartGPUProfiling(name);
+
+    QueryPerformanceCounter(&end);
+    s_instance->m_profilingTime += (double)(end.QuadPart - start.QuadPart);
 }
 
 void Profiler::EndGPUProfiling(const std::string& name)
 {
+    static LARGE_INTEGER start, end;
+    QueryPerformanceCounter(&start);
+
     s_instance->OnEndGPUProfiling(name);
+
+    QueryPerformanceCounter(&end);
+    s_instance->m_profilingTime += (double)(end.QuadPart - start.QuadPart);
 }
 
 void Profiler::StartProfiling(const std::string& name)
@@ -80,12 +106,24 @@ void Profiler::EndProfiling(const std::string& name)
 
 void Profiler::StartFrame()
 {
+    static LARGE_INTEGER start, end;
+    QueryPerformanceCounter(&start);
+
     s_instance->OnStartFrame();
+
+    QueryPerformanceCounter(&end);
+    s_instance->m_profilingTime += (double)(end.QuadPart - start.QuadPart);
 }
 
 void Profiler::EndFrame()
 {
+    static LARGE_INTEGER start, end;
+    QueryPerformanceCounter(&start);
+
     s_instance->OnEndFrame();
+
+    QueryPerformanceCounter(&end);
+    s_instance->m_profilingTime += (double)(end.QuadPart - start.QuadPart);
 }
 
 Profiler* Profiler::s_instance;
@@ -120,13 +158,13 @@ void Profiler::OnEndCPUProfiling(const std::string& name)
 
 void Profiler::OnStartGPUProfiling(const std::string& name)
 {
-    auto found = m_gpuProfilers[m_frameCounter % QUERY_LATENCY].find(name);
+    auto found = m_gpuProfilers[m_framesCounter % QUERY_LATENCY].find(name);
 
     ProfilingSession* session;
 
-    if (found == m_gpuProfilers[m_frameCounter % QUERY_LATENCY].end())
+    if (found == m_gpuProfilers[m_framesCounter % QUERY_LATENCY].end())
     {
-        session = m_gpuProfilers[m_frameCounter % QUERY_LATENCY].emplace(name, new GPUProfilingSession(m_d3Device, m_d3Context, SAMPLES_AMOUNT)).first->second;
+        session = m_gpuProfilers[m_framesCounter % QUERY_LATENCY].emplace(name, new GPUProfilingSession(m_d3Device, m_d3Context, SAMPLES_AMOUNT)).first->second;
     }
     else
         session = found->second;
@@ -138,7 +176,7 @@ void Profiler::OnStartGPUProfiling(const std::string& name)
 
 void Profiler::OnEndGPUProfiling(const std::string& name)
 {
-    ProfilingSession* session = m_gpuProfilers[m_frameCounter % QUERY_LATENCY][name];
+    ProfilingSession* session = m_gpuProfilers[m_framesCounter % QUERY_LATENCY][name];
 
     assert(m_currentGPUSession == session);
 
@@ -149,7 +187,7 @@ void Profiler::OnEndGPUProfiling(const std::string& name)
 
 void Profiler::OnDraw()
 {
-    m_renderingSystem->DrawText(m_cachedMessages, PA_TEXT_SIZE, 0.0f, (float)s_instance->m_window->GetHeight() - 10.0f , DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), TextAnchor::Bottom | TextAnchor::Left);
+    m_renderingSystem->DrawText(m_cachedMessages, PA_TEXT_SIZE, 0.0f, (float)s_instance->m_window->GetHeight() - 10.0f, DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), TextAnchor::Bottom | TextAnchor::Left);
 }
 
 void Profiler::OnStartFrame()
@@ -158,26 +196,26 @@ void Profiler::OnStartFrame()
     m_cpuOrderCounter = 0;
     m_gpuOrderCounter = 0;
 
-    ++m_frameCounter;
+    ++m_framesCounter;
 
-    m_d3Context->Begin(m_queryJoints[m_frameCounter % QUERY_LATENCY]);
+    m_d3Context->Begin(m_queryJoints[m_framesCounter % QUERY_LATENCY]);
 }
 
 void Profiler::OnEndFrame()
 {
-    m_d3Context->End(m_queryJoints[m_frameCounter % QUERY_LATENCY]);
+    m_d3Context->End(m_queryJoints[m_framesCounter % QUERY_LATENCY]);
 
     m_d3Context->Flush();
 
     Profiler::StartCPUProfiling("Waiting for GPU");
 
-    while (m_d3Context->GetData(m_queryJoints[(m_frameCounter + 1) % QUERY_LATENCY], NULL, 0, 0) == S_FALSE);
+    while (m_d3Context->GetData(m_queryJoints[(m_framesCounter + 1) % QUERY_LATENCY], NULL, 0, 0) == S_FALSE);
 
     Profiler::EndCPUProfiling("Waiting for GPU");
 
     D3D10_QUERY_DATA_TIMESTAMP_DISJOINT tsDisjoint;
-    m_d3Context->GetData(m_queryJoints[(m_frameCounter + 1) % QUERY_LATENCY], &tsDisjoint, sizeof(tsDisjoint), 0);
-    if (tsDisjoint.Disjoint && m_frameCounter > QUERY_LATENCY - 1)
+    m_d3Context->GetData(m_queryJoints[(m_framesCounter + 1) % QUERY_LATENCY], &tsDisjoint, sizeof(tsDisjoint), 0);
+    if (tsDisjoint.Disjoint && m_framesCounter > QUERY_LATENCY - 1)
         DebugLog::LogError("Profiler GPU Query found disjoint!");
     else
     {
@@ -186,47 +224,83 @@ void Profiler::OnEndFrame()
             session.second->OnEndFrame();
         }
 
-        for (auto const& session : m_gpuProfilers[(m_frameCounter + 1) % QUERY_LATENCY])
+        for (auto const& session : m_gpuProfilers[(m_framesCounter + 1) % QUERY_LATENCY])
         {
             session.second->OnEndFrame();
         }
     }
 
-    m_cachedMessages = "CPU PROFILING:";
+    m_tmpTime += Time::GetDeltaTime();
+    ++m_tmpFramesCounter;
+
+    if (m_tmpTime > 1.0f)
+    {
+        m_currentFPS = (int)(m_tmpFramesCounter / m_tmpTime);
+        m_currentFrameDuration = 1000.0f * m_tmpTime / m_tmpFramesCounter;
+        m_currentFrameDuration = (int)(m_currentFrameDuration * 1000) / 1000.0f;
+        m_tmpTime = 0.0f;
+        m_tmpFramesCounter = 0;
+    }
+
+    static stringstream ss;
+    ss.str(string());
+
+    ss << "FPS: " << m_currentFPS << " (" << m_currentFrameDuration << "ms)";
+    ss << "\n\nCPU PROFILING:";;
+
+    m_cachedMessages = ss.str();
 
     PrepareLogsHierarchy(m_cpuProfilers.begin(), m_cpuProfilers.end(), (int)m_cpuProfilers.size(), (UINT64)m_CPUfrequency.QuadPart);
 
-    m_cachedMessages += "\n\nGPU PROFILING:";
+    m_profilingTime = 1000.0f * m_profilingTime / m_CPUfrequency.QuadPart;
+    m_profilingTime = (int)(m_profilingTime * 1000) / 1000.0f;
 
-    PrepareLogsHierarchy(m_gpuProfilers[(m_frameCounter + 1) % QUERY_LATENCY].begin(), m_gpuProfilers[(m_frameCounter + 1) % QUERY_LATENCY].end(), (int)m_gpuProfilers[m_frameCounter % QUERY_LATENCY].size(), tsDisjoint.Frequency);
+    ss.str(string());
+    ss << "\nProfiling time:" << m_profilingTime << "ms";
+    m_profilingTime = 0.0f;
+
+    ss << "\n\nGPU PROFILING:";
+    m_cachedMessages += ss.str();
+
+    PrepareLogsHierarchy(m_gpuProfilers[(m_framesCounter + 1) % QUERY_LATENCY].begin(), m_gpuProfilers[(m_framesCounter + 1) % QUERY_LATENCY].end(), (int)m_gpuProfilers[m_framesCounter % QUERY_LATENCY].size(), tsDisjoint.Frequency);
 }
 
 void Profiler::PrepareLogsHierarchy(std::unordered_map<std::string, ProfilingSession*>::iterator begin, std::unordered_map<std::string, ProfilingSession*>::iterator end, const int& length, const UINT64& freq)
 {
     std::string* arr = new std::string[length];
 
+    static stringstream ss;
+
     auto it = begin;
     while (it != end)
     {
+        ss.str(string());
+
         static double result;
         result = it->second->GetAverageResult() / (freq / 1000);
+        result = (int)(result * 1000) / 1000.0;
 
-        string spaces = "";
         const ProfilingSession* prof = it->second;
         while ((prof = prof->GetParent()) && prof->GetParent())
         {
-            spaces += "|        ";
+            ss << "|        ";
         }
 
         if (it->second->GetParent())
-            spaces += "|-----";
+            ss << "|-----";
 
-        arr[it->second->GetOrder()] = spaces + it->first + ": " + to_string(result) + "ms";
+        ss << it->first << ": " << result << "ms";
+
+        arr[it->second->GetOrder()] = ss.str();
         ++it;
     }
 
+    ss.str(string());
+
     for (int i = 0; i < length; ++i)
-        m_cachedMessages += "\n" + arr[i];
+        ss << "\n" << arr[i];
+
+    m_cachedMessages += ss.str();
 
     delete[] arr;
 }
