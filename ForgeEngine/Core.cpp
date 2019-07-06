@@ -45,6 +45,7 @@ Core::~Core()
     m_d3DeviceContext->Release();
     m_renderTargetView->Release();
     m_depthStencilView->Release();
+    m_rtvsManager->ReleaseRTV(m_temporaryRTV);
 
     delete m_renderingSystem;
     delete m_window;
@@ -54,26 +55,13 @@ Core::~Core()
     InputClass::Release();
     DebugLog::Release();
 
-    delete m_shadersManager;
+    ShadersManager::Release();
     delete m_rtvsManager;
 }
 
 void Core::Run(const HINSTANCE& hInstance, const int& ShowWnd, const int& width, const int& height)
 {
     Initialize(hInstance, ShowWnd, width, height);
-
-    D3D11_QUERY_DESC desc;
-    desc.Query = D3D11_QUERY_TIMESTAMP;
-    desc.MiscFlags = 0;
-
-    m_d3Device->CreateQuery(&desc, &queryStart);
-    m_d3Device->CreateQuery(&desc, &queryEnd);
-
-    desc.Query = D3D11_QUERY_TIMESTAMP_DISJOINT;
-
-    m_d3Device->CreateQuery(&desc, &disjoint0);
-
-    int frames = 0;
 
     while (m_window->IsAlive())
     {
@@ -186,6 +174,7 @@ void Core::InitializeViewport()
 void Core::Initialize(const HINSTANCE& hInstance, const int& ShowWnd, const int& width, const int& height)
 {
     m_window = new Window(hInstance, ShowWnd, width, height, true);
+    m_window->AddResizeListener(Core::OnResizeCallback);
 
     if (InitializeD3D() != S_OK)
     {
@@ -194,10 +183,10 @@ void Core::Initialize(const HINSTANCE& hInstance, const int& ShowWnd, const int&
         throw std::exception("Direct3D Initialization - Failed");
     }
 
-    m_shadersManager = new ShadersManager(m_d3Device);
+    ShadersManager::Initialize(m_d3Device);
     m_rtvsManager = new RenderTargetViewsManager(m_d3Device, m_d3DeviceContext, m_window);
-    m_renderingSystem = new RenderingSystem(m_d3Device, m_d3DeviceContext, m_shadersManager);
-    m_postProcessor = new PostProcessor(m_d3Device, m_d3DeviceContext, m_shadersManager);
+    m_renderingSystem = new RenderingSystem(m_d3Device, m_d3DeviceContext);
+    m_postProcessor = new PostProcessor(m_d3Device, m_d3DeviceContext);
 
     D3D11_SAMPLER_DESC sampDesc;
     ZeroMemory(&sampDesc, sizeof(sampDesc));
@@ -217,12 +206,11 @@ void Core::Initialize(const HINSTANCE& hInstance, const int& ShowWnd, const int&
     DebugLog::Initialize(m_renderingSystem, m_window);
     Profiler::Initialize(m_d3Device, m_d3DeviceContext, m_renderingSystem, m_window);
 
+    m_temporaryRTV = m_rtvsManager->AcquireRTV();
 
     m_d3DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
     InitializeViewport();
-
-    m_window->AddResizeListener(Core::OnResizeCallback);
 
     InitScene();
 }
@@ -341,23 +329,22 @@ void Core::AfterUpdateScene()
 
 void Core::DrawScene()
 {
-    RTV* renderTarget = m_rtvsManager->AcquireRTV();
-    ID3D11RenderTargetView* rtv = renderTarget->GetRTV();
+    ID3D11RenderTargetView* rtv = m_temporaryRTV->GetRTV();
     m_d3DeviceContext->OMSetRenderTargets(1, &rtv, m_depthStencilView);
 
-    m_shadersManager->GetShaders("DesaturationPP.fx");
-
     float bgColor[4] = { (0.0f, 0.0f, 0.0f, 0.0f) };
-    m_d3DeviceContext->ClearRenderTargetView(m_renderTargetView, bgColor);
+    m_d3DeviceContext->ClearRenderTargetView(rtv, bgColor);
 
     m_d3DeviceContext->ClearDepthStencilView(m_depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
     m_d3DeviceContext->PSSetSamplers(0, 1, &samplerState);
 
     m_renderingSystem->RenderRegisteredMeshRenderers(m_camera);
+}
 
-    m_postProcessor->DrawPass("CopyingPP.fx", { renderTarget->GetTexture() }, m_renderTargetView);
-    m_rtvsManager->ReleaseRTV(renderTarget);
+void Core::CopyTemporaryRTVToTarget()
+{
+    m_postProcessor->DrawPass("CopyingPP.fx", { m_temporaryRTV->GetTexture() }, m_renderTargetView);
 }
 
 void Core::OnResizeWindow(const int& width, const int& height)

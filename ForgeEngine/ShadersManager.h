@@ -27,16 +27,20 @@ struct CachedShaders
 class ShadersManager
 {
 public:
-    ShadersManager(ID3D11Device* const& device);
-    ~ShadersManager();
+    static void Initialize(ID3D11Device* const& device);
+    static void Release();
 
     const CachedShaders* GetShaders(const std::string& path);
 
+    inline static ShadersManager* GetShadersManager() { return s_instance; }
 private:
+    ShadersManager(ID3D11Device* const& device);
+    ~ShadersManager();
 
     ID3D11Device* m_device;
     std::unordered_map<std::string, CachedShaders> m_cachedShaders;
     
     void ReleaseShader(CachedShaders& cachedShader);
+    static ShadersManager* s_instance;
 };
 

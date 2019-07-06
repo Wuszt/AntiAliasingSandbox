@@ -17,9 +17,8 @@ struct Vertex //to move
     DirectX::XMFLOAT2 texCoord;
 };
 
-PostProcessor::PostProcessor(ID3D11Device* const& device, ID3D11DeviceContext* const& context, ShadersManager* const& shadersManager)
+PostProcessor::PostProcessor(ID3D11Device* const& device, ID3D11DeviceContext* const& context)
 {
-    m_shadersManager = shadersManager;
     m_d3Device = device;
     m_d3Context = context;
 }
@@ -28,15 +27,13 @@ PostProcessor::~PostProcessor()
 {
 }
 
-void PostProcessor::DrawPass(const std::string& shaderName, const std::vector<ID3D11Texture2D*>& textures, ID3D11RenderTargetView* const& target)
+void PostProcessor::DrawPass(ID3D11Device* const& device, ID3D11DeviceContext* const& context, const std::string& shaderName, const std::vector<ID3D11Texture2D*>& textures, ID3D11RenderTargetView* const& target)
 {
-    m_d3Context->OMSetRenderTargets(1, &target, nullptr);
-    const CachedShaders* shader = m_shadersManager->GetShaders(shaderName);
+    context->OMSetRenderTargets(1, &target, nullptr);
+    const CachedShaders* shader = ShadersManager::GetShadersManager()->GetShaders(shaderName);
 
     static float bgColor[4] = { (0.0f, 0.0f, 0.0f, 0.0f) };
-    m_d3Context->ClearRenderTargetView(target, bgColor);
-
-    std::vector<ID3D11ShaderResourceView*> resources;
+    context->ClearRenderTargetView(target, bgColor);
 
     D3D11_SHADER_RESOURCE_VIEW_DESC shDesc;
     shDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
@@ -48,15 +45,15 @@ void PostProcessor::DrawPass(const std::string& shaderName, const std::vector<ID
     {
         ID3D11ShaderResourceView* rv = nullptr;
 
-        m_d3Device->CreateShaderResourceView(textures[i], &shDesc, &rv);
+        device->CreateShaderResourceView(textures[i], &shDesc, &rv);
 
-        resources.push_back(rv);
+        context->PSSetShaderResources(i, 1, &rv);
 
-        m_d3Context->PSSetShaderResources(i, 1, &rv);
+        rv->Release();
     }
 
-    m_d3Context->VSSetShader(shader->VS.Shader, nullptr, 0);
-    m_d3Context->PSSetShader(shader->PS.Shader, nullptr, 0);
+    context->VSSetShader(shader->VS.Shader, nullptr, 0);
+    context->PSSetShader(shader->PS.Shader, nullptr, 0);
 
     static Vertex Vertices[6] =
     {
@@ -83,16 +80,16 @@ void PostProcessor::DrawPass(const std::string& shaderName, const std::vector<ID
     UINT stride = sizeof(Vertex);
     UINT offset = 0;
 
-    auto tmp1 = m_d3Device->CreateBuffer(&BufferDesc, &InitData, &VertexBuffer);
-    m_d3Context->IASetVertexBuffers(0, 1, &VertexBuffer, &stride, &offset);
+    auto tmp1 = device->CreateBuffer(&BufferDesc, &InitData, &VertexBuffer);
+    context->IASetVertexBuffers(0, 1, &VertexBuffer, &stride, &offset);
 
 
-    m_d3Context->Draw(6, 0);
-
-    for (auto& rv : resources)
-    {
-        rv->Release();
-    }
+    context->Draw(6, 0);
 
     VertexBuffer->Release();
+}
+
+void PostProcessor::DrawPass(const std::string& shaderName, const std::vector<ID3D11Texture2D*>& textures, ID3D11RenderTargetView* const& target)
+{
+    PostProcessor::DrawPass(m_d3Device, m_d3Context, shaderName, textures, target);
 }

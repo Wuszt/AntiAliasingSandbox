@@ -9,12 +9,17 @@ class Window;
 class RTV
 {
 public:
-    RTV(ID3D11RenderTargetView* const& rtv, ID3D11Texture2D* const& tex);
-    ID3D11RenderTargetView* GetRTV();
-    ID3D11Texture2D* GetTexture();
+    ID3D11RenderTargetView* GetRTV() const;
+    ID3D11Texture2D* GetTexture() const;
 
 private:
-    void Initialize(ID3D11RenderTargetView* const& rtv, ID3D11Texture2D* const& tex);
+    RTV(ID3D11RenderTargetView* const& rtv, ID3D11Texture2D* const& tex);
+    ~RTV();
+
+    void Reinitialize(ID3D11RenderTargetView* const& rtv, ID3D11Texture2D* const& tex);
+    void Release();
+
+    friend class RenderTargetViewsManager;
 
     ID3D11RenderTargetView* m_rtv;
     ID3D11Texture2D* m_texture;
@@ -34,8 +39,9 @@ public:
     static RenderTargetViewsManager* s_instance;
 
 private:
-    RTV* CreateRTV();
+    void CreateRTVComponents(ID3D11Texture2D*& tex, ID3D11RenderTargetView*& rtv);
     RTV* GetOrCreateRTV();
+    void ResizeRTVs();
 
     ID3D11Device* m_d3Device;
     ID3D11DeviceContext* m_d3Context;

@@ -14,6 +14,7 @@ class RenderingSystem;
 class ShadersManager;
 class RenderTargetViewsManager;
 class PostProcessor;
+class RTV;
 
 class Core
 {
@@ -64,6 +65,7 @@ private:
     void UpdateScene();
     void AfterUpdateScene();
     void DrawScene();
+    void CopyTemporaryRTVToTarget();
 
     void OnResizeWindow(const int& width, const int& height);
 
@@ -86,12 +88,9 @@ private:
     Window* m_window;
     Camera* m_camera;
     RenderTargetViewsManager* m_rtvsManager;
-    ShadersManager* m_shadersManager;
     PostProcessor* m_postProcessor;
 
-    ID3D11Query* queryStart;
-    ID3D11Query* queryEnd;
-    ID3D11Query* disjoint0;
+    RTV* m_temporaryRTV;
 
     //to move
     ID3D11SamplerState* samplerState;

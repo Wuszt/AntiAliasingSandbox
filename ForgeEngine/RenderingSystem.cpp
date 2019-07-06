@@ -19,7 +19,7 @@
 using namespace DirectX;
 using namespace std;
 
-RenderingSystem::RenderingSystem(ID3D11Device* const& d3Device, ID3D11DeviceContext* const& d3DeviceContext, ShadersManager* const& shadersManager)
+RenderingSystem::RenderingSystem(ID3D11Device* const& d3Device, ID3D11DeviceContext* const& d3DeviceContext)
 {
     m_d3Device = d3Device;
     m_d3DeviceContext = d3DeviceContext;
@@ -32,8 +32,6 @@ RenderingSystem::RenderingSystem(ID3D11Device* const& d3Device, ID3D11DeviceCont
     cbbd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 
     m_d3Device->CreateBuffer(&cbbd, nullptr, &m_buff);
-
-    m_shadersManager = shadersManager;
 
     FW1CreateFactory(FW1_VERSION, &m_textFactory);
     m_textFactory->CreateFontWrapper(d3Device, L"Arial", &m_fontWrapper);
@@ -73,7 +71,7 @@ void RenderingSystem::RenderRegisteredMeshRenderers(Camera* const& camera)
 
             static const CachedShaders* s_cachedShaders;
 
-            s_cachedShaders = m_shadersManager->GetShaders(mesh->Material->ShaderPath);
+            s_cachedShaders = ShadersManager::GetShadersManager()->GetShaders(mesh->Material->ShaderPath);
 
             m_d3DeviceContext->VSSetShader(s_cachedShaders->VS.Shader, 0, 0);
             m_d3DeviceContext->PSSetShader(s_cachedShaders->PS.Shader, 0, 0);

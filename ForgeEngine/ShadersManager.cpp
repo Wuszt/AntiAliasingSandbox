@@ -27,6 +27,16 @@ ShadersManager::~ShadersManager()
     }
 }
 
+void ShadersManager::Initialize(ID3D11Device* const& device)
+{
+    s_instance = new ShadersManager(device);
+}
+
+void ShadersManager::Release()
+{
+    delete s_instance;
+}
+
 const CachedShaders* ShadersManager::GetShaders(const string& path)
 {
     auto found = m_cachedShaders.find(path);
@@ -122,3 +132,5 @@ void ShadersManager::ReleaseShader(CachedShaders& cachedShader)
     if (cachedShader.VS.Shader)
         cachedShader.VS.Shader->Release();
 }
+
+ShadersManager* ShadersManager::s_instance;

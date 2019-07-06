@@ -142,19 +142,17 @@
     <_EmbedManagedResourceFile Include="Placeholder.fx">
       <Filter>Shaders</Filter>
     </_EmbedManagedResourceFile>
-  </ItemGroup>
-  <ItemGroup>
-    <FxCompile Include="GaussianBlurPP.fx">
+    <_EmbedManagedResourceFile Include="CellShadingPP.fx">
       <Filter>Shaders\PPs</Filter>
-    </FxCompile>
-    <FxCompile Include="Outline.fx">
+    </_EmbedManagedResourceFile>
+    <_EmbedManagedResourceFile Include="GaussianBlurPP.fx">
       <Filter>Shaders\PPs</Filter>
-    </FxCompile>
-    <FxCompile Include="CellShadingPP.fx">
+    </_EmbedManagedResourceFile>
+    <_EmbedManagedResourceFile Include="KuwaharaPP.fx">
       <Filter>Shaders\PPs</Filter>
-    </FxCompile>
-    <FxCompile Include="KuwaharaPP.fx">
+    </_EmbedManagedResourceFile>
+    <_EmbedManagedResourceFile Include="OutlinePP.fx">
       <Filter>Shaders\PPs</Filter>
-    </FxCompile>
+    </_EmbedManagedResourceFile>
   </ItemGroup>
 </Project>

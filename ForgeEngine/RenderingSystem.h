@@ -48,8 +48,9 @@ struct cbPerObject
 class RenderingSystem
 {
 public:
-    RenderingSystem(ID3D11Device* const& d3Device, ID3D11DeviceContext* const& d3DeviceContext, ShadersManager* const& shadersManager);
+    RenderingSystem(ID3D11Device* const& d3Device, ID3D11DeviceContext* const& d3DeviceContext);
     ~RenderingSystem();
+
 
     void RenderRegisteredMeshRenderers(Camera* const& camera);
 
@@ -84,8 +85,6 @@ private:
     cbPerObject cbPerObj;
 
     ID3D11Buffer* m_buff;
-
-    ShadersManager* m_shadersManager;
 
     IFW1Factory* m_textFactory;
     IFW1FontWrapper* m_fontWrapper;
