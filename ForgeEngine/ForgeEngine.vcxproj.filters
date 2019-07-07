@@ -133,9 +133,6 @@
     <_EmbedManagedResourceFile Include="SobelPP.fx">
       <Filter>Shaders\PPs</Filter>
     </_EmbedManagedResourceFile>
-    <_EmbedManagedResourceFile Include="SobelTweaking.fx">
-      <Filter>Shaders\PPs</Filter>
-    </_EmbedManagedResourceFile>
     <_EmbedManagedResourceFile Include="CopyingPP.fx">
       <Filter>Shaders\PPs</Filter>
     </_EmbedManagedResourceFile>
@@ -154,5 +151,13 @@
     <_EmbedManagedResourceFile Include="OutlinePP.fx">
       <Filter>Shaders\PPs</Filter>
     </_EmbedManagedResourceFile>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="CommonPPInclude.fx">
+      <Filter>Shaders\PPs</Filter>
+    </FxCompile>
+    <FxCompile Include="SobelTweakingPP.fx">
+      <Filter>Shaders\PPs</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

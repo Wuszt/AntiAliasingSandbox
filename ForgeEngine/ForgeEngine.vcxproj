@@ -93,11 +93,6 @@
     </_EmbedManagedResourceFile>
   </ItemGroup>
   <ItemGroup>
-    <_EmbedManagedResourceFile Include="SobelTweaking.fx">
-      <FileType>Document</FileType>
-    </_EmbedManagedResourceFile>
-  </ItemGroup>
-  <ItemGroup>
     <_EmbedManagedResourceFile Include="GaussianBlurPP.fx">
       <FileType>Document</FileType>
     </_EmbedManagedResourceFile>
@@ -114,6 +109,16 @@
   </ItemGroup>
   <ItemGroup>
     <_EmbedManagedResourceFile Include="KuwaharaPP.fx">
+      <FileType>Document</FileType>
+    </_EmbedManagedResourceFile>
+  </ItemGroup>
+  <ItemGroup>
+    <_EmbedManagedResourceFile Include="CommonPP.fxh">
+      <FileType>Document</FileType>
+    </_EmbedManagedResourceFile>
+  </ItemGroup>
+  <ItemGroup>
+    <_EmbedManagedResourceFile Include="SobelTweakingPP.fx">
       <FileType>Document</FileType>
     </_EmbedManagedResourceFile>
   </ItemGroup>
