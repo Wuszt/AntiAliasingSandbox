@@ -29,19 +29,9 @@ enum class TextAnchor
 
 inline TextAnchor operator| (const TextAnchor& l, const TextAnchor& r) { return static_cast<TextAnchor>(static_cast<UINT>(l) | static_cast<UINT>(r)); }
 
-struct Vertex
-{
-    Vertex() {}
-    Vertex(const float& x, const float& y, const float& z,
-        const float& u, const float& v)
-        : pos(x, y, z), texCoord(u, v) {}
-
-    DirectX::XMFLOAT3 pos;
-    DirectX::XMFLOAT2 texCoord;
-};
-
 struct cbPerObject
 {
+    DirectX::XMMATRIX W;
     DirectX::XMMATRIX WVP;
 };
 
@@ -66,7 +56,7 @@ private:
 
     std::vector<const Mesh*> LoadMeshesFromNode(const aiScene* const& scene, const aiNode* const& node, const std::string& shaderPath);
 
-    ID3D11Buffer* CreateVertexBuffer(const std::vector<Vertex>& vertices);
+    ID3D11Buffer* CreateVertexBuffer(const std::vector<float>& vertData);
     ID3D11Buffer* CreateIndexBuffer(const std::vector<DWORD>& indices);
 
     ID3D11ShaderResourceView* GetResourceFromTexturePath(std::string path);

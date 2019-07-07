@@ -25,6 +25,8 @@ public:
     void Run(const HINSTANCE& hInstance, const int& ShowWnd, const int& width, const int& height);
 
     static inline RenderingSystem* GetRenderingSystem() { return s_instance->m_renderingSystem; }
+    static inline ID3D11Device* GetD3Device() { return s_instance->m_d3Device; }
+    static inline ID3D11DeviceContext* GetD3DeviceContext() { return s_instance->m_d3DeviceContext; }
 
     template<typename T, typename ... Args>
     static T* InstantiateObject(Args&&... args)

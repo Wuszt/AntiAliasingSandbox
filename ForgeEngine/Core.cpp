@@ -185,6 +185,8 @@ void Core::Initialize(const HINSTANCE& hInstance, const int& ShowWnd, const int&
     ShadersManager::Initialize(m_d3Device);
     m_rtvsManager = new RenderTargetViewsManager(m_d3Device, m_d3DeviceContext, m_window);
     m_renderingSystem = new RenderingSystem(m_d3Device, m_d3DeviceContext);
+    DebugLog::Initialize(m_renderingSystem, m_window);
+
     m_postProcessor = new PostProcessor(m_d3Device, m_d3DeviceContext);
 
     D3D11_SAMPLER_DESC sampDesc;
@@ -202,7 +204,6 @@ void Core::Initialize(const HINSTANCE& hInstance, const int& ShowWnd, const int&
 
     Time::Initialize();
     InputClass::Initialize(*m_window->GetHInstance(), *m_window->GetHWND());
-    DebugLog::Initialize(m_renderingSystem, m_window);
     Profiler::Initialize(m_d3Device, m_d3DeviceContext, m_renderingSystem, m_window);
 
     m_temporaryRTV = m_rtvsManager->AcquireRTV();

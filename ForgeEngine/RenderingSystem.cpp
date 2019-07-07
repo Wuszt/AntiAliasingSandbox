@@ -58,11 +58,11 @@ void RenderingSystem::RenderRegisteredMeshRenderers(Camera* const& camera)
         {
             m_d3DeviceContext->IASetIndexBuffer(mesh->IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
 
-            UINT stride = sizeof(Vertex);
             UINT offset = 0;
-            m_d3DeviceContext->IASetVertexBuffers(0, 1, &mesh->VertexBuffer, &stride, &offset);
+            m_d3DeviceContext->IASetVertexBuffers(0, 1, &mesh->VertexBuffer, &mesh->Stride, &offset);
 
             cbPerObj.WVP = XMMatrixTranspose(renderer->GetOwner()->GetTransform()->GetWorldMatrix() * camera->GetViewMatrix() * camera->GetProjectionMatrix());
+            cbPerObj.W = XMMatrixTranspose(renderer->GetOwner()->GetTransform()->GetWorldMatrix());
 
             m_d3DeviceContext->UpdateSubresource(m_buff, 0, nullptr, &cbPerObj, 0, 0);
             m_d3DeviceContext->VSSetConstantBuffers(0, 1, &m_buff);
@@ -70,19 +70,13 @@ void RenderingSystem::RenderRegisteredMeshRenderers(Camera* const& camera)
             if (mesh->Material->Textures.size() > 0)
                 m_d3DeviceContext->PSSetShaderResources(0, 1, &mesh->Material->Textures[0]);
 
-            static std::string shaderPath;
-            shaderPath = mesh->Material->ShaderPath;
-
-            if (shaderPath.empty())
-                shaderPath = "Base.fx";
-
             static const CachedShaders* cachedShaders;
-            cachedShaders = ShadersManager::GetShadersManager()->GetShaders(shaderPath);
+            cachedShaders = mesh->Material->GetShaders();
 
             m_d3DeviceContext->VSSetShader(cachedShaders->VS.Shader, 0, 0);
             m_d3DeviceContext->PSSetShader(cachedShaders->PS.Shader, 0, 0);
 
-            m_d3DeviceContext->IASetInputLayout(cachedShaders->inputLayout);
+            m_d3DeviceContext->IASetInputLayout(mesh->Material->GetInputLayout());
 
             m_d3DeviceContext->DrawIndexed(mesh->IndicesAmount, 0, 0);
         }
@@ -189,7 +183,7 @@ vector<const Mesh*> RenderingSystem::LoadMeshesFromNode(const aiScene* const& sc
 
         mesh->Material = new Material();
 
-        vector<Vertex> vertices;
+        vector<float> vertData;
         vector<DWORD> indices;
 
         aiMesh* meshData = scene->mMeshes[node->mMeshes[i]];
@@ -224,17 +218,85 @@ vector<const Mesh*> RenderingSystem::LoadMeshesFromNode(const aiScene* const& sc
 
         }
 
+        UINT offset = 0;
+
+        if (meshData->HasPositions())
+        {
+            mesh->Material->Layout.push_back(
+                { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT,0, offset, D3D11_INPUT_PER_VERTEX_DATA, 0 });
+            offset += 12;
+        }
+
+
+        if (meshData->HasNormals())
+        {
+            mesh->Material->Layout.push_back(
+                { "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT,0, offset, D3D11_INPUT_PER_VERTEX_DATA, 0 });
+            offset += 12;
+        }
+
+
+        UINT texIndex = 0;
+        while (meshData->HasTextureCoords(texIndex))
+        {
+            mesh->Material->Layout.push_back(
+                { "TEXCOORD", texIndex, DXGI_FORMAT_R32G32_FLOAT,0, offset, D3D11_INPUT_PER_VERTEX_DATA, 0 });
+            offset += 8;
+            ++texIndex;
+        }
+
+        UINT clrIndex = 0;
+        while (meshData->HasVertexColors(clrIndex))
+        {
+            mesh->Material->Layout.push_back(
+                { "COLOR", clrIndex, DXGI_FORMAT_R32G32B32A32_FLOAT,0, offset, D3D11_INPUT_PER_VERTEX_DATA, 0 });
+            offset += 16;
+
+            ++clrIndex;
+        }
+
         for (unsigned int x = 0; x < meshData->mNumVertices; ++x)
         {
-            aiVector3D verts = meshData->mVertices[x];
+            aiVector3D vert = meshData->mVertices[x];
+            if (meshData->HasPositions())
+            {
+                vertData.push_back(vert.x);
+                vertData.push_back(vert.y);
+                vertData.push_back(vert.z);
+            }
 
-            aiVector3D uvs;
-            if (meshData->mTextureCoords[0])
-                uvs = meshData->mTextureCoords[0][x];
+            if (meshData->HasNormals())
+            {
+                aiVector3D norm = meshData->mNormals[x];
+                vertData.push_back(norm.x);
+                vertData.push_back(norm.y);
+                vertData.push_back(norm.z);
+            }
 
-            Vertex vert = Vertex(verts.x, verts.y, verts.z, uvs.x, uvs.y);
-            vertices.push_back(vert);
+            texIndex = 0;
+            while (meshData->HasTextureCoords(texIndex))
+            {
+                aiVector3D uvs = meshData->mTextureCoords[texIndex][x];
+                vertData.push_back(uvs.x);
+                vertData.push_back(uvs.y);
+
+                ++texIndex;
+            }
+
+            clrIndex = 0;
+            while (meshData->HasVertexColors(clrIndex))
+            {
+                aiColor4D clr = meshData->mColors[clrIndex][x];
+                vertData.push_back(clr.r);
+                vertData.push_back(clr.g);
+                vertData.push_back(clr.b);
+                vertData.push_back(clr.a);
+
+                ++clrIndex;
+            }
         }
+
+        mesh->Stride = offset;
 
         for (unsigned int f = 0; f < meshData->mNumFaces; ++f)
         {
@@ -246,8 +308,7 @@ vector<const Mesh*> RenderingSystem::LoadMeshesFromNode(const aiScene* const& sc
         }
 
         mesh->IndexBuffer = CreateIndexBuffer(indices);
-        mesh->VertexBuffer = CreateVertexBuffer(vertices);
-
+        mesh->VertexBuffer = CreateVertexBuffer(vertData);
         mesh->IndicesAmount = (UINT)indices.size();
 
         meshes.push_back(mesh);
@@ -256,7 +317,7 @@ vector<const Mesh*> RenderingSystem::LoadMeshesFromNode(const aiScene* const& sc
     return meshes;
 }
 
-ID3D11Buffer* RenderingSystem::CreateVertexBuffer(const vector<Vertex>& vertices)
+ID3D11Buffer* RenderingSystem::CreateVertexBuffer(const std::vector<float>& vertData)
 {
     ID3D11Buffer* result;
 
@@ -264,7 +325,7 @@ ID3D11Buffer* RenderingSystem::CreateVertexBuffer(const vector<Vertex>& vertices
     ZeroMemory(&vertexBufferDesc, sizeof(vertexBufferDesc));
 
     vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-    vertexBufferDesc.ByteWidth = sizeof(Vertex) * (UINT)vertices.size();
+    vertexBufferDesc.ByteWidth = 4 * (UINT)vertData.size();
     vertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
     vertexBufferDesc.CPUAccessFlags = 0;
     vertexBufferDesc.MiscFlags = 0;
@@ -272,7 +333,7 @@ ID3D11Buffer* RenderingSystem::CreateVertexBuffer(const vector<Vertex>& vertices
     D3D11_SUBRESOURCE_DATA vertexBufferData;
 
     ZeroMemory(&vertexBufferData, sizeof(vertexBufferData));
-    vertexBufferData.pSysMem = vertices.data();
+    vertexBufferData.pSysMem = vertData.data();
     HRESULT hr = m_d3Device->CreateBuffer(&vertexBufferDesc, &vertexBufferData, &result);
 
     if (hr != S_OK)

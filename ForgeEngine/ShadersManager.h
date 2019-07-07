@@ -20,8 +20,6 @@ struct CachedShaders
     uint64_t LastModificationTime;
     CompiledShader<ID3D11VertexShader> VS;
     CompiledShader<ID3D11PixelShader> PS;
-
-    ID3D11InputLayout* inputLayout;
 };
 
 class ShadersManager

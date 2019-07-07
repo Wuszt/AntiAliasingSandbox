@@ -6,14 +6,6 @@
 
 using namespace std;
 
-D3D11_INPUT_ELEMENT_DESC layout[2] =
-{
-    { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-    { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-};
-UINT numElements = ARRAYSIZE(layout);
-
-
 ShadersManager::ShadersManager(ID3D11Device* const& device)
 {
     m_device = device;
@@ -107,9 +99,6 @@ const CachedShaders* ShadersManager::GetShaders(const string& path)
     m_device->CreateVertexShader(cached->VS.ByteCode->GetBufferPointer(), cached->VS.ByteCode->GetBufferSize(), NULL, &cached->VS.Shader);
     m_device->CreatePixelShader(cached->PS.ByteCode->GetBufferPointer(), cached->PS.ByteCode->GetBufferSize(), NULL, &cached->PS.Shader);
 
-    m_device->CreateInputLayout(layout, numElements, cached->VS.ByteCode->GetBufferPointer(),
-        cached->VS.ByteCode->GetBufferSize(), &cached->inputLayout);
-
     cached->ErrorMsg = "";
 
     return cached;
@@ -117,9 +106,6 @@ const CachedShaders* ShadersManager::GetShaders(const string& path)
 
 void ShadersManager::ReleaseShader(CachedShaders& cachedShader)
 {
-    if (cachedShader.inputLayout)
-        cachedShader.inputLayout->Release();
-
     if (cachedShader.PS.ByteCode)
         cachedShader.PS.ByteCode->Release();
 
