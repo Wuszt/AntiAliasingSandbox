@@ -67,10 +67,8 @@ void RenderingSystem::RenderRegisteredMeshRenderers(Camera* const& camera)
             m_d3DeviceContext->UpdateSubresource(m_buff, 0, nullptr, &cbPerObj, 0, 0);
             m_d3DeviceContext->VSSetConstantBuffers(0, 1, &m_buff);
 
-            if (mesh->Material->SRVs.size() > 0)
-                m_d3DeviceContext->PSSetShaderResources(0, 1, &mesh->Material->SRVs[0]);
-
-            static const CachedShaders* s_cachedShaders;
+            if (mesh->Material->Textures.size() > 0)
+                m_d3DeviceContext->PSSetShaderResources(0, 1, &mesh->Material->Textures[0]);
 
             static std::string shaderPath;
             shaderPath = mesh->Material->ShaderPath;
@@ -78,12 +76,13 @@ void RenderingSystem::RenderRegisteredMeshRenderers(Camera* const& camera)
             if (shaderPath.empty())
                 shaderPath = "Base.fx";
 
-            s_cachedShaders = ShadersManager::GetShadersManager()->GetShaders(shaderPath);
+            static const CachedShaders* cachedShaders;
+            cachedShaders = ShadersManager::GetShadersManager()->GetShaders(shaderPath);
 
-            m_d3DeviceContext->VSSetShader(s_cachedShaders->VS.Shader, 0, 0);
-            m_d3DeviceContext->PSSetShader(s_cachedShaders->PS.Shader, 0, 0);
+            m_d3DeviceContext->VSSetShader(cachedShaders->VS.Shader, 0, 0);
+            m_d3DeviceContext->PSSetShader(cachedShaders->PS.Shader, 0, 0);
 
-            m_d3DeviceContext->IASetInputLayout(s_cachedShaders->inputLayout);
+            m_d3DeviceContext->IASetInputLayout(cachedShaders->inputLayout);
 
             m_d3DeviceContext->DrawIndexed(mesh->IndicesAmount, 0, 0);
         }
@@ -219,7 +218,7 @@ vector<const Mesh*> RenderingSystem::LoadMeshesFromNode(const aiScene* const& sc
                 aiString path;
                 mat->GetTexture((aiTextureType)i, a, &path);
                 ID3D11ShaderResourceView* srv = GetResourceFromTexturePath(string(path.C_Str()));
-                mesh->Material->SRVs.push_back(srv);
+                mesh->Material->Textures.push_back(srv);
                 mesh->Material->ShaderPath = shaderPath;
             }
 
@@ -232,7 +231,9 @@ vector<const Mesh*> RenderingSystem::LoadMeshesFromNode(const aiScene* const& sc
             aiVector3D uvs;
             if (meshData->mTextureCoords[0])
                 uvs = meshData->mTextureCoords[0][x];
-            vertices.push_back(Vertex(verts.x, verts.y, verts.z, uvs.x, uvs.y));
+
+            Vertex vert = Vertex(verts.x, verts.y, verts.z, uvs.x, uvs.y);
+            vertices.push_back(vert);
         }
 
         for (unsigned int f = 0; f < meshData->mNumFaces; ++f)

@@ -80,10 +80,10 @@ const CachedShaders* ShadersManager::GetShaders(const string& path)
     do
     {
         ID3DBlob* errorMessages = nullptr;
-        hr = D3DCompileFromFile(std::wstring(path.begin(), path.end()).c_str(), 0, 0, "VS", "vs_4_0", D3D10_SHADER_ENABLE_STRICTNESS | D3D10_SHADER_DEBUG, 0, &cached->VS.ByteCode, &errorMessages);
+        hr = D3DCompileFromFile(std::wstring(path.begin(), path.end()).c_str(), 0, D3D_COMPILE_STANDARD_FILE_INCLUDE, "VS", "vs_4_0", D3D10_SHADER_ENABLE_STRICTNESS | D3D10_SHADER_DEBUG, 0, &cached->VS.ByteCode, &errorMessages);
 
         if (hr == S_OK)
-            hr = D3DCompileFromFile(std::wstring(path.begin(), path.end()).c_str(), 0, 0, "PS", "ps_4_0", D3D10_SHADER_ENABLE_STRICTNESS | D3D10_SHADER_DEBUG, 0, &cached->PS.ByteCode, &errorMessages);
+            hr = D3DCompileFromFile(std::wstring(path.begin(), path.end()).c_str(), 0, D3D_COMPILE_STANDARD_FILE_INCLUDE, "PS", "ps_4_0", D3D10_SHADER_ENABLE_STRICTNESS | D3D10_SHADER_DEBUG, 0, &cached->PS.ByteCode, &errorMessages);
 
         if (hr != S_OK && hr != HRESULT_FROM_WIN32(ERROR_SHARING_VIOLATION))
         {

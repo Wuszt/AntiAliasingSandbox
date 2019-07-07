@@ -6,7 +6,7 @@ struct ID3D11ShaderResourceView;
 
 struct Material
 {
-    std::vector<ID3D11ShaderResourceView*> SRVs;
+    std::vector<ID3D11ShaderResourceView*> Textures;
     std::string ShaderPath;
 };
 

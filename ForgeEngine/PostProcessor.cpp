@@ -83,6 +83,7 @@ void PostProcessor::DrawPass(ID3D11Device* const& device, ID3D11DeviceContext* c
     auto tmp1 = device->CreateBuffer(&BufferDesc, &InitData, &VertexBuffer);
     context->IASetVertexBuffers(0, 1, &VertexBuffer, &stride, &offset);
 
+    context->IASetInputLayout(shader->inputLayout);
 
     context->Draw(6, 0);
 
