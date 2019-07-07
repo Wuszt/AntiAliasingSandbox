@@ -31,7 +31,7 @@ RenderingSystem::RenderingSystem(ID3D11Device* const& d3Device, ID3D11DeviceCont
     cbbd.ByteWidth = sizeof(cbPerObject);
     cbbd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 
-    m_d3Device->CreateBuffer(&cbbd, nullptr, &m_buff);
+    m_d3Device->CreateBuffer(&cbbd, nullptr, &m_cbPerObjectBuff);
 
     FW1CreateFactory(FW1_VERSION, &m_textFactory);
     m_textFactory->CreateFontWrapper(d3Device, L"Arial", &m_fontWrapper);
@@ -44,7 +44,7 @@ RenderingSystem::~RenderingSystem()
         ReleaseModel(entry.second);
     }
 
-    m_buff->Release();
+    m_cbPerObjectBuff->Release();
 
     m_fontWrapper->Release();
     m_textFactory->Release();
@@ -61,11 +61,11 @@ void RenderingSystem::RenderRegisteredMeshRenderers(Camera* const& camera)
             UINT offset = 0;
             m_d3DeviceContext->IASetVertexBuffers(0, 1, &mesh->VertexBuffer, &mesh->Stride, &offset);
 
-            cbPerObj.WVP = XMMatrixTranspose(renderer->GetOwner()->GetTransform()->GetWorldMatrix() * camera->GetViewMatrix() * camera->GetProjectionMatrix());
-            cbPerObj.W = XMMatrixTranspose(renderer->GetOwner()->GetTransform()->GetWorldMatrix());
+            m_cbPerObj.WVP = XMMatrixTranspose(renderer->GetOwner()->GetTransform()->GetWorldMatrix() * camera->GetViewMatrix() * camera->GetProjectionMatrix());
+            m_cbPerObj.W = XMMatrixTranspose(renderer->GetOwner()->GetTransform()->GetWorldMatrix());
 
-            m_d3DeviceContext->UpdateSubresource(m_buff, 0, nullptr, &cbPerObj, 0, 0);
-            m_d3DeviceContext->VSSetConstantBuffers(0, 1, &m_buff);
+            m_d3DeviceContext->UpdateSubresource(m_cbPerObjectBuff, 0, nullptr, &m_cbPerObj, 0, 0);
+            m_d3DeviceContext->VSSetConstantBuffers(static_cast<UINT>(VertexCBIndex::PerObject), 1, &m_cbPerObjectBuff);
 
             if (mesh->Material->Textures.size() > 0)
                 m_d3DeviceContext->PSSetShaderResources(0, 1, &mesh->Material->Textures[0]);
@@ -198,10 +198,6 @@ vector<const Mesh*> RenderingSystem::LoadMeshesFromNode(const aiScene* const& sc
                 continue;
         }
         //Finish opacity
-
-        aiString sr;
-        mat->Get(AI_MATKEY_TEXTURE(aiTextureType_DIFFUSE, 0), sr);
-        mat->Get(AI_MATKEY_TEXTURE(aiTextureType_SPECULAR, 0), sr);
 
         for (int i = 0; i < AI_TEXTURE_TYPE_MAX; ++i)
         {

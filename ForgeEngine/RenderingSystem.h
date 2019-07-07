@@ -8,6 +8,7 @@
 #include "Material.h"
 #include <d3d11.h>
 #include <FW1FontWrapper/FW1FontWrapper.h>
+#include "ConstantBuffers.h"
 
 struct aiScene;
 struct aiNode;
@@ -28,12 +29,6 @@ enum class TextAnchor
 };
 
 inline TextAnchor operator| (const TextAnchor& l, const TextAnchor& r) { return static_cast<TextAnchor>(static_cast<UINT>(l) | static_cast<UINT>(r)); }
-
-struct cbPerObject
-{
-    DirectX::XMMATRIX W;
-    DirectX::XMMATRIX WVP;
-};
 
 class RenderingSystem
 {
@@ -72,9 +67,8 @@ private:
 
     std::unordered_set<MeshRenderer*> m_meshRenderers;
 
-    cbPerObject cbPerObj;
-
-    ID3D11Buffer* m_buff;
+    cbPerObject m_cbPerObj;
+    ID3D11Buffer* m_cbPerObjectBuff;
 
     IFW1Factory* m_textFactory;
     IFW1FontWrapper* m_fontWrapper;

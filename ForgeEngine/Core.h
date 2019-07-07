@@ -6,6 +6,7 @@
 #include <vector>
 #include <unordered_set>
 #include <type_traits>
+#include "ConstantBuffers.h"
 
 class Window;
 class Camera;
@@ -15,6 +16,8 @@ class ShadersManager;
 class RenderTargetViewsManager;
 class PostProcessor;
 class RTV;
+
+
 
 class Core
 {
@@ -93,6 +96,9 @@ private:
     PostProcessor* m_postProcessor;
 
     RTV* m_temporaryRTV;
+
+    cbPerFrame m_cbPerFrame;
+    ID3D11Buffer* m_cbPerFrameBuff;
 
     //to move
     ID3D11SamplerState* samplerState;

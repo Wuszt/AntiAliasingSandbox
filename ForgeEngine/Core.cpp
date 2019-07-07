@@ -65,6 +65,10 @@ void Core::Run(const HINSTANCE& hInstance, const int& ShowWnd, const int& width,
 
     while (m_window->IsAlive())
     {
+        m_cbPerFrame.Time = Time::GetTime();
+        m_d3DeviceContext->UpdateSubresource(m_cbPerFrameBuff, 0, nullptr, &m_cbPerFrame, 0, 0);
+        m_d3DeviceContext->VSSetConstantBuffers(static_cast<UINT>(VertexCBIndex::PerFrame), 1, &m_cbPerFrameBuff);
+
         Profiler::StartFrame();
 
         Profiler::StartProfiling(FRAME_ANALYZE_NAME);
@@ -213,6 +217,15 @@ void Core::Initialize(const HINSTANCE& hInstance, const int& ShowWnd, const int&
     InitializeViewport();
 
     InitScene();
+
+    D3D11_BUFFER_DESC cbbd;
+    ZeroMemory(&cbbd, sizeof(D3D11_BUFFER_DESC));
+
+    cbbd.Usage = D3D11_USAGE_DEFAULT;
+    cbbd.ByteWidth = sizeof(cbPerFrame);
+    cbbd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+
+    m_d3Device->CreateBuffer(&cbbd, nullptr, &m_cbPerFrameBuff);
 }
 
 HRESULT Core::InitializeD3D()

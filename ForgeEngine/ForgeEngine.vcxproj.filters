@@ -122,6 +122,7 @@
     <ClInclude Include="ProfilingSession.h" />
     <ClInclude Include="RenderTargetViewsManager.h" />
     <ClInclude Include="PostProcessor.h" />
+    <ClInclude Include="ConstantBuffers.h" />
   </ItemGroup>
   <ItemGroup>
     <_EmbedManagedResourceFile Include="Base.fx">
@@ -159,5 +160,10 @@
     <FxCompile Include="SobelTweakingPP.fx">
       <Filter>Shaders\PPs</Filter>
     </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Common.fxh">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

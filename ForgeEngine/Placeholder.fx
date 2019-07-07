@@ -1,3 +1,4 @@
+#include "Common.fxh"
 
 cbuffer cbPerObject
 {

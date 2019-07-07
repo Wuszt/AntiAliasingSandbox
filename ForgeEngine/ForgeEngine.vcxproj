@@ -54,6 +54,7 @@
   <ItemGroup>
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Component.h" />
+    <ClInclude Include="ConstantBuffers.h" />
     <ClInclude Include="ControllableCamera.h" />
     <ClInclude Include="Core.h" />
     <ClInclude Include="DebugLog.h" />
@@ -121,6 +122,9 @@
     <_EmbedManagedResourceFile Include="SobelTweakingPP.fx">
       <FileType>Document</FileType>
     </_EmbedManagedResourceFile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Common.fxh" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>

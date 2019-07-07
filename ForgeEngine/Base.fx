@@ -1,5 +1,6 @@
+#include "Common.fxh"
 
-cbuffer cbPerObject
+cbuffer cbPerObject : register(b2)
 {
     float4x4 W;
     float4x4 WVP;
@@ -27,7 +28,6 @@ struct VS_OUTPUT
 VS_OUTPUT VS(VS_INPUT input)
 {
     VS_OUTPUT output;
-
     output.Pos = mul(input.Pos, WVP);
     output.Normal = mul(input.Normal, W);
     output.Normal = normalize(output.Normal);
