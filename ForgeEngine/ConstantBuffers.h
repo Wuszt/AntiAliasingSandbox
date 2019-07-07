@@ -8,6 +8,12 @@ enum class VertexCBIndex
     PerObject = 2,
 };
 
+enum class PixelCBIndex
+{
+    PerFrame = 0,
+};
+
+
 struct cbPerFrame
 {
     float Time;
