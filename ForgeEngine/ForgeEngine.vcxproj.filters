@@ -69,6 +69,9 @@
     <ClCompile Include="ProfilingSession.cpp" />
     <ClCompile Include="RenderTargetViewsManager.cpp" />
     <ClCompile Include="PostProcessor.cpp" />
+    <ClCompile Include="LightsManager.cpp">
+      <Filter>Framework</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Camera.h">
@@ -123,6 +126,9 @@
     <ClInclude Include="RenderTargetViewsManager.h" />
     <ClInclude Include="PostProcessor.h" />
     <ClInclude Include="ConstantBuffers.h" />
+    <ClInclude Include="LightsManager.h">
+      <Filter>Framework</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <_EmbedManagedResourceFile Include="Base.fx">
@@ -152,14 +158,8 @@
     <_EmbedManagedResourceFile Include="OutlinePP.fx">
       <Filter>Shaders\PPs</Filter>
     </_EmbedManagedResourceFile>
-  </ItemGroup>
-  <ItemGroup>
-    <FxCompile Include="CommonPPInclude.fx">
-      <Filter>Shaders\PPs</Filter>
-    </FxCompile>
-    <FxCompile Include="SobelTweakingPP.fx">
-      <Filter>Shaders\PPs</Filter>
-    </FxCompile>
+    <_EmbedManagedResourceFile Include="CommonPP.fxh" />
+    <_EmbedManagedResourceFile Include="SobelTweakingPP.fx" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Common.fxh">

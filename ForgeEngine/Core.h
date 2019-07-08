@@ -16,7 +16,7 @@ class ShadersManager;
 class RenderTargetViewsManager;
 class PostProcessor;
 class RTV;
-
+class LightsManager;
 
 
 class Core
@@ -94,6 +94,7 @@ private:
     Camera* m_camera;
     RenderTargetViewsManager* m_rtvsManager;
     PostProcessor* m_postProcessor;
+    LightsManager* m_lightsManager;
 
     RTV* m_temporaryRTV;
 

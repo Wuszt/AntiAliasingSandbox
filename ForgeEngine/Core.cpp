@@ -19,6 +19,7 @@
 #include "Profiler.h"
 #include "RenderTargetViewsManager.h"
 #include "PostProcessor.h"
+#include "LightsManager.h"
 
 using namespace DirectX;
 
@@ -49,6 +50,7 @@ Core::~Core()
 
     delete m_renderingSystem;
     delete m_window;
+    delete m_lightsManager;
 
     samplerState->Release();
 
@@ -193,6 +195,7 @@ void Core::Initialize(const HINSTANCE& hInstance, const int& ShowWnd, const int&
     DebugLog::Initialize(m_renderingSystem, m_window);
 
     m_postProcessor = new PostProcessor(m_d3Device, m_d3DeviceContext);
+    m_lightsManager = new LightsManager();
 
     D3D11_SAMPLER_DESC sampDesc;
     ZeroMemory(&sampDesc, sizeof(sampDesc));
@@ -343,6 +346,8 @@ void Core::AfterUpdateScene()
 
 void Core::DrawScene()
 {
+    m_lightsManager->OnDrawingScene();
+
     ID3D11RenderTargetView* rtv = m_temporaryRTV->GetRTV();
     m_d3DeviceContext->OMSetRenderTargets(1, &rtv, m_depthStencilView);
 
