@@ -1,15 +1,10 @@
 #pragma once
 #include <DirectXMath.h>
+#include <vector>
 
 struct ID3D11Buffer;
-
-struct DirectionalLight
-{
-    DirectX::XMFLOAT3 Direction;
-    float pad0;
-    DirectX::XMFLOAT3 Color;
-    float pad1;
-};
+class Light;
+class DirectionalLight;
 
 
 class LightsManager
@@ -19,7 +14,9 @@ public:
     ~LightsManager();
 
     void OnDrawingScene();
+    void AddLight(Light* const& light);
 
     ID3D11Buffer* m_buffer;
+    std::vector<DirectionalLight*> m_directionalLights;
 };
 

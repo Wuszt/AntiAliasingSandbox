@@ -32,12 +32,21 @@ struct VS_INPUT
 struct VS_OUTPUT
 {
     float4 Pos : SV_POSITION;
-    float3 Normal : NORMAL;
     float2 TexCoord : TEXCOORD;
-    float4 Light : COLOR;
+    float4 Light : COLOR0;
+    float4 Specular : COLOR1;
 };
 
-float4 CalcDirectionalLighting(float4 normal)
+float Specular(float3 pos,float3 normal, float3 lightDir)
+{
+    float3 V = normalize(CameraPos - pos);
+    float3 R = lightDir + 2 * dot(-normalize(lightDir), normalize(normal)) * normal;
+
+    return saturate(dot(V, R));
+
+}
+
+float4 CalcDirectionalLighting(float3 pos, float3 normal)
 {
     float3 result = 0;
 
@@ -49,9 +58,9 @@ float4 CalcDirectionalLighting(float4 normal)
     return float4(result, 1.0f);
 }
 
-float4 CalcLighting(float4 pos, float4 normal)
+float4 CalcLighting(float4 pos, float3 normal)
 {
-    return float4(Ambient, 1.0f) + CalcDirectionalLighting(normal);
+    return float4(Ambient, 1.0f) + CalcDirectionalLighting(pos, normal);
 }
 
 VS_OUTPUT VS(VS_INPUT input)
@@ -59,13 +68,19 @@ VS_OUTPUT VS(VS_INPUT input)
     VS_OUTPUT output;
     output.Pos = mul(float4(input.Pos, 1.0f), WVP);
     output.TexCoord = input.TexCoord;
-    output.Normal = input.Normal;
-    output.Light = CalcLighting(output.Pos, float4(input.Normal, 0.0f));
+
+    float4 worldNormal = normalize(mul(input.Normal, W));
+    float4 worldPos = mul(float4(input.Pos, 1.0f), W);
+
+    output.Light = 0.5f * CalcLighting(worldPos, worldNormal); 
+    output.Specular = Specular(worldPos, worldNormal, DirectionalLights[0].Direction);
+    output.Specular *= output.Specular;
 
     return output;
 }
 
 float4 PS(VS_OUTPUT input) : SV_TARGET
 {
-    return ObjTexture.Sample(ObjSamplerState, input.TexCoord) * input.Light;
+    return ObjTexture.Sample(ObjSamplerState, input.TexCoord) * input.Light + input.Specular;
+
 }

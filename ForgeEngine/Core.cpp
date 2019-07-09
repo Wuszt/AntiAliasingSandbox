@@ -68,6 +68,7 @@ void Core::Run(const HINSTANCE& hInstance, const int& ShowWnd, const int& width,
     while (m_window->IsAlive())
     {
         m_cbPerFrame.Time = Time::GetTime();
+        m_cbPerFrame.CameraPos = m_camera->GetTransform()->GetPosition();
         m_d3DeviceContext->UpdateSubresource(m_cbPerFrameBuff, 0, nullptr, &m_cbPerFrame, 0, 0);
         m_d3DeviceContext->VSSetConstantBuffers(static_cast<UINT>(VertexCBIndex::PerFrame), 1, &m_cbPerFrameBuff);
         m_d3DeviceContext->PSSetConstantBuffers(static_cast<UINT>(PixelCBIndex::PerFrame), 1, &m_cbPerFrameBuff);

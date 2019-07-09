@@ -5,6 +5,8 @@
 #include <Windows.h>
 #include <DirectXCommonClasses/Time.h>
 #include <cassert>
+#include "DirectionalLight.h"
+#include <exception>
 
 using namespace DirectX;
 
@@ -12,7 +14,7 @@ struct cbLights
 {
     XMFLOAT3 Ambient;
     int DirectionalLightsAmount;
-    DirectionalLight DirectionalLights[10];
+    cbDirectionalLight DirectionalLights[10];
 };
 
 LightsManager::LightsManager()
@@ -24,7 +26,7 @@ LightsManager::LightsManager()
     cbbd.ByteWidth = sizeof(cbLights);
     cbbd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 
-  //  assert(cbbd.ByteWidth % 16 == 0);
+    assert(cbbd.ByteWidth % 16 == 0);
 
     Core::GetD3Device()->CreateBuffer(&cbbd, nullptr, &m_buffer);
 }
@@ -37,15 +39,29 @@ LightsManager::~LightsManager()
 void LightsManager::OnDrawingScene()
 {
     cbLights lights;
+
     lights.Ambient = XMFLOAT3(0.3f, 0.3f, 0.3f);
-    lights.DirectionalLights[0].Color = XMFLOAT3(1.0f, 1.0f, 1.0f);
-    XMFLOAT3 dir = XMFLOAT3(2.0f * sin(Time::GetTime()), -1.0f, 0.0f);
-    XMVECTOR tmp = XMLoadFloat3(&dir);
-    tmp = XMVector3Normalize(tmp);
-    XMStoreFloat3(&dir, tmp);
-    lights.DirectionalLights[0].Direction = dir;
-    lights.DirectionalLightsAmount = 1;
+
+    for (int i = 0; i < m_directionalLights.size(); ++i)
+    {
+        lights.DirectionalLights[i] = m_directionalLights[i]->GetData();
+    }
+    lights.DirectionalLightsAmount = (int)m_directionalLights.size();
+
 
     Core::GetD3DeviceContext()->UpdateSubresource(m_buffer, 0, nullptr, &lights, 0, 0);
     Core::GetD3DeviceContext()->VSSetConstantBuffers(static_cast<UINT>(VertexCBIndex::Light), 1, &m_buffer);
+}
+
+void LightsManager::AddLight(Light* const& light)
+{
+    DirectionalLight* directional = dynamic_cast<DirectionalLight*>(light);
+
+    if (directional)
+    {
+        m_directionalLights.push_back(directional);
+        return;
+    }
+
+    throw std::exception();
 }

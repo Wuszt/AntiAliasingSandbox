@@ -7,5 +7,8 @@ public:
 
 protected:
     virtual void InitScene() override;
+    virtual void UpdateScene() override;
+
+    Object* m_car;
 };
 

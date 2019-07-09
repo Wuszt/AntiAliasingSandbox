@@ -10,6 +10,8 @@ public:
 
     inline Object* GetOwner() const { return m_owner; }
 
+    virtual void OnInitialized() {}
+
 private:
     Object* m_owner;
 };

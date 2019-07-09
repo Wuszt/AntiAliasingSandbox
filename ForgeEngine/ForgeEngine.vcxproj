@@ -28,6 +28,8 @@
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">-D _CRT_SECURE_NO_WARNINGS %(AdditionalOptions)</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">-D _CRT_SECURE_NO_WARNINGS %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
+    <ClCompile Include="DirectionalLight.cpp" />
+    <ClCompile Include="Light.cpp" />
     <ClCompile Include="LightsManager.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Core.cpp" />
@@ -59,6 +61,8 @@
     <ClInclude Include="ControllableCamera.h" />
     <ClInclude Include="Core.h" />
     <ClInclude Include="DebugLog.h" />
+    <ClInclude Include="DirectionalLight.h" />
+    <ClInclude Include="Light.h" />
     <ClInclude Include="LightsManager.h" />
     <ClInclude Include="Material.h" />
     <ClInclude Include="Mesh.h" />

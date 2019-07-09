@@ -72,6 +72,8 @@
     <ClCompile Include="LightsManager.cpp">
       <Filter>Framework</Filter>
     </ClCompile>
+    <ClCompile Include="Light.cpp" />
+    <ClCompile Include="DirectionalLight.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Camera.h">
@@ -129,6 +131,8 @@
     <ClInclude Include="LightsManager.h">
       <Filter>Framework</Filter>
     </ClInclude>
+    <ClInclude Include="Light.h" />
+    <ClInclude Include="DirectionalLight.h" />
   </ItemGroup>
   <ItemGroup>
     <_EmbedManagedResourceFile Include="Base.fx">

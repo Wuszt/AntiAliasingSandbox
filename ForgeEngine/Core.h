@@ -28,6 +28,7 @@ public:
     void Run(const HINSTANCE& hInstance, const int& ShowWnd, const int& width, const int& height);
 
     static inline RenderingSystem* GetRenderingSystem() { return s_instance->m_renderingSystem; }
+    static inline LightsManager* GetLightsManager() { return s_instance->m_lightsManager; }
     static inline ID3D11Device* GetD3Device() { return s_instance->m_d3Device; }
     static inline ID3D11DeviceContext* GetD3DeviceContext() { return s_instance->m_d3DeviceContext; }
 
@@ -58,6 +59,8 @@ protected:
 
     virtual void InitScene();
 
+    virtual void UpdateScene();
+
 private:
     void FillDepthStencilDescWithDefaultValues(D3D11_TEXTURE2D_DESC& desc);
     void FillSwapChainBufferDescWithDefaultValues(DXGI_MODE_DESC& desc);
@@ -67,7 +70,6 @@ private:
     void DeletePendingObjects();
 
     void BeforeUpdateScene();
-    void UpdateScene();
     void AfterUpdateScene();
     void DrawScene();
     void CopyTemporaryRTVToTarget();

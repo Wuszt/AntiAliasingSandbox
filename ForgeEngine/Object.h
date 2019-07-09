@@ -32,6 +32,7 @@ public:
     {
         T* comp = new T(this, std::forward<Args>(args)...);
 
+        comp->OnInitialized();
         m_components.push_back(comp);
 
         return comp;

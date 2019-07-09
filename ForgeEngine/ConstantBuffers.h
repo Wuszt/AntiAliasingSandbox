@@ -17,7 +17,7 @@ enum class PixelCBIndex
 struct cbPerFrame
 {
     float Time;
-    DirectX::XMFLOAT3 Alignment;
+    DirectX::XMFLOAT3 CameraPos;
 };
 
 struct cbPerObject
