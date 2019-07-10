@@ -131,6 +131,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Common.fxh" />
+    <_EmbedManagedResourceFile Include="Light.fxh">
+      <FileType>Document</FileType>
+    </_EmbedManagedResourceFile>
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>

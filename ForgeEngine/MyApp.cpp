@@ -17,7 +17,7 @@ void MyApp::InitScene()
     m_car->AddComponent<MeshRenderer>("model.fbx", "Base.fx");
 
     Object* light0 = InstantiateObject<Object>();
-    light0->AddComponent<DirectionalLight>(XMFLOAT3(0.0f, -1.0f, 0.0f), XMFLOAT3(1.0f, 1.0f, 1.0f) , 1.0f);
+    light0->AddComponent<DirectionalLight>(XMFLOAT3(0.5f, -1.0f, -0.5f), XMFLOAT3(1.0f, 1.0f, 1.0f) , 0.75f);
 
     //Object* light1 = InstantiateObject<Object>();
     //light1->AddComponent<DirectionalLight>(XMFLOAT3(1.0f, -0.2f, 0.0f), XMFLOAT3(1.0f, 1.0f, 1.0f), 0.25f);

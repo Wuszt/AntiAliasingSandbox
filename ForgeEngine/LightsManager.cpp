@@ -40,7 +40,7 @@ void LightsManager::OnDrawingScene()
 {
     cbLights lights;
 
-    lights.Ambient = XMFLOAT3(0.3f, 0.3f, 0.3f);
+    lights.Ambient = m_ambient;
 
     for (int i = 0; i < m_directionalLights.size(); ++i)
     {

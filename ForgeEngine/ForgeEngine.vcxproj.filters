@@ -169,5 +169,8 @@
     <None Include="Common.fxh">
       <Filter>Shaders</Filter>
     </None>
+    <None Include="Light.fxh">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>
