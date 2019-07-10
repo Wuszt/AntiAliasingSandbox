@@ -7,6 +7,12 @@ cbuffer cbPerObject : register(b2)
     float4x4 WVP;
 };
 
+cbuffer cbMaterial : register(b3)
+{
+    float3 Diffuse;
+    float3 Specular;
+}
+
 Texture2D ObjTexture;
 SamplerState ObjSamplerState;
 
@@ -36,10 +42,14 @@ VS_OUTPUT VS(VS_INPUT input)
 
     CalcLighting(worldPos, worldNormal, output.Diffuse, output.Specular); 
 
+    output.Diffuse *= Diffuse;
+    output.Specular *= Specular;
+
     return output;
 }
 
 float4 PS(VS_OUTPUT input) : SV_TARGET
 {
     return ObjTexture.Sample(ObjSamplerState, input.TexCoord) * float4(input.Diffuse, 1.0f) + float4(input.Specular, 0.0f);
+
 }

@@ -11,7 +11,7 @@ cbuffer cbLights : register(b1)
     DirectionalLight DirectionalLights[10];
 }
 
-float Specular(float3 pos, float3 normal, float3 lightDir)
+float CalcSpecular(float3 pos, float3 normal, float3 lightDir)
 {
     float3 V = normalize(CameraPos - pos);
     float3 R = lightDir + 2 * dot(-normalize(lightDir), normalize(normal)) * normal;
@@ -24,7 +24,7 @@ void CalcDirectionalLighting(float3 pos, float3 normal, inout float3 diffuse, in
     for (int i = 0; i < DirectionalLightsAmount; ++i)
     {
         diffuse += saturate(dot(normal, -DirectionalLights[i].Direction)) * DirectionalLights[i].Color;
-        specular += Specular(pos, normal, DirectionalLights[i].Direction) * DirectionalLights[i].Color;
+        specular += CalcSpecular(pos, normal, DirectionalLights[i].Direction) * DirectionalLights[i].Color;
     }
 }
 

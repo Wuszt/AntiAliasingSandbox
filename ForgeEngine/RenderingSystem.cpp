@@ -66,6 +66,10 @@ void RenderingSystem::RenderRegisteredMeshRenderers(Camera* const& camera)
 
             m_d3DeviceContext->UpdateSubresource(m_cbPerObjectBuff, 0, nullptr, &m_cbPerObj, 0, 0);
             m_d3DeviceContext->VSSetConstantBuffers(static_cast<UINT>(VertexCBIndex::PerObject), 1, &m_cbPerObjectBuff);
+            
+            static ID3D11Buffer* materialBuff;
+            materialBuff = mesh->Material->GetConstantBufferMaterialBuffer();
+            m_d3DeviceContext->VSSetConstantBuffers(static_cast<UINT>(VertexCBIndex::Material), 1, &materialBuff);
 
             if (mesh->Material->Textures.size() > 0)
                 m_d3DeviceContext->PSSetShaderResources(0, 1, &mesh->Material->Textures[0]);
@@ -144,7 +148,9 @@ const Model* RenderingSystem::LoadModelFromPath(const std::string& modelPath, co
     Assimp::Importer importer;
     importer.SetPropertyBool(AI_CONFIG_IMPORT_FBX_PRESERVE_PIVOTS, false);
     unsigned int flags = aiProcess_Triangulate
-        | aiProcess_ConvertToLeftHanded;
+        | aiProcess_ConvertToLeftHanded
+        | aiProcess_FixInfacingNormals
+        | aiProcess_FindInvalidData;
 
     const aiScene* pScene = importer.ReadFile(modelPath, flags);
     model = LoadModelFromNode(pScene, pScene->mRootNode, shaderPath);
@@ -215,6 +221,17 @@ vector<const Mesh*> RenderingSystem::LoadMeshesFromNode(const aiScene* const& sc
         }
 
         UINT offset = 0;
+
+        aiColor3D tmpClr;
+        if (AI_SUCCESS == mat->Get(AI_MATKEY_COLOR_DIFFUSE, tmpClr))
+        {
+            mesh->Material->Diffuse = XMFLOAT3(tmpClr.r, tmpClr.g, tmpClr.b);
+        }
+
+        if (AI_SUCCESS == mat->Get(AI_MATKEY_COLOR_SPECULAR, tmpClr))
+        {
+            mesh->Material->Specular = XMFLOAT3(tmpClr.r, tmpClr.g, tmpClr.b);
+        }
 
         if (meshData->HasPositions())
         {
