@@ -6,15 +6,14 @@
 #include "ShadersManager.h"
 #include "PostProcessor.h"
 #include "DebugLog.h"
+#include "Core.h"
 
 using namespace std;
 
-RenderTargetViewsManager::RenderTargetViewsManager(ID3D11Device* const& device, ID3D11DeviceContext* const& context, Window* const& window)
+RenderTargetViewsManager::RenderTargetViewsManager(Window* const& window)
 {
     s_instance = this;
-    m_d3Device = device;
     m_window = window;
-    m_d3Context = context;
 
     window->AddResizeListener(OnWindowResize);
 }
@@ -47,13 +46,13 @@ void RenderTargetViewsManager::CreateRTVComponents(ID3D11Texture2D*& tex, ID3D11
     textureDesc.CPUAccessFlags = 0;
     textureDesc.MiscFlags = 0;
 
-    m_d3Device->CreateTexture2D(&textureDesc, nullptr, &tex);
+    Core::GetD3Device()->CreateTexture2D(&textureDesc, nullptr, &tex);
 
     renderTargetViewDesc.Format = textureDesc.Format;
     renderTargetViewDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
     renderTargetViewDesc.Texture2D.MipSlice = 0;
 
-    m_d3Device->CreateRenderTargetView(tex, &renderTargetViewDesc, &rtv);
+    Core::GetD3Device()->CreateRenderTargetView(tex, &renderTargetViewDesc, &rtv);
 }
 
 RTV* RenderTargetViewsManager::GetOrCreateRTV()
@@ -90,7 +89,7 @@ void RenderTargetViewsManager::ResizeRTVs()
         ID3D11RenderTargetView* d3rtv;
         CreateRTVComponents(tex, d3rtv);
 
-        PostProcessor::DrawPass(m_d3Device, m_d3Context, "CopyingPP.fx", { rtv->GetTexture() }, d3rtv);
+        PostProcessor::DrawPass("CopyingPP.fx", { rtv->GetTexture() }, d3rtv);
 
         rtv->Reinitialize(d3rtv, tex);
     }

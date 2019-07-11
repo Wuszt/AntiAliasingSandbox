@@ -1,9 +1,7 @@
 #pragma once
 #include <unordered_set>
 
-struct ID3D11Device;
 struct ID3D11RenderTargetView;
-struct ID3D11DeviceContext;
 class Window;
 
 class RTV
@@ -28,7 +26,7 @@ private:
 class RenderTargetViewsManager
 {
 public:
-    RenderTargetViewsManager(ID3D11Device* const& device, ID3D11DeviceContext* const& context, Window* const& window);
+    RenderTargetViewsManager(Window* const& window);
     ~RenderTargetViewsManager();
 
     RTV* AcquireRTV();
@@ -43,8 +41,6 @@ private:
     RTV* GetOrCreateRTV();
     void ResizeRTVs();
 
-    ID3D11Device* m_d3Device;
-    ID3D11DeviceContext* m_d3Context;
     Window* m_window;
 
     std::unordered_set<RTV*> m_availableRTVs;

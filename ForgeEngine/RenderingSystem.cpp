@@ -13,17 +13,15 @@
 #include "ShadersManager.h"
 #include <d3d9types.h>
 #include "Profiler.h"
+#include "Core.h"
 
 #include <sstream>
 
 using namespace DirectX;
 using namespace std;
 
-RenderingSystem::RenderingSystem(ID3D11Device* const& d3Device, ID3D11DeviceContext* const& d3DeviceContext)
+RenderingSystem::RenderingSystem()
 {
-    m_d3Device = d3Device;
-    m_d3DeviceContext = d3DeviceContext;
-
     D3D11_BUFFER_DESC cbbd;
     ZeroMemory(&cbbd, sizeof(D3D11_BUFFER_DESC));
 
@@ -31,10 +29,10 @@ RenderingSystem::RenderingSystem(ID3D11Device* const& d3Device, ID3D11DeviceCont
     cbbd.ByteWidth = sizeof(cbPerObject);
     cbbd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 
-    m_d3Device->CreateBuffer(&cbbd, nullptr, &m_cbPerObjectBuff);
+    Core::GetD3Device()->CreateBuffer(&cbbd, nullptr, &m_cbPerObjectBuff);
 
     FW1CreateFactory(FW1_VERSION, &m_textFactory);
-    m_textFactory->CreateFontWrapper(d3Device, L"Arial", &m_fontWrapper);
+    m_textFactory->CreateFontWrapper(Core::GetD3Device(), L"Arial", &m_fontWrapper);
 }
 
 RenderingSystem::~RenderingSystem()
@@ -56,33 +54,33 @@ void RenderingSystem::RenderRegisteredMeshRenderers(Camera* const& camera)
     {
         for (const Mesh* const& mesh : *renderer->m_meshes)
         {
-            m_d3DeviceContext->IASetIndexBuffer(mesh->IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
+            Core::GetD3DeviceContext()->IASetIndexBuffer(mesh->IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
 
             UINT offset = 0;
-            m_d3DeviceContext->IASetVertexBuffers(0, 1, &mesh->VertexBuffer, &mesh->Stride, &offset);
+            Core::GetD3DeviceContext()->IASetVertexBuffers(0, 1, &mesh->VertexBuffer, &mesh->Stride, &offset);
 
             m_cbPerObj.WVP = XMMatrixTranspose(renderer->GetOwner()->GetTransform()->GetWorldMatrix() * camera->GetViewMatrix() * camera->GetProjectionMatrix());
             m_cbPerObj.W = XMMatrixTranspose(renderer->GetOwner()->GetTransform()->GetWorldMatrix());
 
-            m_d3DeviceContext->UpdateSubresource(m_cbPerObjectBuff, 0, nullptr, &m_cbPerObj, 0, 0);
-            m_d3DeviceContext->VSSetConstantBuffers(static_cast<UINT>(VertexCBIndex::PerObject), 1, &m_cbPerObjectBuff);
+            Core::GetD3DeviceContext()->UpdateSubresource(m_cbPerObjectBuff, 0, nullptr, &m_cbPerObj, 0, 0);
+            Core::GetD3DeviceContext()->VSSetConstantBuffers(static_cast<UINT>(VertexCBIndex::PerObject), 1, &m_cbPerObjectBuff);
             
             static ID3D11Buffer* materialBuff;
             materialBuff = mesh->Material->GetConstantBufferMaterialBuffer();
-            m_d3DeviceContext->VSSetConstantBuffers(static_cast<UINT>(VertexCBIndex::Material), 1, &materialBuff);
+            Core::GetD3DeviceContext()->VSSetConstantBuffers(static_cast<UINT>(VertexCBIndex::Material), 1, &materialBuff);
 
             if (mesh->Material->Textures.size() > 0)
-                m_d3DeviceContext->PSSetShaderResources(0, 1, &mesh->Material->Textures[0]);
+                Core::GetD3DeviceContext()->PSSetShaderResources(0, 1, &mesh->Material->Textures[0]);
 
             static const CachedShaders* cachedShaders;
             cachedShaders = mesh->Material->GetShaders();
 
-            m_d3DeviceContext->VSSetShader(cachedShaders->VS.Shader, 0, 0);
-            m_d3DeviceContext->PSSetShader(cachedShaders->PS.Shader, 0, 0);
+            Core::GetD3DeviceContext()->VSSetShader(cachedShaders->VS.Shader, 0, 0);
+            Core::GetD3DeviceContext()->PSSetShader(cachedShaders->PS.Shader, 0, 0);
 
-            m_d3DeviceContext->IASetInputLayout(mesh->Material->GetInputLayout());
+            Core::GetD3DeviceContext()->IASetInputLayout(mesh->Material->GetInputLayout());
 
-            m_d3DeviceContext->DrawIndexed(mesh->IndicesAmount, 0, 0);
+            Core::GetD3DeviceContext()->DrawIndexed(mesh->IndicesAmount, 0, 0);
         }
     }
 }
@@ -138,7 +136,7 @@ void RenderingSystem::DrawText(const string& text, const float& size, const floa
     else
         flags |= ((UINT)anchor & (UINT)TextAnchor::Center) ? FW1_CENTER : 0;
 
-    m_fontWrapper->DrawString(m_d3DeviceContext, wstring(text.begin(), text.end()).c_str(), size, x, y, clr, flags);
+    m_fontWrapper->DrawString(Core::GetD3DeviceContext(), wstring(text.begin(), text.end()).c_str(), size, x, y, clr, flags);
 }
 
 const Model* RenderingSystem::LoadModelFromPath(const std::string& modelPath, const std::string& shaderPath)
@@ -347,7 +345,7 @@ ID3D11Buffer* RenderingSystem::CreateVertexBuffer(const std::vector<float>& vert
 
     ZeroMemory(&vertexBufferData, sizeof(vertexBufferData));
     vertexBufferData.pSysMem = vertData.data();
-    HRESULT hr = m_d3Device->CreateBuffer(&vertexBufferDesc, &vertexBufferData, &result);
+    HRESULT hr = Core::GetD3Device()->CreateBuffer(&vertexBufferDesc, &vertexBufferData, &result);
 
     if (hr != S_OK)
         throw std::exception("Error while creating vertex buffer");
@@ -368,7 +366,7 @@ ID3D11Buffer* RenderingSystem::CreateIndexBuffer(const vector<DWORD>& indices)
     indexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
     indexBufferDesc.ByteWidth = sizeof(DWORD) * (UINT)indices.size();
     indexBufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
-    HRESULT hr = m_d3Device->CreateBuffer(&indexBufferDesc, &iinitData, &result);
+    HRESULT hr = Core::GetD3Device()->CreateBuffer(&indexBufferDesc, &iinitData, &result);
 
     if (hr != S_OK)
         throw std::exception("Error while creating index buffer");
@@ -390,7 +388,7 @@ ID3D11ShaderResourceView* RenderingSystem::GetResourceFromTexturePath(std::strin
 
 
     ID3D11ShaderResourceView* srv;
-    CreateShaderResourceView(m_d3Device, images, 1, meta, &srv);
+    CreateShaderResourceView(Core::GetD3Device(), images, 1, meta, &srv);
 
     return srv;
 }

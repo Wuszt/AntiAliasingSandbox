@@ -95,7 +95,6 @@ private:
     Window* m_window;
     Camera* m_camera;
     RenderTargetViewsManager* m_rtvsManager;
-    PostProcessor* m_postProcessor;
     LightsManager* m_lightsManager;
 
     RTV* m_temporaryRTV;

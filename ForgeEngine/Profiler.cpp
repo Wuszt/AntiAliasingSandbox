@@ -8,34 +8,32 @@
 #include <d3d11.h>
 #include <DirectXCommonClasses/Time.h>
 #include <sstream>
+#include "Core.h"
 
 using namespace DirectX;
 using namespace std;
 
-Profiler::Profiler(ID3D11Device* const& d3Device, ID3D11DeviceContext* const& d3Context, const RenderingSystem* const& renderingSystem, const Window* const& window)
+Profiler::Profiler(const RenderingSystem* const& renderingSystem, const Window* const& window)
 {
     m_renderingSystem = renderingSystem;
     m_window = window;
     QueryPerformanceFrequency(&m_CPUfrequency);
-
-    m_d3Context = d3Context;
-    m_d3Device = d3Device;
 
     D3D11_QUERY_DESC desc;
     desc.MiscFlags = 0;
     desc.Query = D3D11_QUERY_TIMESTAMP_DISJOINT;
 
     for (int i = 0; i < QUERY_LATENCY; ++i)
-        d3Device->CreateQuery(&desc, &m_queryJoints[i]);
+        Core::GetD3Device()->CreateQuery(&desc, &m_queryJoints[i]);
 }
 
 Profiler::~Profiler()
 {
 }
 
-void Profiler::Initialize(ID3D11Device* const& d3Device, ID3D11DeviceContext* const& d3Context, const RenderingSystem* const& renderingSystem, const Window* const& window)
+void Profiler::Initialize(const RenderingSystem* const& renderingSystem, const Window* const& window)
 {
-    s_instance = new Profiler(d3Device, d3Context, renderingSystem, window);
+    s_instance = new Profiler(renderingSystem, window);
 }
 
 void Profiler::Release()
@@ -164,7 +162,7 @@ void Profiler::OnStartGPUProfiling(const std::string& name)
 
     if (found == m_gpuProfilers[m_framesCounter % QUERY_LATENCY].end())
     {
-        session = m_gpuProfilers[m_framesCounter % QUERY_LATENCY].emplace(name, new GPUProfilingSession(m_d3Device, m_d3Context, SAMPLES_AMOUNT)).first->second;
+        session = m_gpuProfilers[m_framesCounter % QUERY_LATENCY].emplace(name, new GPUProfilingSession(SAMPLES_AMOUNT)).first->second;
     }
     else
         session = found->second;
@@ -198,23 +196,23 @@ void Profiler::OnStartFrame()
 
     ++m_framesCounter;
 
-    m_d3Context->Begin(m_queryJoints[m_framesCounter % QUERY_LATENCY]);
+    Core::GetD3DeviceContext()->Begin(m_queryJoints[m_framesCounter % QUERY_LATENCY]);
 }
 
 void Profiler::OnEndFrame()
 {
-    m_d3Context->End(m_queryJoints[m_framesCounter % QUERY_LATENCY]);
+    Core::GetD3DeviceContext()->End(m_queryJoints[m_framesCounter % QUERY_LATENCY]);
 
-    m_d3Context->Flush();
+    Core::GetD3DeviceContext()->Flush();
 
     Profiler::StartCPUProfiling("Waiting for GPU");
 
-    while (m_d3Context->GetData(m_queryJoints[(m_framesCounter + 1) % QUERY_LATENCY], NULL, 0, 0) == S_FALSE);
+    while (Core::GetD3DeviceContext()->GetData(m_queryJoints[(m_framesCounter + 1) % QUERY_LATENCY], NULL, 0, 0) == S_FALSE);
 
     Profiler::EndCPUProfiling("Waiting for GPU");
 
     D3D10_QUERY_DATA_TIMESTAMP_DISJOINT tsDisjoint;
-    m_d3Context->GetData(m_queryJoints[(m_framesCounter + 1) % QUERY_LATENCY], &tsDisjoint, sizeof(tsDisjoint), 0);
+    Core::GetD3DeviceContext()->GetData(m_queryJoints[(m_framesCounter + 1) % QUERY_LATENCY], &tsDisjoint, sizeof(tsDisjoint), 0);
     if (tsDisjoint.Disjoint && m_framesCounter > QUERY_LATENCY - 1)
         DebugLog::LogError("Profiler GPU Query found disjoint!");
     else

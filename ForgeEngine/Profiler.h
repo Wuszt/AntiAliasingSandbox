@@ -17,18 +17,15 @@ class ProfilingSession;
 class CPUProfilingSession;
 class GPUProfilingSession;
 
-struct ID3D11Device;
-struct ID3D11DeviceContext;
-
 struct ID3D11Query;
 
 class Profiler
 {
 public:
-    Profiler(ID3D11Device* const& d3Device, ID3D11DeviceContext* const& d3Context, const RenderingSystem* const& renderingSystem, const Window* const& window);
+    Profiler(const RenderingSystem* const& renderingSystem, const Window* const& window);
     ~Profiler();
 
-    static void Initialize(ID3D11Device* const& d3Device, ID3D11DeviceContext* const& d3Context, const RenderingSystem* const& renderingSystem, const Window* const& window);
+    static void Initialize(const RenderingSystem* const& renderingSystem, const Window* const& window);
     static void Release();
 
     static void Draw();
@@ -75,8 +72,6 @@ private:
     const ProfilingSession* m_currentCPUSession;
     const ProfilingSession* m_currentGPUSession;
 
-    ID3D11Device* m_d3Device;
-    ID3D11DeviceContext* m_d3Context;
     ID3D11Query* m_queryJoints[QUERY_LATENCY];
 
     int m_framesCounter = 0;

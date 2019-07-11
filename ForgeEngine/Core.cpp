@@ -57,6 +57,8 @@ Core::~Core()
     InputClass::Release();
     DebugLog::Release();
 
+    PostProcessor::Release();
+
     ShadersManager::Release();
     delete m_rtvsManager;
 }
@@ -190,12 +192,12 @@ void Core::Initialize(const HINSTANCE& hInstance, const int& ShowWnd, const int&
         throw std::exception("Direct3D Initialization - Failed");
     }
 
-    ShadersManager::Initialize(m_d3Device);
-    m_rtvsManager = new RenderTargetViewsManager(m_d3Device, m_d3DeviceContext, m_window);
-    m_renderingSystem = new RenderingSystem(m_d3Device, m_d3DeviceContext);
+    ShadersManager::Initialize();
+    m_rtvsManager = new RenderTargetViewsManager(m_window);
+    m_renderingSystem = new RenderingSystem();
     DebugLog::Initialize(m_renderingSystem, m_window);
 
-    m_postProcessor = new PostProcessor(m_d3Device, m_d3DeviceContext);
+    PostProcessor::Initialize();
     m_lightsManager = new LightsManager();
 
     D3D11_SAMPLER_DESC sampDesc;
@@ -213,7 +215,7 @@ void Core::Initialize(const HINSTANCE& hInstance, const int& ShowWnd, const int&
 
     Time::Initialize();
     InputClass::Initialize(*m_window->GetHInstance(), *m_window->GetHWND());
-    Profiler::Initialize(m_d3Device, m_d3DeviceContext, m_renderingSystem, m_window);
+    Profiler::Initialize(m_renderingSystem, m_window);
 
     m_temporaryRTV = m_rtvsManager->AcquireRTV();
 
@@ -364,7 +366,7 @@ void Core::DrawScene()
 
 void Core::CopyTemporaryRTVToTarget()
 {
-    m_postProcessor->DrawPass("CopyingPP.fx", { m_temporaryRTV->GetTexture() }, m_renderTargetView);
+    PostProcessor::DrawPass("CopyingPP.fx", { m_temporaryRTV->GetTexture() }, m_renderTargetView);
 }
 
 void Core::OnResizeWindow(const int& width, const int& height)

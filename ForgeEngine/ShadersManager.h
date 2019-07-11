@@ -3,7 +3,6 @@
 
 struct ID3D11PixelShader;
 struct ID3D11VertexShader;
-struct ID3D11Device;
 struct ID3D10Blob;
 struct ID3D11InputLayout;
 
@@ -25,17 +24,16 @@ struct CachedShaders
 class ShadersManager
 {
 public:
-    static void Initialize(ID3D11Device* const& device);
+    static void Initialize();
     static void Release();
 
     const CachedShaders* GetShaders(const std::string& path);
 
     inline static ShadersManager* GetShadersManager() { return s_instance; }
 private:
-    ShadersManager(ID3D11Device* const& device);
+    ShadersManager();
     ~ShadersManager();
 
-    ID3D11Device* m_device;
     std::unordered_map<std::string, CachedShaders> m_cachedShaders;
     
     void ReleaseShader(CachedShaders& cachedShader);

@@ -33,7 +33,7 @@ inline TextAnchor operator| (const TextAnchor& l, const TextAnchor& r) { return 
 class RenderingSystem
 {
 public:
-    RenderingSystem(ID3D11Device* const& d3Device, ID3D11DeviceContext* const& d3DeviceContext);
+    RenderingSystem();
     ~RenderingSystem();
 
 
@@ -61,9 +61,6 @@ private:
     void ReleaseModel(const Model* const& model);
 
     std::unordered_map<std::string,const Model* const> m_models;
-
-    ID3D11Device* m_d3Device;
-    ID3D11DeviceContext* m_d3DeviceContext;
 
     std::unordered_set<MeshRenderer*> m_meshRenderers;
 

@@ -1,6 +1,7 @@
 #include "ProfilingSession.h"
 #include <d3d11.h>
 #include <cassert>
+#include "Core.h"
 
 ProfilingSession::ProfilingSession(const int& maxSamples)
 {
@@ -57,38 +58,36 @@ void CPUProfilingSession::OnEndProfiling()
     SaveResult((double)(now.QuadPart - StartTick.QuadPart));
 }
 
-GPUProfilingSession::GPUProfilingSession(ID3D11Device* const& d3Device, ID3D11DeviceContext* const& d3Context, const int& maxSamples) : ProfilingSession(maxSamples)
+GPUProfilingSession::GPUProfilingSession(const int& maxSamples) : ProfilingSession(maxSamples)
 {
-    m_d3Context = d3Context;
-
     D3D11_QUERY_DESC desc;
     desc.MiscFlags = 0;
     desc.Query = D3D11_QUERY_TIMESTAMP;
 
-    d3Device->CreateQuery(&desc, &m_start);
-    d3Device->CreateQuery(&desc, &m_end);
+    Core::GetD3Device()->CreateQuery(&desc, &m_start);
+    Core::GetD3Device()->CreateQuery(&desc, &m_end);
 }
 
 void GPUProfilingSession::OnStartProfiling(const ProfilingSession* const& parent, const int& order)
 {
     ProfilingSession::OnStartProfiling(parent, order);
 
-    m_d3Context->End(m_start);
+    Core::GetD3DeviceContext()->End(m_start);
 }
 
 void GPUProfilingSession::OnEndProfiling()
 {
     ProfilingSession::OnEndProfiling();
 
-    m_d3Context->End(m_end);
+    Core::GetD3DeviceContext()->End(m_end);
 }
 
 void GPUProfilingSession::OnEndFrame()
 {
     static UINT64 start, end;
 
-    m_d3Context->GetData(m_start, &start, sizeof(UINT64), 0);
-    m_d3Context->GetData(m_end, &end, sizeof(UINT64), 0);
+    Core::GetD3DeviceContext()->GetData(m_start, &start, sizeof(UINT64), 0);
+    Core::GetD3DeviceContext()->GetData(m_end, &end, sizeof(UINT64), 0);
 
     SaveResult((double)(end - start));
 }

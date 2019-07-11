@@ -3,8 +3,6 @@
 #include <Windows.h>
 
 struct ID3D11Query;
-struct ID3D11DeviceContext;
-struct ID3D11Device;
 
 class ProfilingSession
 {
@@ -53,7 +51,7 @@ class GPUProfilingSession : public ProfilingSession
 {
 
 public:
-    GPUProfilingSession(ID3D11Device* const& d3Device, ID3D11DeviceContext* const& d3Context, const int& maxSamples);
+    GPUProfilingSession(const int& maxSamples);
     virtual ~GPUProfilingSession() override {}
 
     virtual void OnStartProfiling(const ProfilingSession* const& parent, const int& order) override;
@@ -63,6 +61,4 @@ public:
 private:
     ID3D11Query* m_start;
     ID3D11Query* m_end;
-
-    ID3D11DeviceContext* m_d3Context;
 };

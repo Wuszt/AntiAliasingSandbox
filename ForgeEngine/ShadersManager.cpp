@@ -3,12 +3,12 @@
 #include <d3d11.h>
 #include <d3dcompiler.h>
 #include "DebugLog.h"
+#include "Core.h"
 
 using namespace std;
 
-ShadersManager::ShadersManager(ID3D11Device* const& device)
+ShadersManager::ShadersManager()
 {
-    m_device = device;
 }
 
 ShadersManager::~ShadersManager()
@@ -19,9 +19,9 @@ ShadersManager::~ShadersManager()
     }
 }
 
-void ShadersManager::Initialize(ID3D11Device* const& device)
+void ShadersManager::Initialize()
 {
-    s_instance = new ShadersManager(device);
+    s_instance = new ShadersManager();
 }
 
 void ShadersManager::Release()
@@ -96,8 +96,8 @@ const CachedShaders* ShadersManager::GetShaders(const string& path)
 
     } while (hr == HRESULT_FROM_WIN32(ERROR_SHARING_VIOLATION));
 
-    m_device->CreateVertexShader(cached->VS.ByteCode->GetBufferPointer(), cached->VS.ByteCode->GetBufferSize(), NULL, &cached->VS.Shader);
-    m_device->CreatePixelShader(cached->PS.ByteCode->GetBufferPointer(), cached->PS.ByteCode->GetBufferSize(), NULL, &cached->PS.Shader);
+    Core::GetD3Device()->CreateVertexShader(cached->VS.ByteCode->GetBufferPointer(), cached->VS.ByteCode->GetBufferSize(), NULL, &cached->VS.Shader);
+    Core::GetD3Device()->CreatePixelShader(cached->PS.ByteCode->GetBufferPointer(), cached->PS.ByteCode->GetBufferSize(), NULL, &cached->PS.Shader);
 
     cached->ErrorMsg = "";
 
