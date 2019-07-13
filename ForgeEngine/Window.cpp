@@ -1,6 +1,8 @@
 #include "Window.h"
 #include <exception>
 
+using namespace std;
+
 LRESULT CALLBACK Window::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
     Window* window;
@@ -22,9 +24,22 @@ LRESULT CALLBACK Window::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPar
         window->SetAsDead();
         return 0;
 
-    case WM_SIZE:
+    case WM_EXITSIZEMOVE:
         window = (Window*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
         window->m_justResized = true;
+
+        return 0;
+
+    case WM_WINDOWPOSCHANGING:
+        WINDOWPOS* pos = (WINDOWPOS*)lParam;
+
+        pos->cy = (int)(9.0f / 16.0f * pos->cx);
+
+        DefWindowProc(hwnd,
+            msg,
+            wParam,
+            lParam);
+
         return 0;
     }
 
@@ -117,6 +132,8 @@ Window::Window(const HINSTANCE& hInstance, const int& ShowWnd, const int& width,
     UpdateWindow(m_hwnd);
 
     m_hInstance = hInstance;
+
+    m_justResized = true;
 }
 
 Window::~Window()

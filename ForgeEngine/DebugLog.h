@@ -31,6 +31,7 @@ public:
     static void Initialize(const RenderingSystem* const& renderingSystem, const Window* const& window);
     static void Draw();
     static void Release();
+    inline static bool IsInitialized() { return s_instance; }
 
     template<class T>
     static void LogError(const T& val)
