@@ -1,7 +1,6 @@
 #include "CommonPP.fxh"
 
 Texture2D Tex : register(t0);
-SamplerState Sampler : register(s0);
 
 static const float2 offset = float2(1 / 1920.0f, 1 / 1080.0f);
 static const float PI = 3.14159265f;
@@ -13,7 +12,7 @@ float2 ExtracTexandY(float4 input)
 
 float3 GetDataForPixelWithOffset(float2 mainCoords, float2 off)
 {
-    float4 samp = Tex.Sample(Sampler, mainCoords + off * offset);
+    float4 samp = Tex.Sample(PointSampler, mainCoords + off * offset);
     return float3(ExtracTexandY(samp), samp.z);
 }
 

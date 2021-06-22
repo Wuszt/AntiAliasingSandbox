@@ -1,7 +1,6 @@
 #include "CommonPP.fxh"
 
 Texture2D Tex : register(t0);
-SamplerState Sampler : register(s0);
 
 static float2 offset = float2(1 / 1920.0f, 1 / 1080.0f);
 
@@ -25,7 +24,7 @@ float4 PS(VS_OUTPUT input) : SV_TARGET
     {
         for (int y = -halfSize; y <= halfSize; ++y)
         {
-            float4 tmp = Tex.Sample(Sampler, input.Tex + float2(x, y) * offset);
+            float4 tmp = Tex.Sample(PointSampler, input.Tex + float2(x, y) * offset);
 
             clr += multipliers[halfSize + x][halfSize + y] * tmp;
         }

@@ -128,7 +128,17 @@ DirectX::XMFLOAT3 Transform::GetRotationAsEuler() const
     pitch = (asinf(2 * test));
     roll = (atan2f(2 * quat.x*quat.w - 2 * quat.y*quat.z, 1 - 2 * sqx - 2 * sqz));
 
-    return XMFLOAT3(pitch, yaw, roll);
+    return XMFLOAT3(roll, yaw, pitch);
+}
+
+DirectX::XMFLOAT3 Transform::GetRotationAsEulerInDegrees() const
+{
+    XMFLOAT3 output = GetRotationAsEuler();
+    output.x = DirectX::XMConvertToDegrees(output.x);
+    output.y = DirectX::XMConvertToDegrees(output.y);
+    output.z = DirectX::XMConvertToDegrees(output.z);
+
+    return output;
 }
 
 void Transform::SetRotation(const XMFLOAT4& quaternion)

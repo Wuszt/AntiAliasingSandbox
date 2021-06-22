@@ -1,3 +1,5 @@
+#pragma once
+
 #include <string>
 #include <vector>
 #include <Windows.h>
@@ -18,6 +20,8 @@ public:
     inline const ProfilingSession* GetParent() const { return m_parent; }
     inline void SetParent(const ProfilingSession* const& session) { m_parent = session; }
     inline int GetOrder() { return m_order; }
+
+    void Reset();
 
     virtual void OnStartFrame() {}
     virtual void OnEndFrame() {}

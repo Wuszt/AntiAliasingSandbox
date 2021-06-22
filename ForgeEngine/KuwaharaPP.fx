@@ -1,7 +1,6 @@
 #include "CommonPP.fxh"
 
 Texture2D Tex : register(t0);
-SamplerState Sampler : register(s0);
 
 static float2 offset = float2(1 / 1920.0f, 1 / 1080.0f);
 
@@ -36,7 +35,7 @@ void GetPixelsArray(float2 mainCoords, out float3 output[25])
     {
         for (int y = -2; y <= 2; ++y)
         {
-            output[(x + 2) + 5 * (y + 2)] = Tex.Sample(Sampler, mainCoords + float2(x, y) * offset).rgb;
+            output[(x + 2) + 5 * (y + 2)] = Tex.Sample(PointSampler, mainCoords + float2(x, y) * offset).rgb;
         }
     }
 }

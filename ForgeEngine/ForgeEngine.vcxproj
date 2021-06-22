@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="AAHelpers.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="Component.cpp" />
     <ClCompile Include="ControllableCamera.cpp" />
@@ -29,6 +30,9 @@
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">-D _CRT_SECURE_NO_WARNINGS %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="DirectionalLight.cpp" />
+    <ClCompile Include="DummyAAPerformer.cpp" />
+    <ClCompile Include="FXAAPerformer.cpp" />
+    <ClCompile Include="IAAPerformer.cpp" />
     <ClCompile Include="Light.cpp" />
     <ClCompile Include="LightsManager.cpp" />
     <ClCompile Include="main.cpp" />
@@ -37,6 +41,7 @@
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="MeshRenderer.cpp" />
     <ClCompile Include="Model.cpp" />
+    <ClCompile Include="MSAAPerformer.cpp" />
     <ClCompile Include="MyApp.cpp" />
     <ClCompile Include="Object.cpp" />
     <ClCompile Include="PostProcessor.cpp" />
@@ -45,16 +50,22 @@
     <ClCompile Include="RenderingSystem.cpp" />
     <ClCompile Include="RenderTargetViewsManager.cpp" />
     <ClCompile Include="ShadersManager.cpp" />
+    <ClCompile Include="SSAAPerformer.cpp" />
+    <ClCompile Include="SSAAResolutionPerformer.cpp" />
+    <ClCompile Include="TAAPerformer.cpp" />
+    <ClCompile Include="Tester.cpp" />
     <ClCompile Include="Transform.cpp" />
+    <ClCompile Include="UIRenderingSystem.cpp" />
     <ClCompile Include="Window.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <_EmbedManagedResourceFile Include="Base.fx">
+    <_EmbedManagedResourceFile Include="BaseOld.fx">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <FileType>Document</FileType>
     </_EmbedManagedResourceFile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AAHelpers.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Component.h" />
     <ClInclude Include="ConstantBuffers.h" />
@@ -62,12 +73,16 @@
     <ClInclude Include="Core.h" />
     <ClInclude Include="DebugLog.h" />
     <ClInclude Include="DirectionalLight.h" />
+    <ClInclude Include="DummyAAPerformer.h" />
+    <ClInclude Include="FXAAPerformer.h" />
+    <ClInclude Include="IAAPerformer.h" />
     <ClInclude Include="Light.h" />
     <ClInclude Include="LightsManager.h" />
     <ClInclude Include="Material.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="MeshRenderer.h" />
     <ClInclude Include="Model.h" />
+    <ClInclude Include="MSAAPerformer.h" />
     <ClInclude Include="MyApp.h" />
     <ClInclude Include="Object.h" />
     <ClInclude Include="PostProcessor.h" />
@@ -76,7 +91,12 @@
     <ClInclude Include="RenderingSystem.h" />
     <ClInclude Include="RenderTargetViewsManager.h" />
     <ClInclude Include="ShadersManager.h" />
+    <ClInclude Include="SSAAPerformer.h" />
+    <ClInclude Include="SSAAResolutionPerformer.h" />
+    <ClInclude Include="TAAPerformer.h" />
+    <ClInclude Include="Tester.h" />
     <ClInclude Include="Transform.h" />
+    <ClInclude Include="UIRenderingSystem.h" />
     <ClInclude Include="Window.h" />
   </ItemGroup>
   <ItemGroup>
@@ -134,6 +154,46 @@
     <_EmbedManagedResourceFile Include="Light.fxh">
       <FileType>Document</FileType>
     </_EmbedManagedResourceFile>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="AdditivePP.fx">
+      <FileType>Document</FileType>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="SuperSampling.fx">
+      <FileType>Document</FileType>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <_EmbedManagedResourceFile Include="Resolve.hlsl">
+      <FileType>Document</FileType>
+    </_EmbedManagedResourceFile>
+  </ItemGroup>
+  <ItemGroup>
+    <_EmbedManagedResourceFile Include="FXAA.fx">
+      <FileType>Document</FileType>
+    </_EmbedManagedResourceFile>
+  </ItemGroup>
+  <ItemGroup>
+    <_EmbedManagedResourceFile Include="Base.fx">
+      <FileType>Document</FileType>
+    </_EmbedManagedResourceFile>
+  </ItemGroup>
+  <ItemGroup>
+    <_EmbedManagedResourceFile Include="DrawingVelocity.fx">
+      <FileType>Document</FileType>
+    </_EmbedManagedResourceFile>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="TAA.fx">
+      <FileType>Document</FileType>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="DrawingDepthPP.fx">
+      <FileType>Document</FileType>
+    </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
@@ -207,9 +267,11 @@
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
       <TreatWarningAsError>true</TreatWarningAsError>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>d3d11.lib;dxgi.lib;d3dcompiler.lib;DirectXTex.lib;assimp-vc140-mt.lib;DirectXCommonClasses.lib;FW1FontWrapper.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>d3d11.lib;dxgi.lib;d3dcompiler.lib;DirectXTex.lib;assimp-vc141-mtd.lib;DirectXCommonClasses.lib;FW1FontWrapper.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <SubSystem>Windows</SubSystem>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -219,9 +281,11 @@
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
       <TreatWarningAsError>true</TreatWarningAsError>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>d3d11.lib;dxgi.lib;d3dcompiler.lib;DirectXTex.lib;assimp-vc140-mt.lib;DirectXCommonClasses.lib;FW1FontWrapper.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>d3d11.lib;dxgi.lib;d3dcompiler.lib;DirectXTex.lib;assimp-vc141-mtd.lib;DirectXCommonClasses.lib;FW1FontWrapper.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <SubSystem>Windows</SubSystem>
     </Link>
     <PostBuildEvent>
       <Command>xcopy /E /Y "$(ProjectDir)\Dlls" "$(SolutionDir)\x64\Debug"</Command>
@@ -241,7 +305,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <SubSystem>Windows</SubSystem>
-      <AdditionalDependencies>d3d11.lib;dxgi.lib;d3dcompiler.lib;DirectXTex.lib;assimp-vc140-mt.lib;DirectXCommonClasses.lib;FW1FontWrapper.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>d3d11.lib;dxgi.lib;d3dcompiler.lib;DirectXTex.lib;assimp-vc141-mt.lib;DirectXCommonClasses.lib;FW1FontWrapper.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <FxCompile>
       <ShaderType>
@@ -264,7 +328,8 @@
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>d3d11.lib;dxgi.lib;d3dcompiler.lib;DirectXTex.lib;assimp-vc140-mt.lib;DirectXCommonClasses.lib;FW1FontWrapper.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>d3d11.lib;dxgi.lib;d3dcompiler.lib;DirectXTex.lib;assimp-vc141-mt.lib;DirectXCommonClasses.lib;FW1FontWrapper.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <SubSystem>Windows</SubSystem>
     </Link>
     <PostBuildEvent>
       <Command>xcopy /E /Y "$(ProjectDir)\Dlls" "$(SolutionDir)\x64\Release"</Command>

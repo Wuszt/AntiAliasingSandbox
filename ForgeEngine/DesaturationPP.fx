@@ -1,13 +1,14 @@
 #include "CommonPP.fxh"
 
 Texture2D Texture;
-SamplerState Sampler;
 
 float4 PS(VS_OUTPUT input) : SV_TARGET
 {
-    float4 tmp = Texture.Sample(Sampler, input.Tex);
+    float4 clr = Texture.Sample(PointSampler, input.Tex);
 
-    tmp.r = (tmp.r * 0.3f + tmp.g * 0.59f + tmp.b * 0.11f);
+    clr = clr * clr;
 
-    return tmp.rrra;
+    clr.r = sqrt(clr.r * 0.299f + clr.g * 0.587f + clr.b * 0.114f);
+
+    return clr.rrra;
 }

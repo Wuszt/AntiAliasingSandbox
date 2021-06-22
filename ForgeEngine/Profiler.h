@@ -22,10 +22,10 @@ struct ID3D11Query;
 class Profiler
 {
 public:
-    Profiler(const RenderingSystem* const& renderingSystem, const Window* const& window);
+    Profiler(const Window* const& window);
     ~Profiler();
 
-    static void Initialize(const RenderingSystem* const& renderingSystem, const Window* const& window);
+    static void Initialize(const Window* const& window);
     static void Release();
 
     static void Draw();
@@ -41,11 +41,15 @@ public:
 
     static void StartFrame();
     static void EndFrame();
+    
+    static void RequestLogsToFile(std::string fileName) { s_instance->m_logsFileName = fileName; }
+
+
+    static void Reset();
 
 private:
     static Profiler* s_instance;
 
-    const RenderingSystem* m_renderingSystem;
     const Window* m_window;
 
     void OnStartCPUProfiling(const std::string& name);
@@ -58,14 +62,19 @@ private:
     void OnStartFrame();
     void OnEndFrame();
 
-    void PrepareLogsHierarchy(std::unordered_map<std::string, ProfilingSession*>::iterator begin, std::unordered_map<std::string, ProfilingSession*>::iterator end, const int& length, const UINT64& freq);
+    void OnReset();
+
+    void SaveLogsToFile(const std::string& fileName, const UINT64& gpuFreq);
+    void PrepareLogsToPrintOnScreen(const UINT64& gpuFreq);
+    std::string GetProfilersInHierarchy(std::unordered_map<std::string, ProfilingSession*>::iterator begin, std::unordered_map<std::string, ProfilingSession*>::iterator end, const int& length, const UINT64& freq);
+    std::string GetProfilersInCSVFormat(std::unordered_map<std::string, ProfilingSession*>::iterator begin, std::unordered_map<std::string, ProfilingSession*>::iterator end, const int& length, const UINT64& freq);
 
     std::unordered_map<std::string, ProfilingSession*> m_cpuProfilers;
     LARGE_INTEGER m_CPUfrequency;
 
     std::unordered_map<std::string, ProfilingSession*> m_gpuProfilers[QUERY_LATENCY];
 
-    std::string m_cachedMessages;
+    std::string m_cachedScreenLogs;
     int m_cpuOrderCounter;
     int m_gpuOrderCounter;
 
@@ -76,10 +85,14 @@ private:
 
     int m_framesCounter = 0;
     float m_tmpTime = 0.0f;
-    float m_tmpFramesCounter = 0;
+    int m_tmpFramesCounter = 0;
+
     double m_profilingTime = 0;
 
     int m_currentFPS;
     float m_currentFrameDuration;
+
+    std::string m_logsFileName = "";
+    bool m_resetRequested = false;
 };
 

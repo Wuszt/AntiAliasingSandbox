@@ -7,7 +7,6 @@
 #include <assimp/matrix4x4.h>
 #include "Material.h"
 #include <d3d11.h>
-#include <FW1FontWrapper/FW1FontWrapper.h>
 #include "ConstantBuffers.h"
 
 struct aiScene;
@@ -18,17 +17,6 @@ class Object;
 class MeshRenderer;
 class Camera;
 class ShadersManager;
-
-enum class TextAnchor
-{
-    Top = 0,
-    Center = 1,   
-    Bottom = 2,
-    Left = 4,
-    Right = 8
-};
-
-inline TextAnchor operator| (const TextAnchor& l, const TextAnchor& r) { return static_cast<TextAnchor>(static_cast<UINT>(l) | static_cast<UINT>(r)); }
 
 class RenderingSystem
 {
@@ -41,8 +29,6 @@ public:
 
     void InitializeMeshRendererWithModelPath(MeshRenderer* const& meshRenderer, const std::string& modelPath, const std::string& shaderPath);
     void InitializeMeshRendererWithModel(MeshRenderer* const& meshRenderer, const Model* const& model, const std::string& shaderPath);
-
-    void DrawText(const std::string& text, const float& size, const float& x, const float& y, const DirectX::XMFLOAT4& color, const TextAnchor& anchor = TextAnchor::Center) const;
 
 private:
     const Model* LoadModelFromPath(const std::string& modelPath, const std::string& shaderPath);
@@ -66,9 +52,5 @@ private:
 
     cbPerObject m_cbPerObj;
     ID3D11Buffer* m_cbPerObjectBuff;
-
-    IFW1Factory* m_textFactory;
-    IFW1FontWrapper* m_fontWrapper;
-
 };
 

@@ -13,6 +13,15 @@
     <Filter Include="Shaders\PPs">
       <UniqueIdentifier>{8d0cb3cb-1eb8-4f7a-80b0-743ee81ad9ff}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Shaders\PPs\Headers">
+      <UniqueIdentifier>{1066295e-856e-4843-b8ea-3e0c6049857a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\Headers">
+      <UniqueIdentifier>{4e40c0fb-ca61-4bee-8cd2-6d77dd824665}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AAPerformers">
+      <UniqueIdentifier>{0c812e06-b22a-4ca8-aa70-ded19b5a1d52}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -74,6 +83,26 @@
     </ClCompile>
     <ClCompile Include="Light.cpp" />
     <ClCompile Include="DirectionalLight.cpp" />
+    <ClCompile Include="UIRenderingSystem.cpp" />
+    <ClCompile Include="AAHelpers.cpp" />
+    <ClCompile Include="IAAPerformer.cpp">
+      <Filter>AAPerformers</Filter>
+    </ClCompile>
+    <ClCompile Include="SSAAPerformer.cpp">
+      <Filter>AAPerformers</Filter>
+    </ClCompile>
+    <ClCompile Include="DummyAAPerformer.cpp">
+      <Filter>AAPerformers</Filter>
+    </ClCompile>
+    <ClCompile Include="MSAAPerformer.cpp" />
+    <ClCompile Include="FXAAPerformer.cpp">
+      <Filter>AAPerformers</Filter>
+    </ClCompile>
+    <ClCompile Include="TAAPerformer.cpp">
+      <Filter>AAPerformers</Filter>
+    </ClCompile>
+    <ClCompile Include="SSAAResolutionPerformer.cpp" />
+    <ClCompile Include="Tester.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Camera.h">
@@ -133,11 +162,28 @@
     </ClInclude>
     <ClInclude Include="Light.h" />
     <ClInclude Include="DirectionalLight.h" />
+    <ClInclude Include="UIRenderingSystem.h" />
+    <ClInclude Include="AAHelpers.h" />
+    <ClInclude Include="IAAPerformer.h">
+      <Filter>AAPerformers</Filter>
+    </ClInclude>
+    <ClInclude Include="SSAAPerformer.h">
+      <Filter>AAPerformers</Filter>
+    </ClInclude>
+    <ClInclude Include="DummyAAPerformer.h">
+      <Filter>AAPerformers</Filter>
+    </ClInclude>
+    <ClInclude Include="MSAAPerformer.h" />
+    <ClInclude Include="FXAAPerformer.h">
+      <Filter>AAPerformers</Filter>
+    </ClInclude>
+    <ClInclude Include="TAAPerformer.h">
+      <Filter>AAPerformers</Filter>
+    </ClInclude>
+    <ClInclude Include="SSAAResolutionPerformer.h" />
+    <ClInclude Include="Tester.h" />
   </ItemGroup>
   <ItemGroup>
-    <_EmbedManagedResourceFile Include="Base.fx">
-      <Filter>Shaders</Filter>
-    </_EmbedManagedResourceFile>
     <_EmbedManagedResourceFile Include="DesaturationPP.fx">
       <Filter>Shaders\PPs</Filter>
     </_EmbedManagedResourceFile>
@@ -162,15 +208,40 @@
     <_EmbedManagedResourceFile Include="OutlinePP.fx">
       <Filter>Shaders\PPs</Filter>
     </_EmbedManagedResourceFile>
-    <_EmbedManagedResourceFile Include="CommonPP.fxh" />
-    <_EmbedManagedResourceFile Include="SobelTweakingPP.fx" />
+    <_EmbedManagedResourceFile Include="SobelTweakingPP.fx">
+      <Filter>Shaders\PPs</Filter>
+    </_EmbedManagedResourceFile>
+    <_EmbedManagedResourceFile Include="CommonPP.fxh">
+      <Filter>Shaders\PPs\Headers</Filter>
+    </_EmbedManagedResourceFile>
+    <_EmbedManagedResourceFile Include="Light.fxh">
+      <Filter>Shaders\Headers</Filter>
+    </_EmbedManagedResourceFile>
+    <_EmbedManagedResourceFile Include="FXAA.fx">
+      <Filter>Shaders\PPs</Filter>
+    </_EmbedManagedResourceFile>
+    <_EmbedManagedResourceFile Include="Resolve.hlsl">
+      <Filter>Shaders\PPs</Filter>
+    </_EmbedManagedResourceFile>
+    <_EmbedManagedResourceFile Include="BaseOld.fx">
+      <Filter>Shaders</Filter>
+    </_EmbedManagedResourceFile>
+    <_EmbedManagedResourceFile Include="Base.fx" />
+    <_EmbedManagedResourceFile Include="DrawingVelocity.fx" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="AdditivePP.fx">
+      <Filter>Shaders\PPs</Filter>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SuperSampling.fx">
+      <Filter>Shaders</Filter>
+    </EmbeddedResource>
+    <EmbeddedResource Include="TAA.fx" />
+    <EmbeddedResource Include="DrawingDepthPP.fx" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Common.fxh">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="Light.fxh">
-      <Filter>Shaders</Filter>
+      <Filter>Shaders\Headers</Filter>
     </None>
   </ItemGroup>
 </Project>

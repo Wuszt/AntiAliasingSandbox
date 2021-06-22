@@ -15,13 +15,19 @@ ShadersManager::~ShadersManager()
 {
     for (auto& pair : m_cachedShaders)
     {
-        ReleaseShader(pair.second);
+        ReleaseShaders(pair.second);
+        delete pair.second;
     }
 }
 
 void ShadersManager::Initialize()
 {
     s_instance = new ShadersManager();
+}
+
+void ShadersManager::Update()
+{
+    s_instance->OnUpdate();
 }
 
 void ShadersManager::Release()
@@ -33,90 +39,146 @@ const CachedShaders* ShadersManager::GetShaders(const string& path)
 {
     auto found = m_cachedShaders.find(path);
 
-    static WIN32_FILE_ATTRIBUTE_DATA fInfo;
-    static ID3D10Blob* buffer;
-
-    CachedShaders* cached = nullptr;
-
     if (found != m_cachedShaders.end())
     {
-        cached = &found->second;
-
-        GetFileAttributesEx(path.c_str(), GetFileExInfoStandard, &fInfo);
-        uint64_t lastMod = fInfo.ftLastWriteTime.dwHighDateTime;
-        lastMod = lastMod << 32 | fInfo.ftLastWriteTime.dwLowDateTime;
-
-        if (lastMod == cached->LastModificationTime)
-        {
-            if (cached->ErrorMsg == "")
-                return cached;
-
-            DebugLog::LogError(cached->ErrorMsg);
-            return GetShaders("Placeholder.fx");
-        }
+        return found->second;
     }
 
-    if (cached == nullptr)
-        cached = &m_cachedShaders.insert({ path, CachedShaders() }).first->second;
-    else if (cached->ErrorMsg == "")
-        ReleaseShader(*cached);
+    CachedShaders* cached = new CachedShaders();
+    GetCompiledShadersOrPlaceholder(path, cached);
+    m_cachedShaders.emplace(path, cached);
 
-    GetFileAttributesEx(path.c_str(), GetFileExInfoStandard, &fInfo);
-    cached->LastModificationTime = fInfo.ftLastWriteTime.dwHighDateTime;
-    cached->LastModificationTime = cached->LastModificationTime << 32 | fInfo.ftLastWriteTime.dwLowDateTime;
+    return cached;
 
-    cached->ErrorMsg = "";
+        //GetFileAttributesEx(path.c_str(), GetFileExInfoStandard, &fInfo);
+        //uint64_t lastMod = fInfo.ftLastWriteTime.dwHighDateTime;
+        //lastMod = lastMod << 32 | fInfo.ftLastWriteTime.dwLowDateTime;
 
+        //if (lastMod == cached->m_lastModificationTime)
+        //{
+           // if (cached->m_errorMsg == "")
+            //    return cached;
+
+            //DebugLog::LogError(cached->m_errorMsg);
+          //  return GetShaders("Placeholder.fx");
+     //   }
+  //  }
+
+    //if (cached == nullptr)
+    //    cached = m_cachedShaders.insert({ path, new CachedShaders() }).first->second;
+    //else if (cached->m_errorMsg == "")
+    //    ReleaseShaders(cached);
+
+    //GetFileAttributesEx(path.c_str(), GetFileExInfoStandard, &fInfo);
+    //cached->m_lastModificationTime = fInfo.ftLastWriteTime.dwHighDateTime;
+    //cached->m_lastModificationTime = cached->m_lastModificationTime << 32 | fInfo.ftLastWriteTime.dwLowDateTime;
+
+    //cached->m_errorMsg = "";
+
+    //if (!TryToCompileShaders(path, cached))
+    //{
+    //    DebugLog::LogError(cached->m_errorMsg);
+    //    return GetShaders("Placeholder.fx");
+    //}
+
+    //return cached;
+}
+
+void ShadersManager::OnUpdate()
+{
+    for (auto& shaders : m_cachedShaders)
+    {
+        uint64_t lastMod = GetEncodedLastModificationTimeOfFile(shaders.first);
+
+        if(!shaders.second->m_errorMsg.empty())
+            DebugLog::LogError(shaders.second->m_errorMsg);
+
+        if (lastMod != shaders.second->m_lastModificationTime)
+        {
+            GetCompiledShadersOrPlaceholder(shaders.first, lastMod, shaders.second);
+        }
+    }
+}
+
+void ShadersManager::ReleaseShaders(CachedShaders* cachedShaders)
+{
+    if (cachedShaders->GetPS().ByteCode)
+        cachedShaders->GetPS().ByteCode->Release();
+
+    if (cachedShaders->GetPS().Shader)
+        cachedShaders->GetPS().Shader->Release();
+
+    if (cachedShaders->GetVS().ByteCode)
+        cachedShaders->GetVS().ByteCode->Release();
+
+    if (cachedShaders->GetVS().Shader)
+        cachedShaders->GetVS().Shader->Release();
+}
+
+ShadersManager* ShadersManager::s_instance;
+
+bool ShadersManager::TryToCompileShaders(std::string path, CachedShaders* destination)
+{
     HRESULT hr;
 
     do
     {
         ID3DBlob* errorMessages = nullptr;
-        hr = D3DCompileFromFile(std::wstring(path.begin(), path.end()).c_str(), 0, D3D_COMPILE_STANDARD_FILE_INCLUDE, "VS", "vs_4_0", D3D10_SHADER_ENABLE_STRICTNESS | D3D10_SHADER_DEBUG, 0, &cached->VS.ByteCode, &errorMessages);
+        hr = D3DCompileFromFile(std::wstring(path.begin(), path.end()).c_str(), 0, D3D_COMPILE_STANDARD_FILE_INCLUDE, "VS", "vs_5_0", D3D10_SHADER_ENABLE_STRICTNESS | D3D10_SHADER_DEBUG, 0, &destination->m_vs.ByteCode, &errorMessages);
 
         if (hr == S_OK)
-            hr = D3DCompileFromFile(std::wstring(path.begin(), path.end()).c_str(), 0, D3D_COMPILE_STANDARD_FILE_INCLUDE, "PS", "ps_4_0", D3D10_SHADER_ENABLE_STRICTNESS | D3D10_SHADER_DEBUG, 0, &cached->PS.ByteCode, &errorMessages);
+            hr = D3DCompileFromFile(std::wstring(path.begin(), path.end()).c_str(), 0, D3D_COMPILE_STANDARD_FILE_INCLUDE, "PS", "ps_5_0", D3D10_SHADER_ENABLE_STRICTNESS | D3D10_SHADER_DEBUG, 0, &destination->m_ps.ByteCode, &errorMessages);
 
         if (hr != S_OK && hr != HRESULT_FROM_WIN32(ERROR_SHARING_VIOLATION))
         {
             if (hr == HRESULT_FROM_WIN32(ERROR_FILE_NOT_FOUND))
-                cached->ErrorMsg = "Couldn't find shader with path: " + path;
+                destination->m_errorMsg = "Couldn't find shader with path: " + path;
             else if (hr == E_FAIL)
             {
-                cached->ErrorMsg = reinterpret_cast<const char*>(errorMessages->GetBufferPointer());
+                destination->m_errorMsg = reinterpret_cast<const char*>(errorMessages->GetBufferPointer());
                 errorMessages->Release();
             }
             else
-                cached->ErrorMsg = "Unknown error while compiling " + path;
+                destination->m_errorMsg = "Unknown error while compiling " + path;
 
-            DebugLog::LogError(cached->ErrorMsg);
-
-            return GetShaders("Placeholder.fx");
+            return false;
         }
 
     } while (hr == HRESULT_FROM_WIN32(ERROR_SHARING_VIOLATION));
 
-    Core::GetD3Device()->CreateVertexShader(cached->VS.ByteCode->GetBufferPointer(), cached->VS.ByteCode->GetBufferSize(), NULL, &cached->VS.Shader);
-    Core::GetD3Device()->CreatePixelShader(cached->PS.ByteCode->GetBufferPointer(), cached->PS.ByteCode->GetBufferSize(), NULL, &cached->PS.Shader);
+    Core::GetD3Device()->CreateVertexShader(destination->m_vs.ByteCode->GetBufferPointer(), destination->m_vs.ByteCode->GetBufferSize(), NULL, &destination->m_vs.Shader);
+    Core::GetD3Device()->CreatePixelShader(destination->m_ps.ByteCode->GetBufferPointer(), destination->m_ps.ByteCode->GetBufferSize(), NULL, &destination->m_ps.Shader);
 
-    cached->ErrorMsg = "";
+    destination->m_errorMsg = "";
 
-    return cached;
+    return true;
 }
 
-void ShadersManager::ReleaseShader(CachedShaders& cachedShader)
+void ShadersManager::GetCompiledShadersOrPlaceholder(std::string path, CachedShaders* destination)
 {
-    if (cachedShader.PS.ByteCode)
-        cachedShader.PS.ByteCode->Release();
-
-    if (cachedShader.PS.Shader)
-        cachedShader.PS.Shader->Release();
-
-    if (cachedShader.VS.ByteCode)
-        cachedShader.VS.ByteCode->Release();
-
-    if (cachedShader.VS.Shader)
-        cachedShader.VS.Shader->Release();
+    uint64_t lastMod = GetEncodedLastModificationTimeOfFile(path);
+    GetCompiledShadersOrPlaceholder(path, lastMod, destination);
 }
 
-ShadersManager* ShadersManager::s_instance;
+void ShadersManager::GetCompiledShadersOrPlaceholder(std::string path, uint64_t modificationTime, CachedShaders* destination)
+{
+    destination->m_errorMsg = "";
+    destination->m_lastModificationTime = modificationTime;
+    if (!TryToCompileShaders(path, destination))
+    {
+        std::string errorMsg = destination->m_errorMsg;
+        TryToCompileShaders("Placeholder.fx", destination);
+        destination->m_errorMsg = errorMsg;
+    }
+}
+
+uint64_t ShadersManager::GetEncodedLastModificationTimeOfFile(std::string path)
+{
+    static WIN32_FILE_ATTRIBUTE_DATA fInfo;
+
+    GetFileAttributesEx(path.c_str(), GetFileExInfoStandard, &fInfo);
+    uint64_t lastMod = fInfo.ftLastWriteTime.dwHighDateTime;
+    lastMod = lastMod << 32 | fInfo.ftLastWriteTime.dwLowDateTime;
+
+    return lastMod;
+}

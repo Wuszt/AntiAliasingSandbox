@@ -23,6 +23,7 @@ public:
     inline DirectX::XMFLOAT3 GetPosition() const { return m_position; }
     inline DirectX::XMFLOAT4 GetRotation() const { return m_rotation; }
     DirectX::XMFLOAT3 GetRotationAsEuler() const;
+    DirectX::XMFLOAT3 GetRotationAsEulerInDegrees() const;
 
     void SetRotation(const DirectX::XMFLOAT4& quaternion);
     void SetRotationFromEulerDegrees(const DirectX::XMFLOAT3& euler);

@@ -7,7 +7,7 @@
 struct ID3D11ShaderResourceView;
 struct ID3D11InputLayout;
 struct D3D11_INPUT_ELEMENT_DESC;
-struct CachedShaders;
+class CachedShaders;
 struct ID3D11Buffer;
 
 class Material
@@ -22,13 +22,15 @@ public:
     DirectX::XMFLOAT3 Diffuse;
     DirectX::XMFLOAT3 Specular;
 
-    const CachedShaders* GetShaders() const;
+    const CachedShaders* GetShaders();
     ID3D11InputLayout* GetInputLayout();
     ID3D11Buffer* GetConstantBufferMaterialBuffer();
 
 private:
     uint64_t m_shaderLastModTime;
     ID3D11InputLayout* m_inputLayout;
+
+    const CachedShaders* m_shaders;
     
     cbMaterial m_cbMaterial;
     ID3D11Buffer* m_cbMaterialBuff;

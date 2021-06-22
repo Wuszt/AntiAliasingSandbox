@@ -3,15 +3,15 @@
 #include <windows.h>
 #include <string>
 #include <DirectXCommonClasses/Time.h>
-#include "RenderingSystem.h"
+#include "UIRenderingSystem.h"
 #include "Window.h"
+#include "Core.h"
 
 using namespace std;
 using namespace DirectX;
 
-DebugLog::DebugLog(const RenderingSystem* const& renderingSystem, const Window* const& window)
+DebugLog::DebugLog(const Window* const& window)
 {
-    m_renderingSystem = renderingSystem;
     m_window = window;
 }
 
@@ -20,9 +20,9 @@ DebugLog::~DebugLog()
 
 }
 
-void DebugLog::Initialize(const RenderingSystem* const& renderingSystem, const Window* const& window)
+void DebugLog::Initialize(const Window* const& window)
 {
-    s_instance = new DebugLog(renderingSystem, window);
+    s_instance = new DebugLog(window);
 }
 
 void DebugLog::Release()
@@ -72,7 +72,7 @@ void DebugLog::PrintLogs()
         }
 
         m_logsQueue[i].ShownAtLeastOnce = true;
-        m_renderingSystem->DrawText(m_logsQueue[i].Message, LOG_TEXT_SIZE, MARGIN, MARGIN + LOG_TEXT_SIZE * i, m_logsQueue[i].Color, TextAnchor::Top | TextAnchor::Left);
+        Core::GetUIRenderingSystem()->Print(m_logsQueue[i].Message, LOG_TEXT_SIZE, MARGIN, MARGIN + LOG_TEXT_SIZE * i, m_logsQueue[i].Color, TextAnchor::Top | TextAnchor::Left);
     }
 }
 
@@ -92,7 +92,7 @@ void DebugLog::PrintErrors()
         float tmpA = (it.second.DeathTime - Time::GetTime()) / ERROR_LIFE_TIME;
         float alpha = tmpA * tmpA;
 
-        m_renderingSystem->DrawText(it.first, ERROR_TEXT_SIZE, (float)m_window->GetWidth() - MARGIN, MARGIN + ERROR_TEXT_SIZE * i, XMFLOAT4(1.0f, 0.0f, 0.0f, alpha), TextAnchor::Top | TextAnchor::Right);
+        Core::GetUIRenderingSystem()->Print(it.first, ERROR_TEXT_SIZE, (float)m_window->GetWidth() - MARGIN, MARGIN + ERROR_TEXT_SIZE * i, XMFLOAT4(1.0f, 0.0f, 0.0f, alpha), TextAnchor::Top | TextAnchor::Right);
         ++i;
     }
 
@@ -117,4 +117,14 @@ std::ostream& operator<<(std::ostream& os, const DirectX::XMFLOAT3& vec)
 {
     os << "[" << vec.x << " , " << vec.y << " , " << vec.z << "]";
     return os;
+}
+
+std::string to_string(const XMFLOAT3& vec)
+{
+    static std::stringstream ss;
+
+    ss.str(string());
+    ss << "[" << vec.x << " , " << vec.y << " , " << vec.z << "]";
+
+    return ss.str();
 }

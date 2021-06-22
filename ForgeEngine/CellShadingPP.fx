@@ -1,7 +1,6 @@
 #include "CommonPP.fxh"
 
 Texture2D Tex : register(t0);
-SamplerState Sampler : register(s0);
 
 static float2 offset = float2(1 / 1920.0f, 1 / 1080.0f);
 
@@ -24,6 +23,6 @@ float4 MySimplify(float3 clr)
 
 float4 PS(VS_OUTPUT input) : SV_TARGET
 {
-    float3 clr = Tex.Sample(Sampler, input.Tex).rgb;
+    float3 clr = Tex.Sample(PointSampler, input.Tex).rgb;
     return MySimplify(clr);
 }

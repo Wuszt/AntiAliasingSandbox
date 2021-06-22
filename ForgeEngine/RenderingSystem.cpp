@@ -30,9 +30,6 @@ RenderingSystem::RenderingSystem()
     cbbd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 
     Core::GetD3Device()->CreateBuffer(&cbbd, nullptr, &m_cbPerObjectBuff);
-
-    FW1CreateFactory(FW1_VERSION, &m_textFactory);
-    m_textFactory->CreateFontWrapper(Core::GetD3Device(), L"Arial", &m_fontWrapper);
 }
 
 RenderingSystem::~RenderingSystem()
@@ -43,27 +40,26 @@ RenderingSystem::~RenderingSystem()
     }
 
     m_cbPerObjectBuff->Release();
-
-    m_fontWrapper->Release();
-    m_textFactory->Release();
 }
 
 void RenderingSystem::RenderRegisteredMeshRenderers(Camera* const& camera)
 {
     for (MeshRenderer* const& renderer : m_meshRenderers)
     {
+        m_cbPerObj.WVP = XMMatrixTranspose(renderer->GetOwner()->GetTransform()->GetWorldMatrix() * camera->GetViewMatrix() * camera->GetProjectionMatrix());
+        m_cbPerObj.W = XMMatrixTranspose(renderer->GetOwner()->GetTransform()->GetWorldMatrix());
+        m_cbPerObj.PrevWVP = renderer->PrevWVP;
+        renderer->PrevWVP = m_cbPerObj.WVP;
+
+        Core::GetD3DeviceContext()->UpdateSubresource(m_cbPerObjectBuff, 0, nullptr, &m_cbPerObj, 0, 0);
+        Core::GetD3DeviceContext()->VSSetConstantBuffers(static_cast<UINT>(VertexCBIndex::PerObject), 1, &m_cbPerObjectBuff);
+
         for (const Mesh* const& mesh : *renderer->m_meshes)
         {
             Core::GetD3DeviceContext()->IASetIndexBuffer(mesh->IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
 
             UINT offset = 0;
             Core::GetD3DeviceContext()->IASetVertexBuffers(0, 1, &mesh->VertexBuffer, &mesh->Stride, &offset);
-
-            m_cbPerObj.WVP = XMMatrixTranspose(renderer->GetOwner()->GetTransform()->GetWorldMatrix() * camera->GetViewMatrix() * camera->GetProjectionMatrix());
-            m_cbPerObj.W = XMMatrixTranspose(renderer->GetOwner()->GetTransform()->GetWorldMatrix());
-
-            Core::GetD3DeviceContext()->UpdateSubresource(m_cbPerObjectBuff, 0, nullptr, &m_cbPerObj, 0, 0);
-            Core::GetD3DeviceContext()->VSSetConstantBuffers(static_cast<UINT>(VertexCBIndex::PerObject), 1, &m_cbPerObjectBuff);
             
             static ID3D11Buffer* materialBuff;
             materialBuff = mesh->Material->GetConstantBufferMaterialBuffer();
@@ -75,8 +71,8 @@ void RenderingSystem::RenderRegisteredMeshRenderers(Camera* const& camera)
             static const CachedShaders* cachedShaders;
             cachedShaders = mesh->Material->GetShaders();
 
-            Core::GetD3DeviceContext()->VSSetShader(cachedShaders->VS.Shader, 0, 0);
-            Core::GetD3DeviceContext()->PSSetShader(cachedShaders->PS.Shader, 0, 0);
+            Core::GetD3DeviceContext()->VSSetShader(cachedShaders->GetVS().Shader, 0, 0);
+            Core::GetD3DeviceContext()->PSSetShader(cachedShaders->GetPS().Shader, 0, 0);
 
             Core::GetD3DeviceContext()->IASetInputLayout(mesh->Material->GetInputLayout());
 
@@ -117,26 +113,6 @@ void RenderingSystem::InitializeMeshRendererWithModel(MeshRenderer* const& meshR
         if (child->Name.length() > 0)
             obj->Name = child->Name;
     }
-}
-
-void RenderingSystem::DrawText(const string& text, const float& size, const float& x, const float& y, const XMFLOAT4& color, const TextAnchor& anchor) const
-{
-    UINT clr = (UINT)(min(max(color.x, 0.0f), 1.0f) * 255)
-        | ((UINT)(min(max(color.y, 0.0f), 1.0f) * 255)) << 8
-        | ((UINT)(min(max(color.z, 0.0f), 1.0f) * 255)) << 16
-        | ((UINT)(min(max(color.w, 0.0f), 1.0f) * 255)) << 24;
-
-    UINT flags = FW1_RESTORESTATE;
-    flags |= ((UINT)anchor & (UINT)TextAnchor::Bottom) ? FW1_BOTTOM : 0;
-    flags |= ((UINT)anchor & (UINT)TextAnchor::Left) ? FW1_LEFT : 0;
-    flags |= ((UINT)anchor & (UINT)TextAnchor::Right) ? FW1_RIGHT : 0;
-
-    if (flags & FW1_LEFT || flags & FW1_RIGHT)
-        flags |= ((UINT)anchor & (UINT)TextAnchor::Center) ? FW1_VCENTER : 0;
-    else
-        flags |= ((UINT)anchor & (UINT)TextAnchor::Center) ? FW1_CENTER : 0;
-
-    m_fontWrapper->DrawString(Core::GetD3DeviceContext(), wstring(text.begin(), text.end()).c_str(), size, x, y, clr, flags);
 }
 
 const Model* RenderingSystem::LoadModelFromPath(const std::string& modelPath, const std::string& shaderPath)

@@ -31,9 +31,16 @@ LRESULT CALLBACK Window::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPar
         return 0;
 
     case WM_WINDOWPOSCHANGING:
+        window = (Window*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
         WINDOWPOS* pos = (WINDOWPOS*)lParam;
 
         pos->cy = (int)(9.0f / 16.0f * pos->cx);
+
+        if (pos->cx > 0)
+        {
+            window->m_width = pos->cx;
+            window->m_height = pos->cy;
+        }
 
         DefWindowProc(hwnd,
             msg,
@@ -53,14 +60,9 @@ void Window::OnResized()
 {
     m_justResized = false;
 
-    RECT WindowRect;
-    GetClientRect(m_hwnd, &WindowRect);
-    m_width = WindowRect.right - WindowRect.left;
-    m_height = WindowRect.bottom - WindowRect.top;
-
     for (auto& callback : m_resizeListeners)
     {
-        callback(m_width, m_height);
+        callback(GetWidth(), GetHeight());
     }
 }
 
@@ -69,6 +71,9 @@ Window::Window(const HINSTANCE& hInstance, const int& ShowWnd, const int& width,
 {
     m_width = width;
     m_height = height;
+
+    m_resWidth = width;
+    m_resHeight = height;
 
     typedef struct _WNDCLASS {
         UINT cbSize;
@@ -163,6 +168,17 @@ void Window::Update()
         OnResized();
 }
 
+void Window::SetResolution(int width, int height)
+{
+    m_resWidth = width;
+    m_resHeight = height;
+    
+    for (auto& callback : m_resolutionChangeListener)
+    {
+        callback(width, height);
+    }
+}
+
 void Window::AddResizeListener(void(*callback)(const int&, const int&))
 {
     m_resizeListeners.insert(callback);
@@ -171,4 +187,14 @@ void Window::AddResizeListener(void(*callback)(const int&, const int&))
 void Window::RemoveResizeListener(void(*callback)(const int&, const int&))
 {
     m_resizeListeners.erase(callback);
+}
+
+void Window::AddResolutionChangeListener(void(*callback)(const int&, const int&))
+{
+    m_resolutionChangeListener.insert(callback);
+}
+
+void Window::RemoveResolutionChangeListener(void(*callback)(const int&, const int&))
+{
+    m_resolutionChangeListener.erase(callback);
 }

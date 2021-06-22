@@ -2,20 +2,21 @@
 #include "DebugLog.h"
 #include "Window.h"
 #include <DirectXMath.h>
-#include "RenderingSystem.h"
+#include "UIRenderingSystem.h"
 #include <string>
 #include "ProfilingSession.h"
 #include <d3d11.h>
 #include <DirectXCommonClasses/Time.h>
 #include <sstream>
 #include "Core.h"
+#include <iostream>
+#include <fstream>
 
 using namespace DirectX;
 using namespace std;
 
-Profiler::Profiler(const RenderingSystem* const& renderingSystem, const Window* const& window)
+Profiler::Profiler(const Window* const& window)
 {
-    m_renderingSystem = renderingSystem;
     m_window = window;
     QueryPerformanceFrequency(&m_CPUfrequency);
 
@@ -31,9 +32,9 @@ Profiler::~Profiler()
 {
 }
 
-void Profiler::Initialize(const RenderingSystem* const& renderingSystem, const Window* const& window)
+void Profiler::Initialize(const Window* const& window)
 {
-    s_instance = new Profiler(renderingSystem, window);
+    s_instance = new Profiler(window);
 }
 
 void Profiler::Release()
@@ -104,6 +105,9 @@ void Profiler::EndProfiling(const std::string& name)
 
 void Profiler::StartFrame()
 {
+    if (s_instance->m_resetRequested)
+        s_instance->OnReset();
+
     static LARGE_INTEGER start, end;
     QueryPerformanceCounter(&start);
 
@@ -115,13 +119,12 @@ void Profiler::StartFrame()
 
 void Profiler::EndFrame()
 {
-    static LARGE_INTEGER start, end;
-    QueryPerformanceCounter(&start);
-
     s_instance->OnEndFrame();
+}
 
-    QueryPerformanceCounter(&end);
-    s_instance->m_profilingTime += (double)(end.QuadPart - start.QuadPart);
+void Profiler::Reset()
+{
+    s_instance->m_resetRequested = true;
 }
 
 Profiler* Profiler::s_instance;
@@ -185,7 +188,7 @@ void Profiler::OnEndGPUProfiling(const std::string& name)
 
 void Profiler::OnDraw()
 {
-    m_renderingSystem->DrawText(m_cachedMessages, PA_TEXT_SIZE, 0.0f, (float)s_instance->m_window->GetHeight() - 10.0f, DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), TextAnchor::Bottom | TextAnchor::Left);
+    Core::GetUIRenderingSystem()->Print(m_cachedScreenLogs, PA_TEXT_SIZE, 0.0f, (float)s_instance->m_window->GetHeight() - 10.0f, DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), TextAnchor::Bottom | TextAnchor::Left);
 }
 
 void Profiler::OnStartFrame()
@@ -201,15 +204,23 @@ void Profiler::OnStartFrame()
 
 void Profiler::OnEndFrame()
 {
+    static LARGE_INTEGER start, end;
+    QueryPerformanceCounter(&start);
+
     Core::GetD3DeviceContext()->End(m_queryJoints[m_framesCounter % QUERY_LATENCY]);
 
-    Core::GetD3DeviceContext()->Flush();
+    QueryPerformanceCounter(&end);
+    m_profilingTime += (double)(end.QuadPart - start.QuadPart);
 
     Profiler::StartCPUProfiling("Waiting for GPU");
+
+    Core::GetD3DeviceContext()->Flush();
 
     while (Core::GetD3DeviceContext()->GetData(m_queryJoints[(m_framesCounter + 1) % QUERY_LATENCY], NULL, 0, 0) == S_FALSE);
 
     Profiler::EndCPUProfiling("Waiting for GPU");
+
+    QueryPerformanceCounter(&start);
 
     D3D10_QUERY_DATA_TIMESTAMP_DISJOINT tsDisjoint;
     Core::GetD3DeviceContext()->GetData(m_queryJoints[(m_framesCounter + 1) % QUERY_LATENCY], &tsDisjoint, sizeof(tsDisjoint), 0);
@@ -240,30 +251,96 @@ void Profiler::OnEndFrame()
         m_tmpFramesCounter = 0;
     }
 
+    if (!m_logsFileName.empty())
+    {
+        SaveLogsToFile(m_logsFileName, tsDisjoint.Frequency);
+        m_logsFileName = "";
+    }
+
+    PrepareLogsToPrintOnScreen(tsDisjoint.Frequency);
+
+    QueryPerformanceCounter(&end);
+    m_profilingTime += (double)(end.QuadPart - start.QuadPart);
+}
+
+void Profiler::OnReset()
+{
+    m_resetRequested = false;
+
+    m_tmpTime = 0.0f;
+    m_tmpFramesCounter = 0;
+
+    for (auto& p : m_cpuProfilers)
+    {
+        p.second->Reset();
+    }
+
+    for (int i = 0; i < QUERY_LATENCY; ++i)
+    {
+        for (auto& p : m_gpuProfilers[i])
+        {
+            p.second->Reset();
+        }
+    }
+}
+
+void Profiler::SaveLogsToFile(const std::string& fileName, const UINT64& gpuFreq)
+{
+    std::string str = Core::GetResultsPath() + "/" + fileName + ".csv";
+
+    char drive[_MAX_DRIVE];
+    char dir[_MAX_DIR];
+    _splitpath_s(str.c_str(), drive, _MAX_DRIVE, &dir[0], _MAX_DIR, nullptr, 0, nullptr, 0);
+    std::string dirStr(dir);
+    for (size_t i = dirStr.find('/', 1); i - 1 != std::string::npos; i = dirStr.find('/', i) + 1)
+    {
+        std::string driveDir = std::string(drive) + dirStr.substr(0, i);
+        CreateDirectory(LPCSTR(driveDir.c_str()), NULL);
+    }
+    CreateDirectory(LPCSTR((std::string(drive) + dirStr).c_str()), NULL);
+
+    std::ofstream outFile(str);
+
+    outFile << "FPS" << "," << m_currentFPS << "\n";
+    outFile << "Frame" << "," << m_currentFrameDuration << "\n";
+
+    outFile << GetProfilersInCSVFormat(m_cpuProfilers.begin(), m_cpuProfilers.end(), (int)m_cpuProfilers.size(), (UINT64)m_CPUfrequency.QuadPart);
+
+    m_profilingTime = 1000.0f * m_profilingTime / m_CPUfrequency.QuadPart;
+    m_profilingTime = (int)(m_profilingTime * 1000) / 1000.0f;
+
+    outFile << "\nProfiling time," << m_profilingTime;
+    m_profilingTime = 0.0f;
+
+    outFile << "\n\nGPU PROFILING:";
+
+    outFile << GetProfilersInCSVFormat(m_gpuProfilers[(m_framesCounter + 1) % QUERY_LATENCY].begin(), m_gpuProfilers[(m_framesCounter + 1) % QUERY_LATENCY].end(), (int)m_gpuProfilers[m_framesCounter % QUERY_LATENCY].size(), gpuFreq);
+}
+
+void Profiler::PrepareLogsToPrintOnScreen(const UINT64& gpuFreq)
+{
     static stringstream ss;
     ss.str(string());
 
     ss << "FPS: " << m_currentFPS << " (" << m_currentFrameDuration << "ms)";
     ss << "\n\nCPU PROFILING:";;
 
-    m_cachedMessages = ss.str();
-
-    PrepareLogsHierarchy(m_cpuProfilers.begin(), m_cpuProfilers.end(), (int)m_cpuProfilers.size(), (UINT64)m_CPUfrequency.QuadPart);
+    ss << GetProfilersInHierarchy(m_cpuProfilers.begin(), m_cpuProfilers.end(), (int)m_cpuProfilers.size(), (UINT64)m_CPUfrequency.QuadPart);
 
     m_profilingTime = 1000.0f * m_profilingTime / m_CPUfrequency.QuadPart;
     m_profilingTime = (int)(m_profilingTime * 1000) / 1000.0f;
 
-    ss.str(string());
     ss << "\nProfiling time:" << m_profilingTime << "ms";
     m_profilingTime = 0.0f;
 
     ss << "\n\nGPU PROFILING:";
-    m_cachedMessages += ss.str();
 
-    PrepareLogsHierarchy(m_gpuProfilers[(m_framesCounter + 1) % QUERY_LATENCY].begin(), m_gpuProfilers[(m_framesCounter + 1) % QUERY_LATENCY].end(), (int)m_gpuProfilers[m_framesCounter % QUERY_LATENCY].size(), tsDisjoint.Frequency);
+    ss << GetProfilersInHierarchy(m_gpuProfilers[(m_framesCounter + 1) % QUERY_LATENCY].begin(), m_gpuProfilers[(m_framesCounter + 1) % QUERY_LATENCY].end(), (int)m_gpuProfilers[m_framesCounter % QUERY_LATENCY].size(), gpuFreq);
+
+    m_cachedScreenLogs = ss.str();
 }
 
-void Profiler::PrepareLogsHierarchy(std::unordered_map<std::string, ProfilingSession*>::iterator begin, std::unordered_map<std::string, ProfilingSession*>::iterator end, const int& length, const UINT64& freq)
+std::string Profiler::GetProfilersInHierarchy(std::unordered_map<std::string, ProfilingSession*>::iterator begin, std::unordered_map<std::string, ProfilingSession*>::iterator end, const int& length, const UINT64& freq)
 {
     std::string* arr = new std::string[length];
 
@@ -298,7 +375,38 @@ void Profiler::PrepareLogsHierarchy(std::unordered_map<std::string, ProfilingSes
     for (int i = 0; i < length; ++i)
         ss << "\n" << arr[i];
 
-    m_cachedMessages += ss.str();
+    delete[] arr;
+
+    return ss.str();
+}
+
+std::string Profiler::GetProfilersInCSVFormat(std::unordered_map<std::string, ProfilingSession*>::iterator begin, std::unordered_map<std::string, ProfilingSession*>::iterator end, const int& length, const UINT64& freq)
+{
+    std::string* arr = new std::string[length];
+
+    static stringstream ss;
+
+    auto it = begin;
+    while (it != end)
+    {
+        ss.str(string());
+
+        static double result;
+        result = it->second->GetAverageResult() / (freq / 1000);
+        result = (int)(result * 1000) / 1000.0;
+
+        ss << it->first << "," << result;
+
+        arr[it->second->GetOrder()] = ss.str();
+        ++it;
+    }
+
+    ss.str(string());
+
+    for (int i = 0; i < length; ++i)
+        ss << "\n" << arr[i];
 
     delete[] arr;
+
+    return ss.str();
 }

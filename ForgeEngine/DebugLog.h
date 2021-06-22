@@ -28,7 +28,7 @@ struct LogInfo : public ErrorInfo
 class DebugLog
 {
 public:
-    static void Initialize(const RenderingSystem* const& renderingSystem, const Window* const& window);
+    static void Initialize(const Window* const& window);
     static void Draw();
     static void Release();
     inline static bool IsInitialized() { return s_instance; }
@@ -46,7 +46,7 @@ public:
     }
 
 private:
-    DebugLog(const RenderingSystem* const& renderingSystem, const Window* const& window);
+    DebugLog(const Window* const& window);
     ~DebugLog();
 
     static DebugLog* s_instance;
@@ -59,7 +59,6 @@ private:
         return ss.str();
     }
 
-    const RenderingSystem* m_renderingSystem;
     const Window* m_window;
     void AddToLogsQueue(const std::string& message, const DirectX::XMFLOAT4& color, const float& lifeTime);
     void AddOrUpdateError(const std::string& message);
@@ -72,4 +71,4 @@ private:
 };
 
 std::ostream& operator<< (std::ostream& os, const DirectX::XMFLOAT3& vec);
-
+std::string to_string(const DirectX::XMFLOAT3& val);

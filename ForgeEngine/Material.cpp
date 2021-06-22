@@ -19,9 +19,14 @@ Material::Material()
         throw std::exception();
 }
 
-const CachedShaders* Material::GetShaders() const
+const CachedShaders* Material::GetShaders()
 {
-    return ShadersManager::GetShadersManager()->GetShaders(ShaderPath.empty() ? "Base.fx" : ShaderPath);
+    if (m_shaders != nullptr)
+        return m_shaders;
+
+    m_shaders = ShadersManager::GetShadersManager()->GetShaders(ShaderPath.empty() ? "Base.fx" : ShaderPath);
+
+    return m_shaders;
 }
 
 ID3D11InputLayout* Material::GetInputLayout()
@@ -29,17 +34,15 @@ ID3D11InputLayout* Material::GetInputLayout()
     static const CachedShaders* shaders;
     shaders = GetShaders();
 
-    if (shaders->LastModificationTime != m_shaderLastModTime)
+    if (shaders->GetLastModificationTime() != m_shaderLastModTime)
     {
         if (m_inputLayout)
             m_inputLayout->Release();
 
-        Core::GetD3Device()->CreateInputLayout(Layout.data(), (UINT)Layout.size(), shaders->VS.ByteCode->GetBufferPointer(),
-            shaders->VS.ByteCode->GetBufferSize(), &m_inputLayout);
+        Core::GetD3Device()->CreateInputLayout(Layout.data(), (UINT)Layout.size(), shaders->GetVS().ByteCode->GetBufferPointer(),
+            shaders->GetVS().ByteCode->GetBufferSize(), &m_inputLayout);
 
-
-
-        m_shaderLastModTime = shaders->LastModificationTime;
+        m_shaderLastModTime = shaders->GetLastModificationTime();
     }
     return m_inputLayout;
 }

@@ -43,6 +43,11 @@ void ProfilingSession::OnStartProfiling(const ProfilingSession* const& parent, c
     m_order = order;
 }
 
+void ProfilingSession::Reset()
+{
+    m_results.clear();
+}
+
 void CPUProfilingSession::OnStartProfiling(const ProfilingSession* const& parent, const int& order)
 {
     ProfilingSession::OnStartProfiling(parent, order);
