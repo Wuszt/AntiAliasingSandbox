@@ -1,6 +1,4 @@
 # AntiAliasingSandbox
-Called also ForgeEngine, but it's completely different thing than my other project - Forge (I just like this name).
-
 The main goal of this project was to learn and implement:
 - Basics of D3D11
 - Use so few external libraries as possible (or make sense as I was time-contrained)
